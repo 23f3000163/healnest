@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">My Profile</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.full_name.label(class="form-label") }}
+                {% if form.full_name.errors %}
+                    {{ form.full_name(class="form-control is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.full_name.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.full_name(class="form-control") }}
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.date_of_birth.label(class="form-label") }}
+                    {% if form.date_of_birth.errors %}
+                        {{ form.date_of_birth(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.date_of_birth.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.date_of_birth(class="form-control") }}
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.gender.label(class="form-label") }}
+                    {{ form.gender(class="form-select") }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.contact_number.label(class="form-label") }}
+                    {% if form.contact_number.errors %}
+                        {{ form.contact_number(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.contact_number.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.contact_number(class="form-control") }}
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.blood_group.label(class="form-label") }}
+                    {{ form.blood_group(class="form-control") }}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.allergies.label(class="form-label") }}
+                {{ form.allergies(class="form-control", placeholder="e.g., Peanuts, Pollen") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
