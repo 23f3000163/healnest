@@ -42,11 +42,16 @@
                             <li><a class="dropdown-item" href="#">Manage Patients</a></li>
                             <li><a class="dropdown-item" href="#">View All Appointments</a></li>
                             {% elif current_user.role == 'doctor' %}
-                            <li><a class="dropdown-item" href="#">My Schedule</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('doctor.dashboard') }}">My Schedule</a></li>
                             <li><a class="dropdown-item" href="#">Patient List</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('doctor.set_availability') }}">Set
+                                    Availability</a></li>
                             {% else %}
-                            <li><a class="dropdown-item" href="#">My Appointments</a></li>
-                            <li><a class="dropdown-item" href="#">Book Appointment</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('patient.dashboard') }}">My Appointments</a>
+                            </li>
+                            <li><a class="dropdown-item"
+                                    href="{{ url_for('patient.dashboard') }}#departmentsAccordion">Book Appointment</a>
+                            </li>
                             <li><a class="dropdown-item" href="#">My Medical Records</a></li>
                             {% endif %}
                         </ul>
@@ -75,9 +80,10 @@
                             data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-circle me-1"></i>
 
-                            {# This is the updated logic #}
                             {% if current_user.role == 'patient' and current_user.patient_profile %}
                             {{ current_user.patient_profile.full_name }}
+                            {% elif current_user.role == 'doctor' and current_user.doctor_profile %}
+                            {{ current_user.doctor_profile.full_name }}
                             {% else %}
                             {{ current_user.email }}
                             {% endif %}
@@ -88,7 +94,6 @@
                             <li><a class="dropdown-item"
                                     href="{{ url_for(current_user.role + '.dashboard') }}">Dashboard</a></li>
 
-                            {# Only show "My Profile" link to patients #}
                             {% if current_user.role == 'patient' %}
                             <li><a class="dropdown-item" href="{{ url_for('patient.profile') }}">My Profile</a></li>
                             {% endif %}
@@ -100,7 +105,7 @@
                         </ul>
                     </div>
                     {% else %}
-                    <a class="btn btn-primary me-2" href="{{ url_for('main.login') }}">Login</a>
+                    <a class="btn btn-outline-light me-2" href="{{ url_for('main.login') }}">Login</a>
                     <a class="btn btn-primary" href="{{ url_for('main.register') }}">Sign Up</a>
                     {% endif %}
                 </div>

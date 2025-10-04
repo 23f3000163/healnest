@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Manage Your Weekly Availability</h4>
+    </div>
+    <div class="card-body">
+        <p class="card-text text-muted">Define the days and times you are available for patient bookings. Patients will
+            only be able to book appointments within these time slots.</p>
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div id="slots-container">
+                {% for slot_form in form.slots %}
+                <div class="row align-items-end mb-3 slot-row">
+                    <div class="col-md-4">
+                        {{ slot_form.day_of_week.label(class="form-label") }}
+                        {{ slot_form.day_of_week(class="form-select") }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ slot_form.start_time.label(class="form-label") }}
+                        {{ slot_form.start_time(class="form-control") }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ slot_form.end_time.label(class="form-label") }}
+                        {{ slot_form.end_time(class="form-control") }}
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot-btn">Remove</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <hr>
+            <button type="button" id="add-slot-btn" class="btn btn-secondary me-2">Add Another Slot</button>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('slots-container');
+    const addBtn = document.getElementById('add-slot-btn');
+    
+    // Safely handle template variable
+    let slotIndex = parseInt('{{ form.slots|length|default:0 }}') || 0;
+
+    function addSlot() {
+        const template = `
+        <div class="row align-items-end mb-3 slot-row">
+            <div class="col-md-4">
+                <label class="form-label" for="slots-${slotIndex}-day_of_week">Day</label>
+                <select class="form-select" id="slots-${slotIndex}-day_of_week" name="slots-${slotIndex}-day_of_week">
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="slots-${slotIndex}-start_time">From</label>
+                <input class="form-control" id="slots-${slotIndex}-start_time" name="slots-${slotIndex}-start_time" type="time">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="slots-${slotIndex}-end_time">To</label>
+                <input class="form-control" id="slots-${slotIndex}-end_time" name="slots-${slotIndex}-end_time" type="time">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-slot-btn">Remove</button>
+            </div>
+        </div>`;
+        
+        container.insertAdjacentHTML('beforeend', template);
+        slotIndex++;
+    }
+
+    addBtn.addEventListener('click', addSlot);
+
+    container.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('remove-slot-btn')) {
+            e.target.closest('.slot-row').remove();
+        }
+    });
+});
+</script>
+
+{% endblock content %}
