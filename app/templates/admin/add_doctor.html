@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex align-items-center">
+        <i class="fas fa-user-plus me-2"></i>
+        <h4 class="mb-0">Create New Doctor Profile</h4>
+    </div>
+    <div class="card-body p-4">
+        <p class="card-text text-muted mb-4">Fill out the form below to create a new user account and profile for a doctor. An email and password will be created for them to log in.</p>
+        
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <h5 class="mb-3">Personal Details</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.full_name.label(class="form-label") }}
+                    {% if form.full_name.errors %}
+                        {{ form.full_name(class="form-control is-invalid", placeholder="e.g., Dr. John Smith") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.full_name.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.full_name(class="form-control", placeholder="e.g., Dr. John Smith") }}
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.department_id.label(class="form-label") }}
+                    {{ form.department_id(class="form-select") }}
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <h5 class="mb-3">Login Credentials</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {% if form.email.errors %}
+                        {{ form.email(class="form-control is-invalid", placeholder="doctor@example.com") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.email.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.email(class="form-control", placeholder="doctor@example.com") }}
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {% if form.password.errors %}
+                        {{ form.password(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.password(class="form-control") }}
+                    {% endif %}
+                    <div class="form-text">Must be at least 8 characters long.</div>
+                </div>
+            </div>
+            
+            <div class="form-group mt-4">
+                {{ form.submit(class="btn btn-primary px-4") }}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

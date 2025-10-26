@@ -38,8 +38,10 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark">
                             {% if current_user.role == 'admin' %}
-                            <li><a class="dropdown-item" href="#">Manage Doctors</a></li>
-                            <li><a class="dropdown-item" href="#">Manage Patients</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.manage_doctors') }}">Manage Doctors</a>
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.manage_patients') }}">Manage
+                                    Patients</a></li>
                             <li><a class="dropdown-item" href="#">View All Appointments</a></li>
                             {% elif current_user.role == 'doctor' %}
                             <li><a class="dropdown-item" href="{{ url_for('doctor.dashboard') }}">My Schedule</a></li>

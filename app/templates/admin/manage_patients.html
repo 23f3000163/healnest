@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2 class="mb-4">Manage Patients</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Contact Number</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr>
+                            <td>{{ patient.patient_profile.full_name }}</td>
+                            <td>{{ patient.email }}</td>
+                            <td>{{ patient.patient_profile.contact_number or 'N/A' }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">View Details</a>
+                                <a href="#" class="btn btn-sm btn-outline-danger">Remove</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No patients found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

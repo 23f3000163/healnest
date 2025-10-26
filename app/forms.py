@@ -72,3 +72,24 @@ class UpdateAvailabilityForm(FlaskForm):
     """The main form that contains a list of availability slots."""
     slots = FieldList(FormField(AvailabilitySlotForm), min_entries=1)
     submit = SubmitField('Update Availability') 
+
+#add doctor form 
+class AddDoctorForm(FlaskForm):
+    full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    # We use coerce=int to make sure the form submission is an integer
+    department_id = SelectField('Department', coerce=int, validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
+    submit = SubmitField('Add Doctor')
+
+    # Custom validation to check if the email is already in use
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('That email is already in use. Please choose a different one.')    
+        
+class EditDoctorForm(FlaskForm):
+    full_name = StringField('Full Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    department_id = SelectField('Department', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Update Doctor Profile')        

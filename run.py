@@ -1,30 +1,32 @@
-from app import app, db
+from app import app, db, bcrypt # Add bcrypt to the import
 from app.models import User
 
-# This block allows us to run commands within the application context
-with app.app_context():
-    # Create all database tables based on the models in models.py
-    db.create_all()
-
-    # Check if the admin user already exists to avoid creating duplicates
-    if not User.query.filter_by(role='admin').first():
-        print("Admin user not found, creating one...")
-        # Create a new User object for the admin
-        admin_user = User(
-            email='admin@hms.com',
-            role='admin'
-        )
-        # Set the password using the property setter which handles hashing
-        admin_user.password = 'password123' # Change this to a secure password
-        
-        # Add the new admin user to the session and commit to the database
-        db.session.add(admin_user)
-        db.session.commit()
-        print("Admin user created successfully!")
-    else:
-        print("Admin user already exists.")
-
-
-# This is the standard entry point for running a Flask app
 if __name__ == '__main__':
+    with app.app_context():
+        # This will create all tables based on your models.py
+        db.create_all()
+        print("Database tables created.")
+
+        # Check if the admin user exists
+        if not User.query.filter_by(email='admin@hms.com').first():
+            print("Admin user not found, creating one...")
+            
+            # Use the explicit bcrypt function to generate a secure hash
+            hashed_password = bcrypt.generate_password_hash('password123').decode('utf-8')
+            
+            admin_user = User(
+                email='admin@hms.com',
+                password_hash=hashed_password, # Store the hash directly
+                role='admin'
+            )
+            db.session.add(admin_user)
+            db.session.commit()
+            print("Admin user created successfully!")
+        else:
+            print("Admin user already exists.")
+
+    # Run the Flask app
     app.run(debug=True)
+
+
+
