@@ -2,6 +2,8 @@ from app import db, login_manager
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from itsdangerous import URLSafeTimedSerializer as Serializer
+from app import app
 
 # Flask-Login requires this to load a user from the database given their ID
 @login_manager.user_loader
@@ -31,6 +33,22 @@ class User(db.Model, UserMixin):
     notifications = db.relationship('Notification', backref='user', lazy=True, cascade="all, delete-orphan")
     reviews_given = db.relationship('DoctorReview', foreign_keys='DoctorReview.patient_id', backref='patient', lazy=True)
     reviews_received = db.relationship('DoctorReview', foreign_keys='DoctorReview.doctor_id', backref='doctor', lazy=True)
+
+    def get_reset_token(self, expires_sec=1800):
+        """Generates a secure, timed token for password reset."""
+        s = Serializer(app.config['SECRET_KEY'])
+        return s.dumps({'user_id': self.id})
+
+    @staticmethod
+    def verify_reset_token(token, expires_sec=1800):
+        """Verifies the reset token and returns the User object if valid."""
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            # The 'max_age' parameter automatically checks for expiration
+            user_id = s.loads(token, max_age=expires_sec)['user_id']
+        except Exception:
+            return None
+        return User.query.get(user_id)
 
     @property
     def password(self):

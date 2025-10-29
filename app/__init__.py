@@ -36,3 +36,19 @@ app.register_blueprint(doctor_bp)
 # --- IMPORT MODELS ---
 # Import models to ensure they are known to SQLAlchemy
 from app import models
+
+# This function makes variables globally available to all templates.
+@app.context_processor
+def inject_notifications():
+    if current_user.is_authenticated:
+        # Fetch the 5 most recent unread notifications for the current user
+        unread_notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).order_by(Notification.created_at.desc()).limit(5).all()
+        # Get a total count of unread notifications
+        notification_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        return dict(unread_notifications=unread_notifications, notification_count=notification_count)
+    return dict(unread_notifications=[], notification_count=0)
+
+# --- IMPORT MODELS AND ROUTES ---
+# Ensure these are at the very end of the file
+from app import models
+from app.routes import main_routes, admin_routes, doctor_routes, patient_routes

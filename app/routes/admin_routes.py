@@ -3,8 +3,8 @@ from flask_login import login_required, current_user
 # Add User and Appointment models to your imports
 from app.models import User, Appointment
 from . import admin_bp
-from app.forms import AddDoctorForm
-from app.models import Department, DoctorProfile, PatientProfile
+from app.forms import AddDoctorForm, EditDoctorForm, DepartmentForm, EditPatientForm
+from app.models import Department, User, DoctorProfile, PatientProfile
 from app import db, bcrypt
 from datetime import datetime
 
@@ -144,3 +144,106 @@ def edit_doctor(user_id):
         form.email.data = doctor_user.email
 
     return render_template('admin/edit_doctor.html', title='Edit Doctor', form=form)
+
+
+@admin_bp.route('/appointments')
+@login_required
+def manage_appointments():
+    if current_user.role != 'admin':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('main.home'))
+
+    # Query the database for ALL appointments, ordering by the newest first
+    all_appointments = Appointment.query.order_by(Appointment.appointment_datetime.desc()).all()
+    
+    return render_template(
+        'admin/manage_appointments.html', 
+        title='Manage All Appointments', 
+        appointments=all_appointments
+    )
+
+
+@admin_bp.route('/departments', methods=['GET', 'POST'])
+@login_required
+def manage_departments():
+    if current_user.role != 'admin':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('main.home'))
+    
+    form = DepartmentForm()
+    
+    # This block runs when the admin submits the "Add Department" form
+    if form.validate_on_submit():
+        new_dept = Department(
+            name=form.name.data,
+            description=form.description.data
+        )
+        db.session.add(new_dept)
+        db.session.commit()
+        flash(f"Department '{form.name.data}' has been created successfully.", 'success')
+        return redirect(url_for('admin.manage_departments')) # Redirect to refresh the page
+
+    # This part runs on every visit (GET request)
+    # It fetches all existing departments to display them
+    all_departments = Department.query.order_by('name').all()
+    
+    return render_template(
+        'admin/manage_departments.html', 
+        title='Manage Departments', 
+        form=form, 
+        departments=all_departments
+    )
+
+@admin_bp.route('/patient/delete/<int:user_id>', methods=['POST'])
+@login_required
+def delete_patient(user_id):
+    """
+    This route handles the deletion of a patient's account.
+    It is protected to only accept POST requests for security.
+    """
+    # Security check to ensure only an admin can perform this action.
+    if current_user.role != 'admin':
+        flash('You are not authorized to perform this action.', 'danger')
+        return redirect(url_for('main.home'))
+
+    # Find the user to be deleted in the database.
+    # If a user with this ID doesn't exist, this will automatically trigger a 404 Not Found error.
+    patient_user = User.query.get_or_404(user_id)
+    
+    # Double-check that the user being deleted is actually a patient.
+    if patient_user.role != 'patient':
+        flash('This user is not a patient.', 'warning')
+        return redirect(url_for('admin.manage_patients'))
+
+    # If all checks pass, delete the user from the database.
+    db.session.delete(patient_user)
+    db.session.commit()
+
+    flash(f'Patient account for {patient_user.email} has been permanently deleted.', 'success')
+    # Redirect the admin back to the list of patients.
+    return redirect(url_for('admin.manage_patients'))
+
+
+@admin_bp.route('/patient/edit/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def edit_patient(user_id):
+    if current_user.role != 'admin':
+        flash('You are not authorized to perform this action.', 'danger')
+        return redirect(url_for('main.home'))
+
+    patient_user = User.query.get_or_404(user_id)
+    profile = patient_user.patient_profile
+    form = EditPatientForm(obj=profile)
+
+    if form.validate_on_submit():
+        profile.full_name = form.full_name.data
+        patient_user.email = form.email.data
+        profile.contact_number = form.contact_number.data
+        db.session.commit()
+        flash('Patient profile has been updated successfully.', 'success')
+        return redirect(url_for('admin.manage_patients'))
+    
+    elif request.method == 'GET':
+        form.email.data = patient_user.email
+
+    return render_template('admin/edit_patient.html', title='Edit Patient', form=form)

@@ -1,13 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import (
-    StringField, PasswordField, SubmitField, BooleanField,
-    TextAreaField, FieldList, FormField, DateField, TimeField, SelectField
-)
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, TimeField, SelectField, TextAreaField, FieldList, FormField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional
-
-from app.models import User
-
-from app.models import User
+from app.models import User, Department 
 
 # --- Keep your existing forms ---
 
@@ -93,3 +87,22 @@ class EditDoctorForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     department_id = SelectField('Department', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Update Doctor Profile')        
+
+
+class DepartmentForm(FlaskForm):
+    name = StringField('Department Name', validators=[DataRequired()])
+    description = TextAreaField('Description', render_kw={"rows": 3})
+    submit = SubmitField('Add Department')
+
+    # Custom validation to prevent creating duplicate departments
+    def validate_name(self, name):
+        dept = Department.query.filter_by(name=name.data).first()
+        if dept:
+            raise ValidationError('A department with this name already exists.')  
+
+
+class EditPatientForm(FlaskForm):
+    full_name = StringField('Full Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    contact_number = StringField('Contact Number')
+    submit = SubmitField('Update Patient Profile')

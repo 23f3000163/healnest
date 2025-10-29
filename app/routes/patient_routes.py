@@ -1,11 +1,11 @@
-from flask import render_template, flash, redirect, url_for, request # Add request
+from flask import render_template, flash, redirect, url_for, request 
 from flask_login import login_required, current_user
-from app.models import Department, Appointment, DoctorProfile, User # Add DoctorProfile and User
+from app.models import Department, Appointment, DoctorProfile, User, Notification 
 from . import patient_bp
 from datetime import datetime
-from app.forms import BookingForm # Add this new import
-from app import db # Add this new import
-from app.forms import BookingForm, UpdateProfileForm # Add UpdateProfileForm here
+from app.forms import BookingForm
+from app import db 
+from app.forms import BookingForm, UpdateProfileForm 
 
 @patient_bp.route('/dashboard')
 @login_required
@@ -83,6 +83,15 @@ def book_appointment(doctor_id):
         )
         # Save the new appointment to the database
         db.session.add(new_appointment)
+        doctor_user = User.query.get(doctor_profile.user_id)
+        patient_name = current_user.patient_profile.full_name
+
+        notification_message = f"New appointment booked by {patient_name} for {appointment_datetime.strftime('%d %b at %I:%M %p')}."
+        new_notification = Notification(
+        user_id=doctor_user.id,
+        message=notification_message
+    )
+        db.session.add(new_notification)
         db.session.commit()
 
         flash('Your appointment has been successfully booked!', 'success')

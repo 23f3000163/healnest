@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2 class="mb-4">Search Results for: <span class="text-primary">"{{ query }}"</span></h2>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Matching Doctors ({{ doctors|length }})</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for profile in doctors %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Dr. {{ profile.full_name }}</strong><br>
+                    <small class="text-muted">{{ profile.department.name }} - {{ profile.qualifications }}</small>
+                </div>
+                <a href="{{ url_for('patient.book_appointment', doctor_id=profile.id) }}" class="btn btn-sm btn-primary">Book Now</a>
+            </li>
+            {% else %}
+            <li class="list-group-item text-center text-muted">No doctors found matching your query.</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock content %}

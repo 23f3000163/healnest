@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import login_required, current_user
-from app.models import Appointment, Treatment, Availability
+from app.models import Appointment, Treatment, Availability, Notification
 from . import doctor_bp
 from datetime import datetime
 from app.forms import TreatmentForm, UpdateAvailabilityForm
@@ -66,6 +66,14 @@ def treat_patient(appointment_id):
         
         # Update the appointment status to 'Completed'
         appointment.status = 'Completed'
+        doctor_name = current_user.doctor_profile.full_name
+
+        notification_message = f"Dr. {doctor_name} has completed your appointment and added treatment details."
+        new_notification = Notification(
+        user_id=appointment.patient_id,
+        message=notification_message
+        )
+        db.session.add(new_notification)
         
         db.session.commit()
         flash('Treatment has been recorded and the appointment is marked as completed.', 'success')

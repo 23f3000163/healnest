@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2 class="mb-4">All Notifications</h2>
+    <div class="card shadow-sm">
+        <ul class="list-group list-group-flush">
+            {% for notification in notifications %}
+            <li class="list-group-item {% if not notification.is_read %}fw-bold{% endif %}">
+                <p class="mb-1">{{ notification.message }}</p>
+                <small class="text-muted">{{ notification.created_at.strftime('%d %b %Y, %I:%M %p') }}</small>
+            </li>
+            {% else %}
+            <li class="list-group-item text-center text-muted">You have no notifications.</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock content %}
