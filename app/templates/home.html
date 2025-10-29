@@ -1,65 +1,274 @@
 {% extends "layout.html" %}
 {% block content %}
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <!-- Hero Section -->
-    <section class="px-4 py-5 my-5 text-center shadow-lg rounded-4" style="background: linear-gradient(135deg, #e9f5ff, #f7fbff);">
-        <i class="fas fa-hospital-user fa-4x text-primary mb-4"></i>
-        <h1 class="display-5 fw-bold text-dark">Modern Healthcare Management</h1>
-        <div class="col-lg-8 mx-auto">
-            <p class="lead mb-4 text-secondary">
-                A seamless, integrated platform for patients, doctors, and administrators.  
-                Manage appointments, access medical records, and streamline hospital operations—all in one place.
-            </p>
-            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-                <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg px-4 shadow-sm">
-                    <i class="fas fa-user-plus me-2"></i> Get Started as a Patient
-                </a>
-                <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary btn-lg px-4 shadow-sm">
-                    <i class="fas fa-sign-in-alt me-2"></i> Login to your Account
-                </a>
+<!-- 1. Hero Section -->
+<div class="bg-primary text-white"> <div class="container col-xxl-8 px-4 py-4">
+        </div>
+    <div class="container col-xxl-8 px-4 py-5 text-white">
+        <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+            <div class="col-10 col-sm-8 col-lg-6">
+                <img src="https://placehold.co/700x500/ffffff/0d6efd?text=Modern+Hospital" class="d-block mx-lg-auto img-fluid rounded shadow-lg" alt="Hospital Building" loading="lazy"
+                     onerror="this.onerror=null; this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Not+Found'">
+            </div>
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold lh-1 mb-3">Your Health is Our <span style="color:#ffc107;">Priority</span></h1>
+                <p class="lead">Providing world-class healthcare services with compassionate care, advanced technology, and expert medical professionals dedicated to your wellbeing.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                <a href="{{ url_for('main.login') }}" type="button" class="btn btn-light btn-lg px-4 fw-semibold"><i class="fas fa-user-md me-2"></i>Find a Doctor</a>
+            </div>
             </div>
         </div>
-    </section>
+    </div>
+</div>
 
-    <!-- Features Section -->
-    <section class="container px-4 py-5" id="features">
-        <h2 class="pb-4 border-bottom text-center fw-bold">Why Choose Our HMS?</h2>
-        <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
-            
-            <!-- Feature 1 -->
-            <div class="col text-center">
-                <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary text-white fs-2 mb-3 rounded-circle shadow-sm" style="width: 4rem; height: 4rem;">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <h3 class="fs-4 fw-semibold text-dark">Easy Appointments</h3>
-                <p class="text-muted">Quickly book doctor appointments by specialty with real-time availability. Skip the waiting lines and phone calls.</p>
+
+<!-- 2. Stats Section -->
+<div class="container px-4 py-5">
+     <div class="card shadow-sm border-0 rounded-3 p-4 bg-white mt-n5" style="z-index: 10;"> <!-- Pull up with negative margin -->
+        <div class="row text-center align-items-center">
+            <div class="col-md-3 col-6 mb-3 mb-md-0 border-end-md">
+                 <div class="icon-circle bg-primary-soft text-primary mx-auto mb-2"> <i class="fas fa-user-doctor fs-3"></i> </div>
+                <h3 class="fw-bold mb-1">150+</h3>
+                <p class="text-muted mb-0 small">Expert Doctors</p>
             </div>
-
-            <!-- Feature 2 -->
-            <div class="col text-center">
-                <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary text-white fs-2 mb-3 rounded-circle shadow-sm" style="width: 4rem; height: 4rem;">
-                    <i class="fas fa-file-medical"></i>
-                </div>
-                <h3 class="fs-4 fw-semibold text-dark">Centralized Records</h3>
-                <p class="text-muted">Access secure medical records including diagnoses, prescriptions, and doctor’s notes from anywhere, anytime.</p>
+            <div class="col-md-3 col-6 mb-3 mb-md-0 border-end-md">
+                 <div class="icon-circle bg-success-soft text-success mx-auto mb-2"> <i class="fas fa-bed fs-3"></i> </div>
+                <h3 class="fw-bold mb-1">500+</h3>
+                <p class="text-muted mb-0 small">Hospital Beds</p>
             </div>
-
-            <!-- Feature 3 -->
-            <div class="col text-center">
-                <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary text-white fs-2 mb-3 rounded-circle shadow-sm" style="width: 4rem; height: 4rem;">
-                    <i class="fas fa-user-shield"></i>
-                </div>
-                <h3 class="fs-4 fw-semibold text-dark">Admin Control</h3>
-                <p class="text-muted">A powerful dashboard for staff to manage doctors, patients, and appointments with full oversight and security.</p>
+             <div class="col-md-3 col-6 mb-3 mb-md-0 border-end-md">
+                 <div class="icon-circle bg-warning-soft text-warning mx-auto mb-2"> <i class="fas fa-award fs-3"></i> </div>
+                <h3 class="fw-bold mb-1">25+</h3>
+                <p class="text-muted mb-0 small">Years Experience</p>
+            </div>
+             <div class="col-md-3 col-6 mb-3 mb-md-0">
+                 <div class="icon-circle bg-danger-soft text-danger mx-auto mb-2"> <i class="fas fa-heart fs-3"></i> </div>
+                <h3 class="fw-bold mb-1">50K+</h3>
+                <p class="text-muted mb-0 small">Happy Patients</p>
             </div>
         </div>
-    </section>
+    </div>
+</div>
 
-    <!-- Footer -->
-    <footer class="py-4 mt-5 border-top">
-        <p class="text-center text-muted mb-0">© 2025 Hospital Management System, Inc. All rights reserved.</p>
-    </footer>
+
+<!-- 3. About Section -->
+<div class="container px-4 py-5" id="about">
+    <div class="row align-items-center g-5">
+         <div class="col-lg-6 order-lg-2"> <!-- Image on the right for larger screens -->
+             <img src="https://placehold.co/600x400/eeeeee/333333?text=Smiling+Medical+Staff" class="img-fluid rounded shadow-lg" alt="Medical Staff"
+                  onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Not+Found'">
+         </div>
+         <div class="col-lg-6 order-lg-1">
+            <h2 class="fw-bold mb-3">About MediCare Hospital</h2>
+            <p class="lead text-muted mb-4">For over 25 years, MediCare Hospital has been at the forefront of healthcare innovation, providing exceptional medical care with compassion and excellence.</p>
+            <ul class="list-unstyled">
+                <li class="d-flex mb-3 align-items-start">
+                    <div class="icon-circle bg-primary-soft text-primary me-3 flex-shrink-0 mt-1"> <i class="fas fa-shield-alt"></i> </div>
+                    <div>
+                        <h5 class="mb-1 fw-semibold">Excellence in Care</h5>
+                        <small class="text-muted">Recognized nationally for our commitment to patient safety and quality outcomes.</small>
+                    </div>
+                </li>
+                 <li class="d-flex mb-3 align-items-start">
+                    <div class="icon-circle bg-success-soft text-success me-3 flex-shrink-0 mt-1"> <i class="fas fa-microscope"></i> </div>
+                     <div>
+                        <h5 class="mb-1 fw-semibold">Advanced Technology</h5>
+                         <small class="text-muted">State-of-the-art medical equipment and innovative treatment methods.</small>
+                    </div>
+                </li>
+                 <li class="d-flex align-items-start">
+                    <div class="icon-circle bg-warning-soft text-warning me-3 flex-shrink-0 mt-1"> <i class="fas fa-hand-holding-heart"></i> </div>
+                     <div>
+                        <h5 class="mb-1 fw-semibold">Compassionate Care</h5>
+                        <small class="text-muted">Patient-centered approach with personalized treatment plans and support.</small>
+                    </div>
+                </li>
+            </ul>
+             <div class="mt-4">
+                 <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg me-2">Learn More About Us</a>
+                 <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary btn-lg">Our Mission</a>
+             </div>
+         </div>
+    </div>
+</div>
+
+<!-- 4. Medical Services Section -->
+<div class="container px-4 py-5 text-center bg-white rounded shadow-sm" id="services">
+    <h2 class="fw-bold mb-3">Our Medical Services</h2>
+    <p class="lead text-muted col-lg-8 mx-auto mb-5">Comprehensive healthcare services delivered by our team of specialists using state-of-the-art medical technology and equipment.</p>
+    <div class="row g-4 justify-content-center">
+        <!-- Service Card 1 -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-4 text-start hover-lift">
+                 <div class="icon-circle bg-danger-soft text-danger mb-3"> <i class="fas fa-heartbeat fs-4"></i></div>
+                <h4 class="card-title">Cardiology</h4>
+                <ul class="list-unstyled text-muted small mt-3">
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>ECG & Stress Testing</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Cardiac Catheterization</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Heart Surgery</li>
+                </ul>
+                <a href="{{ url_for('main.login') }}" class="btn btn-link text-primary p-0 mt-auto fw-semibold">Learn More <i class="fas fa-arrow-right ms-1 small"></i></a>
+            </div>
+        </div>
+         <!-- Service Card 2 -->
+         <div class="col-lg-4 col-md-6">
+             <div class="card h-100 border-0 shadow-sm p-4 text-start hover-lift">
+                 <div class="icon-circle bg-info-soft text-info mb-3"> <i class="fas fa-brain fs-4"></i></div>
+                <h4 class="card-title">Neurology</h4>
+                 <ul class="list-unstyled text-muted small mt-3">
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>MRI & CT Scans</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Stroke Treatment</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Epilepsy Care</li>
+                </ul>
+                 <a href="{{ url_for('main.login') }}" class="btn btn-link text-primary p-0 mt-auto fw-semibold">Learn More <i class="fas fa-arrow-right ms-1 small"></i></a>
+            </div>
+        </div>
+         <!-- Service Card 3 -->
+         <div class="col-lg-4 col-md-6">
+             <div class="card h-100 border-0 shadow-sm p-4 text-start hover-lift">
+                 <div class="icon-circle bg-warning-soft text-warning mb-3"> <i class="fas fa-bone fs-4"></i></div>
+                <h4 class="card-title">Orthopedics</h4>
+                 <ul class="list-unstyled text-muted small mt-3">
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Joint Replacement</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Sports Medicine</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-2"></i>Physical Therapy</li>
+                </ul>
+                 <a href="{{ url_for('main.login') }}" class="btn btn-link text-primary p-0 mt-auto fw-semibold">Learn More <i class="fas fa-arrow-right ms-1 small"></i></a>
+            </div>
+        </div>
+        <!-- Add more service cards here if needed -->
+    </div>
+     <div class="mt-5">
+         <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg">Explore All Services</a>
+     </div>
+</div>
+
+<!-- 5. Departments Section -->
+<div class="container px-4 py-5 text-center" id="department">
+    <h2 class="fw-bold mb-3">Hospital Departments</h2>
+    <p class="lead text-muted col-lg-8 mx-auto mb-5">Our specialized departments work together to provide comprehensive healthcare services across all medical specialties.</p>
+    <div class="row g-4">
+        <!-- Department Card 1 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                <div class="icon-circle bg-danger-soft text-danger mx-auto mb-3"> <i class="fas fa-first-aid fs-4"></i> </div>
+                <h5 class="card-title">Emergency</h5>
+                <p class="card-text small text-muted">24/7 care with rapid response teams.</p>
+                <span class="badge bg-success mt-auto align-self-center">24/7 Available</span>
+            </div>
+        </div>
+        <!-- Department Card 2 -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                 <div class="icon-circle bg-info-soft text-info mx-auto mb-3"> <i class="fas fa-x-ray fs-4"></i> </div>
+                <h5 class="card-title">Radiology</h5>
+                <p class="card-text small text-muted">Advanced imaging and diagnostic services.</p>
+                <span class="badge bg-warning text-dark mt-auto align-self-center">Mon-Sat</span>
+            </div>
+        </div>
+         <!-- Department Card 3 -->
+         <div class="col-lg-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                 <div class="icon-circle bg-primary-soft text-primary mx-auto mb-3"> <i class="fas fa-flask fs-4"></i> </div>
+                <h5 class="card-title">Laboratory</h5>
+                <p class="card-text small text-muted">Comprehensive lab testing and pathology.</p>
+                <span class="badge bg-success mt-auto align-self-center">24/7 Available</span>
+            </div>
+        </div>
+         <!-- Department Card 4 -->
+         <div class="col-lg-3 col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
+                 <div class="icon-circle bg-secondary-soft text-secondary mx-auto mb-3"> <i class="fas fa-pills fs-4"></i> </div>
+                <h5 class="card-title">Pharmacy</h5>
+                <p class="card-text small text-muted">Full-service pharmacy and medication.</p>
+                <span class="badge bg-info text-dark mt-auto align-self-center">8 AM - 10 PM</span>
+            </div>
+        </div>
+        <!-- Add more department cards here -->
+    </div>
+     <div class="mt-5">
+         <a href="{{ url_for('main.login') }}" class="btn btn-outline-primary">View All Departments</a>
+     </div>
+</div>
+
+<!-- 6. Testimonials Section -->
+<div class="container px-4 py-5 bg-white rounded shadow-sm">
+    <h2 class="text-center fw-bold mb-3">Patient Testimonials</h2>
+    <p class="lead text-muted text-center col-lg-8 mx-auto mb-5">Hear from our patients about their experiences and the quality of care they received at MediCare Hospital.</p>
+    <div class="row g-4">
+        <!-- Testimonial Card 1 -->
+        <div class="col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4 d-flex flex-column">
+                    <img src="https://placehold.co/60x60/777/white?text=MR" class="rounded-circle mb-3 shadow align-self-center" alt="Patient Maria Rodriguez">
+                    <h5 class="card-title mb-1 text-center">Maria Rodriguez</h5>
+                     <p class="small text-muted mb-2 text-center">Cardiology Patient</p>
+                    <div class="text-warning mb-3 text-center">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <blockquote class="blockquote mb-0 fs-6 text-center mt-auto">
+                        <p><small>"The care I received during my cardiac surgery was exceptional. The entire team was professional, compassionate, and made me feel comfortable throughout the process."</small></p>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+        <!-- Testimonial Card 2 -->
+        <div class="col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                 <div class="card-body p-4 d-flex flex-column">
+                    <img src="https://placehold.co/60x60/555/white?text=JW" class="rounded-circle mb-3 shadow align-self-center" alt="Patient James Wilson">
+                    <h5 class="card-title mb-1 text-center">James Wilson</h5>
+                     <p class="small text-muted mb-2 text-center">Orthopedic Patient</p>
+                    <div class="text-warning mb-3 text-center">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <blockquote class="blockquote mb-0 fs-6 text-center mt-auto">
+                        <p><small>"After my knee replacement surgery, the rehabilitation team helped me get back to my active lifestyle. The facilities are modern and the staff is incredibly supportive."</small></p>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+         <!-- Testimonial Card 3 -->
+        <div class="col-lg-4">
+            <div class="card h-100 border-0 shadow-sm">
+                 <div class="card-body p-4 d-flex flex-column">
+                    <img src="https://placehold.co/60x60/999/white?text=LT" class="rounded-circle mb-3 shadow align-self-center" alt="Patient Lisa Thompson">
+                    <h5 class="card-title mb-1 text-center">Lisa Thompson</h5>
+                     <p class="small text-muted mb-2 text-center">Maternity Patient</p>
+                    <div class="text-warning mb-3 text-center">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <blockquote class="blockquote mb-0 fs-6 text-center mt-auto">
+                        <p><small>"The maternity ward provided excellent care during the birth of my daughter. The nurses were attentive and made sure both my baby and I were comfortable and healthy."</small></p>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 7. Book Appointment Call to Action -->
+<div class="container px-4 py-5 text-center my-5">
+    <div class="p-5 bg-primary-soft rounded-3 shadow">
+        <h2 class="fw-bold mb-3 text-primary-emphasis">Ready to Take Control of Your Health?</h2>
+        <p class="lead text-muted col-lg-8 mx-auto mb-4">Schedule your visit with our expert medical professionals. Log in or sign up to easily choose your preferred date, time, and department online.</p>
+        <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg px-5 shadow">Book Your Appointment Now</a>
+    </div>
+</div>
+
+
+<!-- Simple Contact Section -->
+<div class="container px-4 py-5 text-center bg-white rounded shadow-sm mb-5" id="contact us">
+     <h2 class="fw-bold mb-3">Get in Touch</h2>
+     <p class="lead text-muted col-lg-8 mx-auto mb-4">Have questions? Need assistance? Contact us for appointments, inquiries, or emergency services. We're here to help 24/7.</p>
+     <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary btn-lg">Contact Us Information</a>
+</div>
+
+<!-- Add simple soft background colors for icon circles -->
+<style>
+    .bg-success-soft { background-color: rgba(25, 135, 84, 0.1); }
+    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); }
+</style>
 
 {% endblock content %}
+
