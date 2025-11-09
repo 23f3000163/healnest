@@ -1,27 +1,123 @@
 {% extends "layout.html" %}
 {% block content %}
+<style>
+    /* Custom styles for the slot radio buttons */
+    .slot-radio { display: none; } /* Hide the actual radio button */
+    .slot-label {
+        display: block;
+        padding: 0.75rem 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        text-align: center;
+        cursor: pointer;
+        /* UPDATED: Added transform and box-shadow to transition */
+        transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    /* Style for AVAILABLE slots */
+    .slot-label-available {
+        background-color: #d1e7dd; /* Light green */
+        border-color: #0f5132;
+        color: #0f5132;
+    }
+    
+    /* UPDATED: Added transform and shadow to existing hover */
+    .slot-label-available:hover {
+        background-color: #b2d8c1;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Style for BOOKED/UNAVAILABLE slots */
+    .slot-label-unavailable {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    /* Style for SELECTED slot */
+    .slot-radio:checked + .slot-label {
+        background-color: #0d6efd; /* Blue */
+        border-color: #0a58ca;
+        color: #ffffff;
+        font-weight: 500;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* NEW: Make sure checked state overrides hover lift */
+    .slot-radio:checked + .slot-label:hover {
+        transform: translateY(0);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>
+
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Book Appointment</h4>
+        <h4 class="mb-0">Book Appointment with Dr. {{ doctor.full_name }}</h4>
     </div>
     <div class="card-body">
-        <h5 class="card-title">You are booking an appointment with:</h5>
-        <p><strong>Dr. {{ doctor.full_name }}</strong><br>
-        <span class="text-muted">{{ doctor.department.name }}</span></p>
-        <hr>
+        <p class="card-text text-muted">Select an available time slot below to schedule your visit.</p>
+        
         <form method="POST" action="">
             {{ form.hidden_tag() }}
-            <div class="mb-3">
-                {{ form.appointment_date.label(class="form-label") }}
-                {{ form.appointment_date(class="form-control") }}
-            </div>
-            <div class="mb-3">
-                {{ form.appointment_time.label(class="form-label") }}
-                {{ form.appointment_time(class="form-control") }}
-            </div>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-primary") }}
-                <a href="{{ url_for('patient.dashboard') }}" class="btn btn-secondary">Cancel</a>
+            
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center">Date</th>
+                        <th class="text-center">Morning Slot (08:00 AM)</th>
+                        <th class="text-center">Evening Slot (04:00 PM)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in days %}
+                    {% set morning_slot = day.isoformat() + '_morning' %}
+                    {% set evening_slot = day.isoformat() + '_evening' %}
+                    <tr>
+                        <td class="text-center fw-medium">
+                            {{ day.strftime('%a, %d %b %Y') }}
+                        </td>
+                        
+                        <td>
+                            {% if morning_slot in available_slots and morning_slot not in booked_slots %}
+                                <input type="radio" class="slot-radio" name="selected_slot" 
+                                       value="{{ morning_slot }}" id="slot-{{ morning_slot }}">
+                                <label class="slot-label slot-label-available" for="slot-{{ morning_slot }}">
+                                    08:00 AM
+                                </label>
+                            {% else %}
+                                <input type="radio" class="slot-radio" disabled>
+                                <label class="slot-label slot-label-unavailable">
+                                    {% if morning_slot in booked_slots %}Booked{% else %}N/A{% endif %}
+                                </label>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            {% if evening_slot in available_slots and evening_slot not in booked_slots %}
+                                <input type="radio" class="slot-radio" name="selected_slot" 
+                                       value="{{ evening_slot }}" id="slot-{{ evening_slot }}">
+                                <label class="slot-label slot-label-available" for="slot-{{ evening_slot }}">
+                                    04:00 PM
+                                </label>
+                            {% else %}
+                                <input type="radio" class="slot-radio" disabled>
+                                <label class="slot-label slot-label-unavailable">
+                                     {% if evening_slot in booked_slots %}Booked{% else %}N/A{% endif %}
+                                </label>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <p class="text-muted small">
+                Tip: Select your preferred slot and click Book Appointment.
+            </p>
+            <div class="text-end mt-4">
+                {{ form.submit(class="btn btn-success btn-lg", value="Book Appointment") }}
             </div>
         </form>
     </div>

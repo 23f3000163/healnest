@@ -15,12 +15,12 @@
                     <div class="mb-3">
                         {{ form.email.label(class="form-label") }}
                         {{ form.email(class="form-control form-control-dark bg-secondary text-light border-secondary",
-                        placeholder="name@example.com") }}
+                                    placeholder="name@example.com", required=True) }}
                     </div>
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
                         {{ form.password(class="form-control form-control-dark bg-secondary text-light
-                        border-secondary", placeholder="••••••••") }}
+                                    border-secondary", placeholder="••••••••", required=True) }}
                     </div>
                     <div class="form-check mb-3">
                         {{ form.remember(class="form-check-input") }}

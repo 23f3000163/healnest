@@ -86,13 +86,18 @@ class DoctorProfile(db.Model):
     bio = db.Column(db.Text)
 
 class Availability(db.Model):
-    """ Stores the weekly availability slots for doctors. """
+    """
+    Stores a specific date and slot (e.g., 'morning' or 'evening')
+    that a doctor has marked as available.
+    """
     __tablename__ = 'availability'
     id = db.Column(db.Integer, primary_key=True)
     doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    day_of_week = db.Column(db.String(10), nullable=False) # e.g., 'Monday'
-    start_time = db.Column(db.Time, nullable=False)
-    end_time = db.Column(db.Time, nullable=False)
+    available_date = db.Column(db.Date, nullable=False)
+    slot = db.Column(db.String(20), nullable=False) # e.g., 'morning', 'evening'
+    
+    # Ensure a doctor can't have the same slot marked twice for the same day
+    __table_args__ = (db.UniqueConstraint('doctor_id', 'available_date', 'slot'),)
 
 class Appointment(db.Model):
     """ Core table linking patients and doctors for appointments. """
@@ -113,9 +118,14 @@ class Treatment(db.Model):
     __tablename__ = 'treatment'
     id = db.Column(db.Integer, primary_key=True)
     appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False, unique=True)
+    
+    # NEW FIELDS
+    visit_type = db.Column(db.String(100))
+    tests_done = db.Column(db.String(300))
+    
     diagnosis = db.Column(db.Text, nullable=False)
     prescription = db.Column(db.Text, nullable=False)
-    doctor_notes = db.Column(db.Text)
+    notes = db.Column(db.Text) # We can keep this for any extra doctor notes
 
 
 # ## ADDITIONAL FEATURE MODELS ##

@@ -1,8 +1,8 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
-
+from flask_login import LoginManager, current_user
+from flask_migrate import Migrate
 app = Flask(__name__)
 
 # --- CONFIGURATION ---
@@ -12,10 +12,22 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # --- INITIALIZE EXTENSIONS ---
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'main.login' 
 login_manager.login_message_category = 'info' 
+
+from app.models import Notification
+# --- CONTEXT PROCESSOR ---
+@app.context_processor
+def inject_notifications():
+    if current_user.is_authenticated:
+        unread_notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).order_by(Notification.created_at.desc()).limit(5).all()
+        notification_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        return dict(unread_notifications=unread_notifications, notification_count=notification_count)
+    return dict(unread_notifications=[], notification_count=0)
+
 
 # --- IMPORT BLUEPRINTS AND ROUTES ---
 # First, import the blueprint objects

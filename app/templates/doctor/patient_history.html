@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Patient History</h2>
+        <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-outline-primary">Back</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Patient Name: {{ patient.patient_profile.full_name }}</h5>
+            <p class="mb-0 text-muted">Doctors' Name: Dr. {{ current_user.doctor_profile.full_name }}</p>
+            <p class="mb-0 text-muted">Department: {{ current_user.doctor_profile.department.name }}</p>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 6%;">Visit No.</th>
+                            <th style="width: 10%;">Visit Type</th>
+                            <th style="width: 10%;">Tests Done</th>
+                            <th style="width: 40%;">Diagnosis</th>
+                            <th style="width: 40%;">Prescription</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appt in history %}
+                        <tr>
+                            <td>{{ loop.index }}.</td>
+                            <td>{{ appt.treatment.visit_type }}</td>
+                            <td>{{ appt.treatment.tests_done }}</td>
+                            <td style="white-space: pre-line;">{{ appt.treatment.diagnosis }}</td>
+                            <td style="white-space: pre-line;">{{ appt.treatment.prescription }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted p-4">
+                                This patient has no completed appointment history with you.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

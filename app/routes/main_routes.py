@@ -4,7 +4,7 @@ from flask_login import login_user, current_user, logout_user, login_required
 from sqlalchemy import or_
 from app import db, bcrypt
 from app.forms import RegistrationForm, LoginForm, RequestResetForm, ResetPasswordForm
-from app.models import User, PatientProfile, DoctorProfile, Department
+from app.models import User, PatientProfile, DoctorProfile, Department, Notification
 from . import main_bp
 
 # Import the Blueprint instance from the routes package's __init__.py

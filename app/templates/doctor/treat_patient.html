@@ -32,14 +32,23 @@
         </div>
     </div>
 
-    <!-- New Treatment Form Section -->
-    <div class="card shadow-sm">
+   <div class="card shadow-sm">
         <div class="card-header bg-white">
-            <h5 class="mb-0">Add New Treatment Details</h5>
+            <h5 class="mb-0">Update Patient History (New Entry)</h5>
         </div>
         <div class="card-body">
             <form method="POST" action="">
                 {{ form.hidden_tag() }}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.visit_type.label(class="form-label") }}
+                        {{ form.visit_type(class="form-control") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.tests_done.label(class="form-label") }}
+                        {{ form.tests_done(class="form-control") }}
+                    </div>
+                </div>
                 <div class="mb-3">
                     {{ form.diagnosis.label(class="form-label") }}
                     {{ form.diagnosis(class="form-control") }}
@@ -57,18 +66,3 @@
     </div>
 {% endblock content %}
 ```
----
-## ## Part 3: The Backend Route (The Brains) 🧠
-
-Now, we write the Python logic that powers this page. This route will fetch the patient's history, display the page, process the form submission, and update the database.
-
-### **Step 1: Open the Doctor Routes File**
-Navigate to and open your doctor routes file: **`app/routes/doctor_routes.py`**.
-
-### **Step 2: Update the Imports**
-Add the new `TreatmentForm` and `Treatment` model to your imports at the top.
-
-```python
-from app.forms import TreatmentForm # Add this import
-from app.models import Appointment, Treatment # Add Treatment to this import
-from app import db # Add this import

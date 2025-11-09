@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, TimeField, SelectField, TextAreaField, FieldList, FormField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional
-from app.models import User, Department 
+from app.models import User, Department
 
 # --- Keep your existing forms ---
 
@@ -28,8 +28,11 @@ class LoginForm(FlaskForm):
 # --- Add the new BookingForm class at the bottom ---
 
 class BookingForm(FlaskForm):
-    appointment_date = DateField('Appointment Date', validators=[DataRequired()], format='%Y-%m-%d')
-    appointment_time = TimeField('Appointment Time', validators=[DataRequired()], format='%H:%M')
+    """
+    A simple form for the patient booking page. (Part of Step 1)
+    We only use this for the CSRF token and the submit button.
+    The date and time are handled by our custom JavaScript.
+    """
     submit = SubmitField('Confirm Appointment')
 
 # --- Add the new UpdateProfileForm below ---
@@ -45,27 +48,34 @@ class UpdateProfileForm(FlaskForm):
     submit = SubmitField('Update Profile')
 
 class TreatmentForm(FlaskForm):
+    visit_type = StringField('Visit Type', 
+                             validators=[DataRequired()], 
+                             render_kw={"placeholder": "e.g., In-person, Follow-up"})
+    tests_done = StringField('Tests Done', 
+                             render_kw={"placeholder": "e.g., ECG, Blood Test"})
     diagnosis = TextAreaField('Diagnosis', 
                               validators=[DataRequired()], 
-                              render_kw={"rows": 5, "placeholder": "Enter patient diagnosis details..."})
+                              render_kw={"rows": 4, "placeholder": "Enter patient diagnosis details..."})
     prescription = TextAreaField('Prescription', 
                                  validators=[DataRequired()], 
-                                 render_kw={"rows": 5, "placeholder": "e.g., Paracetamol 500mg - 1 tablet twice a day for 3 days."})
-    submit = SubmitField('Complete Appointment')
+                                 render_kw={"rows": 4, "placeholder": "Include medications and dosages, e.g., Paracetamol 500mg (1-0-1) for 3 days."})
+    submit = SubmitField('Save and Complete Appointment')
  
 class AvailabilitySlotForm(FlaskForm):
-    """A sub-form for a single availability slot."""
+    """A sub-form for a single availability slot. (Part of Step 1)"""
     day_of_week = SelectField('Day', choices=[
         ('Monday', 'Monday'), ('Tuesday', 'Tuesday'), ('Wednesday', 'Wednesday'),
         ('Thursday', 'Thursday'), ('Friday', 'Friday'), ('Saturday', 'Saturday'), ('Sunday', 'Sunday')
     ])
-    start_time = TimeField('From', format='%H:%M')
-    end_time = TimeField('To', format='%H:%M')
+    # VALIDATION FIX: Add validators=[Optional()] so blank fields are allowed
+    start_time = TimeField('From', format='%H:%M', validators=[Optional()])
+    end_time = TimeField('To', format='%H:%M', validators=[Optional()])
 
 class UpdateAvailabilityForm(FlaskForm):
-    """The main form that contains a list of availability slots."""
-    slots = FieldList(FormField(AvailabilitySlotForm), min_entries=1)
-    submit = SubmitField('Update Availability') 
+    """The main form for the doctor to manage their schedule. (Part of Step 1)"""
+    # VALIDATION FIX: Change min_entries=1 to min_entries=0
+    slots = FieldList(FormField(AvailabilitySlotForm), min_entries=0)
+    submit = SubmitField('Update Availability')
 
 #add doctor form 
 class AddDoctorForm(FlaskForm):
@@ -106,3 +116,17 @@ class EditPatientForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     contact_number = StringField('Contact Number')
     submit = SubmitField('Update Patient Profile')
+
+class RequestResetForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is None:
+            raise ValidationError('There is no account with that email. You must register first.')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('New Password', validators=[DataRequired(), Length(min=8)])
+    confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')    

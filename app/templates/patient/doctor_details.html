@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-light py-3">
+            <h4 class="mb-0">Doctor Profile</h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="https://placehold.co/150x150/eeeeee/333333?text=Dr." class="img-fluid rounded-circle mb-3" alt="Doctor Avatar">
+                </div>
+                <div class="col-md-9">
+                    <h3>Dr. {{ doctor.full_name }}</h3>
+                    <p class="text-muted mb-1"><strong>{{ doctor.qualifications or 'MBBS, MD' }}</strong></p>
+                    <p class="text-muted">{{ doctor.department.name }}</p>
+                    <hr>
+                    <p>{{ doctor.bio or 'This doctor has not provided a detailed bio yet. With over 20 years of experience, this doctor is a specialist in their field, dedicated to providing the best patient care.' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-light text-end">
+            <a href="{{ url_for('patient.book_appointment', doctor_id=doctor.id) }}" class="btn btn-primary">Check Availability & Book</a>
+            <a href="{{ url_for('patient.department_details', department_id=doctor.department_id) }}" class="btn btn-secondary">Go Back</a>
+        </div>
+    </div>
+{% endblock content %}

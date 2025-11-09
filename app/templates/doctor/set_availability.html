@@ -1,90 +1,105 @@
 {% extends "layout.html" %}
 {% block content %}
+<style>
+    /* Custom styles for the slot toggles */
+    .slot-label {
+        display: block;
+        padding: 0.75rem 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #f8f9fa;
+        color: #6c757d;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .slot-label:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .slot-checkbox:checked + .slot-label {
+        background-color: #d1e7dd; /* Light green */
+        border-color: #0f5132;
+        color: #0f5132;
+        font-weight: 500;
+    }
+    .slot-checkbox:checked + .slot-label:hover {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+    .slot-checkbox { display: none; } /* Hide the actual checkbox */
+</style>
+
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
         <h4 class="mb-0">Manage Your Weekly Availability</h4>
     </div>
     <div class="card-body">
-        <p class="card-text text-muted">Define the days and times you are available for patient bookings. Patients will
-            only be able to book appointments within these time slots.</p>
+        <p class="card-text text-muted">Set your available time slots for the next 7 days. Patients will be able to book these slots.</p>
+        
         <form method="POST" action="">
-            {{ form.hidden_tag() }}
-            <div id="slots-container">
-                {% for slot_form in form.slots %}
-                <div class="row align-items-end mb-3 slot-row">
-                    <div class="col-md-4">
-                        {{ slot_form.day_of_week.label(class="form-label") }}
-                        {{ slot_form.day_of_week(class="form-select") }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ slot_form.start_time.label(class="form-label") }}
-                        {{ slot_form.start_time(class="form-control") }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ slot_form.end_time.label(class="form-label") }}
-                        {{ slot_form.end_time(class="form-control") }}
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-slot-btn">Remove</button>
-                    </div>
+            <div class="d-flex justify-content-end mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="apply-all-days">
+                    <label class="form-check-label" for="apply-all-days">
+                        Apply to all days
+                    </label>
                 </div>
-                {% endfor %}
             </div>
-            <hr>
-            <button type="button" id="add-slot-btn" class="btn btn-secondary me-2">Add Another Slot</button>
-            {{ form.submit(class="btn btn-primary") }}
+
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center">Date</th>
+                        <th class="text-center">Morning Slot (08:00 AM - 12:00 PM)</th>
+                        <th class="text-center">Evening Slot (04:00 PM - 09:00 PM)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in days %}
+                    <tr>
+                        <td class="text-center fw-medium">
+                            {{ day.strftime('%a, %d %b %Y') }}
+                        </td>
+                        <td>
+                            <input type="checkbox" class="slot-checkbox morning-slot" name="slots" 
+                                   value="{{ day.isoformat() }}_morning" id="slot-{{ day.isoformat() }}-morning"
+                                   {% if (day.isoformat() + '_morning') in saved_slots %}checked{% endif %}>
+                            <label class="slot-label" for="slot-{{ day.isoformat() }}-morning">
+                                08:00 AM - 12:00 PM
+                            </label>
+                        </td>
+                        <td>
+                            <input type="checkbox" class="slot-checkbox evening-slot" name="slots" 
+                                   value="{{ day.isoformat() }}_evening" id="slot-{{ day.isoformat() }}-evening"
+                                   {% if (day.isoformat() + '_evening') in saved_slots %}checked{% endif %}>
+                            <label class="slot-label" for="slot-{{ day.isoformat() }}-evening">
+                                04:00 PM - 09:00 PM
+                            </label>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="text-end mt-4">
+                <button type="submit" class="btn btn-success btn-lg">Save Availability</button>
+            </div>
         </form>
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('slots-container');
-    const addBtn = document.getElementById('add-slot-btn');
-    
-    // Safely handle template variable
-    let slotIndex = parseInt('{{ form.slots|length|default:0 }}') || 0;
-
-    function addSlot() {
-        const template = `
-        <div class="row align-items-end mb-3 slot-row">
-            <div class="col-md-4">
-                <label class="form-label" for="slots-${slotIndex}-day_of_week">Day</label>
-                <select class="form-select" id="slots-${slotIndex}-day_of_week" name="slots-${slotIndex}-day_of_week">
-                    <option value="Monday">Monday</option>
-                    <option value="Tuesday">Tuesday</option>
-                    <option value="Wednesday">Wednesday</option>
-                    <option value="Thursday">Thursday</option>
-                    <option value="Friday">Friday</option>
-                    <option value="Saturday">Saturday</option>
-                    <option value="Sunday">Sunday</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label" for="slots-${slotIndex}-start_time">From</label>
-                <input class="form-control" id="slots-${slotIndex}-start_time" name="slots-${slotIndex}-start_time" type="time">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label" for="slots-${slotIndex}-end_time">To</label>
-                <input class="form-control" id="slots-${slotIndex}-end_time" name="slots-${slotIndex}-end_time" type="time">
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-sm btn-outline-danger remove-slot-btn">Remove</button>
-            </div>
-        </div>`;
+    document.getElementById('apply-all-days').addEventListener('change', function() {
+        // Find the toggle state of the first row's slots
+        const firstMorning = document.querySelector('.morning-slot').checked;
+        const firstEvening = document.querySelector('.evening-slot').checked;
         
-        container.insertAdjacentHTML('beforeend', template);
-        slotIndex++;
-    }
-
-    addBtn.addEventListener('click', addSlot);
-
-    container.addEventListener('click', function(e) {
-        if (e.target && e.target.classList.contains('remove-slot-btn')) {
-            e.target.closest('.slot-row').remove();
+        if (this.checked) {
+            // Apply the first row's state to all other rows
+            document.querySelectorAll('.morning-slot').forEach(checkbox => checkbox.checked = firstMorning);
+            document.querySelectorAll('.evening-slot').forEach(checkbox => checkbox.checked = firstEvening);
         }
     });
-});
 </script>
-
 {% endblock content %}

@@ -1,176 +1,263 @@
-from flask import render_template, flash, redirect, url_for, request 
+from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import login_required, current_user
-from app.models import Department, Appointment, DoctorProfile, User, Notification 
+from app.models import Department, Appointment, User, Notification, DoctorProfile, Availability
 from . import patient_bp
-from datetime import datetime
-from app.forms import BookingForm
-from app import db 
-from app.forms import BookingForm, UpdateProfileForm 
+# THIS IS THE CORRECTED IMPORT LINE:
+from datetime import datetime, date, time, timedelta
+from app.forms import BookingForm, UpdateProfileForm
+from app import db
+from sqlalchemy import or_
 
 @patient_bp.route('/dashboard')
 @login_required
 def dashboard():
-    # Ensure the logged-in user is a patient
+    """
+    Shows the main patient dashboard with department list
+    and a preview of upcoming appointments.
+    """
     if current_user.role != 'patient':
         flash('You are not authorized to access this page.', 'danger')
         return redirect(url_for('main.home'))
         
-    # Query all departments to display for booking
-    departments = Department.query.all()
+    departments = Department.query.order_by('name').all()
     
-    # Get all appointments for the current patient
-    all_appointments = Appointment.query.filter_by(patient_id=current_user.id).order_by(Appointment.appointment_datetime.desc()).all()
-    
-    # Separate appointments into upcoming and past
-    upcoming_appointments = []
-    past_appointments = []
-    
-    for appt in all_appointments:
-        if appt.appointment_datetime >= datetime.now() and appt.status == 'Booked':
-            upcoming_appointments.append(appt)
-        else:
-            past_appointments.append(appt)
+    upcoming_appointments = Appointment.query.filter(
+        Appointment.patient_id == current_user.id,
+        Appointment.status == 'Booked',
+        Appointment.appointment_datetime >= datetime.now()
+    ).order_by(Appointment.appointment_datetime.asc()).all()
     
     return render_template(
         'patient/dashboard.html', 
         title='My Dashboard', 
         departments=departments,
-        upcoming_appointments=upcoming_appointments,
-        past_appointments=past_appointments
+        appointments=upcoming_appointments
     )
 
-# The routes for booking and canceling appointments will be added next
-
-# ... (keep your existing dashboard route at the top) ...
-
-@patient_bp.route('/book/<int:doctor_id>', methods=['GET', 'POST'])
+@patient_bp.route('/history')
 @login_required
-def book_appointment(doctor_id):
-    # This function handles both showing the booking page (GET) and processing the booking (POST)
-
-    # First, make sure the user is a patient
+def patient_history():
+    """
+    Shows a detailed list of all past and completed appointments.
+    """
     if current_user.role != 'patient':
-        flash('Only patients can book appointments.', 'danger')
+        flash('You are not authorized to access this page.', 'danger')
         return redirect(url_for('main.home'))
 
-    # Get the profile of the doctor being booked
-    doctor_profile = DoctorProfile.query.get_or_404(doctor_id)
-    form = BookingForm()
+    past_appointments = Appointment.query.filter(
+        Appointment.patient_id == current_user.id,
+        Appointment.status.in_(['Completed', 'Cancelled'])
+    ).order_by(Appointment.appointment_datetime.desc()).all()
 
-    # This block runs ONLY when the user submits the form
-    if form.validate_on_submit():
-        # Combine the date and time from the form into a single datetime object
-        appointment_datetime = datetime.combine(form.appointment_date.data, form.appointment_time.data)
-
-        # CRITICAL CHECK: See if this doctor already has an appointment at this exact time
-        existing_appointment = Appointment.query.filter_by(
-            doctor_id=doctor_profile.user_id,
-            appointment_datetime=appointment_datetime,
-            status='Booked' # Only check against currently booked appointments
-        ).first()
-
-        if existing_appointment:
-            # If a booking exists, show a warning and redirect back to the booking page
-            flash('This time slot is already booked. Please choose a different time.', 'warning')
-            return redirect(url_for('patient.book_appointment', doctor_id=doctor_id))
-
-        # If the time slot is free, create the new appointment
-        new_appointment = Appointment(
-            patient_id=current_user.id,
-            doctor_id=doctor_profile.user_id,
-            appointment_datetime=appointment_datetime,
-            status='Booked'
-        )
-        # Save the new appointment to the database
-        db.session.add(new_appointment)
-        doctor_user = User.query.get(doctor_profile.user_id)
-        patient_name = current_user.patient_profile.full_name
-
-        notification_message = f"New appointment booked by {patient_name} for {appointment_datetime.strftime('%d %b at %I:%M %p')}."
-        new_notification = Notification(
-        user_id=doctor_user.id,
-        message=notification_message
+    return render_template(
+        'patient/patient_history.html',
+        title='Appointment History',
+        appointments=past_appointments
     )
-        db.session.add(new_notification)
-        db.session.commit()
-
-        flash('Your appointment has been successfully booked!', 'success')
-        return redirect(url_for('patient.dashboard'))
-
-    # This part runs when the user first visits the page (a GET request)
-    # It just shows the booking form
-    return render_template('patient/book_appointment.html', title='Book Appointment', form=form, doctor=doctor_profile)
-
-# ... (keep all your existing routes, like dashboard and book_appointment, above this) ...
-
-@patient_bp.route('/cancel/<int:appointment_id>', methods=['POST'])
-@login_required
-def cancel_appointment(appointment_id):
-    """
-    This route handles the cancellation of an appointment.
-    It only accepts POST requests for security.
-    """
-
-    # Step A: Find the specific appointment in the database using its ID.
-    # If no appointment with this ID is found, it will automatically show a 404 Not Found page.
-    appointment = Appointment.query.get_or_404(appointment_id)
-
-    # Step B: CRITICAL Security Check.
-    # Verify that the person trying to cancel the appointment is the same person who booked it.
-    # This prevents users from cancelling other people's appointments.
-    if appointment.patient_id != current_user.id:
-        flash('You are not authorized to cancel this appointment.', 'danger')
-        return redirect(url_for('patient.dashboard'))
-
-    # Step C: Update the appointment's status.
-    appointment.status = 'Cancelled'
-
-    # Step D: Save the change to the database.
-    db.session.commit()
-
-    # Step E: Show a confirmation message and redirect the user back to their dashboard.
-    flash('Your appointment has been successfully cancelled.', 'info')
-    return redirect(url_for('patient.dashboard'))
-
-# ... (keep your existing routes: dashboard, book_appointment, cancel_appointment) ...
 
 @patient_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     """
-    This route handles viewing and updating the patient's own profile.
+    Handles viewing and updating the patient's own profile.
     """
-    # Step A: Security check to ensure user is a patient.
     if current_user.role != 'patient':
         return redirect(url_for('main.home'))
 
-    # Step B: Get the patient's profile from the database.
-    # The 'patient_profile' relationship we defined in models.py makes this easy.
     profile = current_user.patient_profile
-    
-    # Step C: Create an instance of our form.
-    # The `obj=profile` argument is the key: it tells the form to
-    # pre-populate all its fields with the data from the 'profile' object.
     form = UpdateProfileForm(obj=profile)
 
-    # Step D: This block runs only when the user submits the form.
     if form.validate_on_submit():
-        # Update the profile object in memory with the new data from the form.
         profile.full_name = form.full_name.data
         profile.date_of_birth = form.date_of_birth.data
         profile.gender = form.gender.data
         profile.contact_number = form.contact_number.data
         profile.blood_group = form.blood_group.data
         profile.allergies = form.allergies.data
-
-        # Step E: Save the updated profile to the database.
         db.session.commit()
-        
-        # Step F: Show a success message and reload the page.
-        flash('Your profile has been updated successfully!', 'success')
+        flash('Your profile has been updated!', 'success')
         return redirect(url_for('patient.profile'))
 
-    # Step G: If it's a GET request (the user is just visiting the page),
-    # render the template and pass in the pre-populated form.
     return render_template('patient/profile.html', title='My Profile', form=form)
 
+@patient_bp.route('/department/<int:department_id>')
+@login_required
+def department_details(department_id):
+    """
+    Displays details for a specific department, including a list of its doctors.
+    """
+    if current_user.role != 'patient':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('main.home'))
+        
+    department = Department.query.get_or_404(department_id)
+    return render_template(
+        'patient/department_details.html',
+        title=department.name,
+        department=department
+    )
+
+@patient_bp.route('/doctor/<int:doctor_profile_id>')
+@login_required
+def doctor_details(doctor_profile_id):
+    """
+    Displays a detailed profile page for a specific doctor.
+    """
+    if current_user.role != 'patient':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('main.home'))
+
+    doctor_profile = DoctorProfile.query.get_or_404(doctor_profile_id)
+    return render_template(
+        'patient/doctor_details.html',
+        title=f"Dr. {doctor_profile.full_name}",
+        doctor=doctor_profile
+    )
+
+@patient_bp.route('/book/<int:doctor_id>', methods=['GET', 'POST'])
+@login_required
+def book_appointment(doctor_id):
+    """
+    Handles both showing the booking page for a specific doctor
+    and processing the booking form submission.
+    """
+    if current_user.role != 'patient':
+        flash('Only patients can book appointments.', 'danger')
+        return redirect(url_for('main.home'))
+
+    doctor_profile = DoctorProfile.query.get_or_404(doctor_id)
+    form = BookingForm() # We still just use this for the CSRF token
+
+    if request.method == 'POST':
+        selected_slot = request.form.get('selected_slot')
+        if not selected_slot:
+            flash('Please select an available time slot.', 'warning')
+            return redirect(url_for('patient.book_appointment', doctor_id=doctor_id))
+
+        date_str, slot_type = selected_slot.split('_')
+        appointment_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        if slot_type == 'morning':
+            appointment_time = time(8, 0) # 8:00 AM
+        else: # evening
+            appointment_time = time(16, 0) # 4:00 PM
+        
+        appointment_datetime = datetime.combine(appointment_date, appointment_time)
+
+        existing_appointment = Appointment.query.filter_by(
+            doctor_id=doctor_profile.user_id,
+            appointment_datetime=appointment_datetime,
+            status='Booked'
+        ).first()
+
+        if existing_appointment:
+            flash('This time slot was just booked by someone else. Please select a different slot.', 'warning')
+            return redirect(url_for('patient.book_appointment', doctor_id=doctor_id))
+
+        new_appointment = Appointment(
+            patient_id=current_user.id,
+            doctor_id=doctor_profile.user_id,
+            appointment_datetime=appointment_datetime,
+            status='Booked'
+        )
+        db.session.add(new_appointment)
+
+        doctor_user = User.query.get(doctor_profile.user_id)
+        patient_name = current_user.patient_profile.full_name
+        notification_message = f"New appointment booked by {patient_name} for {appointment_datetime.strftime('%d %b at %I:%M %p')}."
+        new_notification = Notification(user_id=doctor_user.id, message=notification_message)
+        db.session.add(new_notification)
+        
+        db.session.commit()
+        flash('Your appointment has been successfully booked!', 'success')
+        return redirect(url_for('patient.dashboard'))
+
+    # --- GET Request Logic ---
+    today = date.today() # This line was causing the error
+    days = [today + timedelta(days=i) for i in range(7)]
+    
+    available_slots_db = Availability.query.filter(
+        Availability.doctor_id == doctor_profile.user_id,
+        Availability.available_date.in_(days)
+    ).all()
+    available_slots_set = {f"{slot.available_date.isoformat()}_{slot.slot}" for slot in available_slots_db}
+    
+    booked_appointments_db = Appointment.query.filter(
+        Appointment.doctor_id == doctor_profile.user_id,
+        db.func.date(Appointment.appointment_datetime).in_(days),
+        Appointment.status == 'Booked'
+    ).all()
+    
+    booked_slots_set = set()
+    for appt in booked_appointments_db:
+        if appt.appointment_datetime.time() < time(13, 0):
+            booked_slots_set.add(f"{appt.appointment_datetime.date().isoformat()}_morning")
+        else:
+            booked_slots_set.add(f"{appt.appointment_datetime.date().isoformat()}_evening")
+            
+    return render_template(
+        'patient/book_appointment.html', 
+        title='Book Appointment', 
+        form=form, 
+        doctor=doctor_profile, 
+        days=days,
+        available_slots=available_slots_set,
+        booked_slots=booked_slots_set
+    )
+
+@patient_bp.route('/cancel/<int:appointment_id>', methods=['POST'])
+@login_required
+def cancel_appointment(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    if appointment.patient_id != current_user.id:
+        flash('You are not authorized to cancel this appointment.', 'danger')
+        return redirect(url_for('patient.dashboard'))
+
+    appointment.status = 'Cancelled'
+    db.session.commit()
+    flash('Your appointment has been successfully cancelled.', 'info')
+    return redirect(url_for('patient.dashboard'))
+
+@patient_bp.route('/api/doctor/<int:doctor_id>/availability')
+@login_required
+def doctor_availability_api(doctor_id):
+    """
+    API endpoint to return available appointment slots for a doctor on a given date.
+    Returns data in JSON format.
+    """
+    date_str = request.args.get('date')
+    if not date_str:
+        return jsonify({'error': 'Date parameter is required'}), 400
+
+    try:
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    day_of_week = selected_date.strftime('%A')
+
+    doctor_schedule = Availability.query.filter_by(doctor_id=doctor_id, day_of_week=day_of_week).all()
+    if not doctor_schedule:
+        return jsonify({'available_slots': []}) 
+
+    booked_appointments = Appointment.query.filter(
+        Appointment.doctor_id == doctor_id,
+        db.func.date(Appointment.appointment_datetime) == selected_date,
+        Appointment.status == 'Booked'
+    ).all()
+    booked_times = {appt.appointment_datetime.time() for appt in booked_appointments}
+
+    available_slots = []
+    slot_duration = timedelta(minutes=60) 
+
+    for schedule in doctor_schedule:
+        current_time = datetime.combine(selected_date, schedule.start_time)
+        end_time = datetime.combine(selected_date, schedule.end_time)
+        
+        while current_time + slot_duration <= end_time:
+            if current_time.time() not in booked_times:
+                available_slots.append(current_time.strftime('%H:%M'))
+            current_time += slot_duration
+            
+    return jsonify({'available_slots': available_slots})
