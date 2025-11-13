@@ -34,24 +34,26 @@ def dashboard():
         appointments=upcoming_appointments
     )
 
-@patient_bp.route('/history')
+@patient_bp.route('/my_history')
 @login_required
-def patient_history():
+def my_history():
     """
-    Shows a detailed list of all past and completed appointments.
+    Shows a detailed, read-only view of the patient's own
+    complete appointment history.
     """
     if current_user.role != 'patient':
         flash('You are not authorized to access this page.', 'danger')
         return redirect(url_for('main.home'))
-
+    
+    # Get all past appointments (Completed or Cancelled) for the logged-in patient
     past_appointments = Appointment.query.filter(
         Appointment.patient_id == current_user.id,
         Appointment.status.in_(['Completed', 'Cancelled'])
     ).order_by(Appointment.appointment_datetime.desc()).all()
 
     return render_template(
-        'patient/patient_history.html',
-        title='Appointment History',
+        'patient/my_history.html',
+        title='My Appointment History',
         appointments=past_appointments
     )
 
@@ -261,3 +263,4 @@ def doctor_availability_api(doctor_id):
             current_time += slot_duration
             
     return jsonify({'available_slots': available_slots})
+

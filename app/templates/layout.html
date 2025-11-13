@@ -293,6 +293,7 @@
                             <li><a class="dropdown-item" href="{{ url_for(current_user.role + '.dashboard') }}"><i
                                         class="fas fa-tachometer-alt fa-fw me-2"></i>Dashboard</a></li>
                             {% if current_user.role == 'patient' %}
+
                             <li><a class="dropdown-item" href="{{ url_for('patient.profile') }}"><i
                                         class="fas fa-user-edit fa-fw me-2"></i>My Profile</a></li>
                             {% endif %}
