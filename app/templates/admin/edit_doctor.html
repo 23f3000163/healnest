@@ -9,16 +9,16 @@
             {{ form.hidden_tag() }}
             <div class="mb-3">
                 {{ form.full_name.label(class="form-label") }}
-                {{ form.full_name(class="form-control") }}
+                {{ form.full_name(class="form-control", required=True) }}
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control") }}
+                    {{ form.email(class="form-control", required=True, type="email") }}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.department_id.label(class="form-label") }}
-                    {{ form.department_id(class="form-select") }}
+                    {{ form.department_id(class="form-select", required=True) }}
                 </div>
             </div>
             <div class="form-group mt-4">

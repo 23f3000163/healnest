@@ -10,17 +10,26 @@ from . import main_bp
 # Import the Blueprint instance from the routes package's __init__.py
 from . import main_bp
 
-@main_bp.route("/")
-@main_bp.route("/home")
+@main_bp.route('/')
+@main_bp.route('/home')
 def home():
+    """
+    Handles the homepage.
+    If user is logged in, redirect them to their correct dashboard.
+    """
     if current_user.is_authenticated:
+        # --- THIS IS THE "SMART REDIRECT" FIX ---
         if current_user.role == 'admin':
             return redirect(url_for('admin.dashboard'))
         elif current_user.role == 'doctor':
             return redirect(url_for('doctor.dashboard'))
         else:
             return redirect(url_for('patient.dashboard'))
-    return render_template('home.html', title='Home') # You should create a simple home.html
+    
+    # Guests will see the homepage
+    return render_template('home.html', title='Home')
+
+
 
 @main_bp.route("/register", methods=['GET', 'POST'])
 def register():
@@ -41,17 +50,32 @@ def register():
         return redirect(url_for('main.login'))
     return render_template('register.html', title='Register', form=form)
 
+
 @main_bp.route("/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
+    
     form = LoginForm()
+    
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
+        
+        # First, check if user exists and password is correct
         if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
+            
+            # --- NEW BLACKLIST CHECK ---
+            # Second, check if the user's account is active
+            if not user.is_active:
+                flash('Your account has been suspended. Please contact an administrator.', 'danger')
+                return redirect(url_for('main.login'))
+            # --- END OF CHECK ---
+
+            # If both checks pass, log the user in
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             
+            # Redirect to the correct dashboard based on role
             if user.role == 'admin':
                 return redirect(next_page) if next_page else redirect(url_for('admin.dashboard'))
             elif user.role == 'doctor':
@@ -59,8 +83,11 @@ def login():
             else:
                 return redirect(next_page) if next_page else redirect(url_for('patient.dashboard'))
         else:
+            # If user doesn't exist or password is wrong
             flash('Login Unsuccessful. Please check email and password.', 'danger')
+            
     return render_template('login.html', title='Login', form=form)
+
 
 @main_bp.route("/logout")
 def logout():

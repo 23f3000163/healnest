@@ -7,14 +7,14 @@
     <div class="card-body">
         <form method="POST" action="">
             {{ form.hidden_tag() }}
-            <div class="mb-3">
+            <div class.mb-3">
                 {{ form.full_name.label(class="form-label") }}
-                {{ form.full_name(class="form-control") }}
+                {{ form.full_name(class="form-control", required=True) }}
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control") }}
+                    {{ form.email(class="form-control", required=True, type="email") }}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.contact_number.label(class="form-label") }}

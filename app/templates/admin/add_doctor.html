@@ -15,18 +15,11 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.full_name.label(class="form-label") }}
-                    {% if form.full_name.errors %}
-                        {{ form.full_name(class="form-control is-invalid", placeholder="e.g., Dr. John Smith") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.full_name.errors %}<span>{{ error }}</span>{% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.full_name(class="form-control", placeholder="e.g., Dr. John Smith") }}
-                    {% endif %}
+                    {{ form.full_name(class="form-control", placeholder="e.g., Dr. John Smith", required=True) }}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.department_id.label(class="form-label") }}
-                    {{ form.department_id(class="form-select") }}
+                    {{ form.department_id(class="form-select", required=True) }}
                 </div>
             </div>
 
@@ -36,25 +29,11 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.email.label(class="form-label") }}
-                    {% if form.email.errors %}
-                        {{ form.email(class="form-control is-invalid", placeholder="doctor@example.com") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.email.errors %}<span>{{ error }}</span>{% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.email(class="form-control", placeholder="doctor@example.com") }}
-                    {% endif %}
+                    {{ form.email(class="form-control", placeholder="doctor@example.com", required=True, type="email") }}
                 </div>
                 <div class="col-md-6 mb-3">
                     {{ form.password.label(class="form-label") }}
-                    {% if form.password.errors %}
-                        {{ form.password(class="form-control is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.password(class="form-control") }}
-                    {% endif %}
+                    {{ form.password(class="form-control", required=True) }}
                     <div class="form-text">Must be at least 8 characters long.</div>
                 </div>
             </div>

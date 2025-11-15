@@ -1,40 +1,41 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-6 col-lg-5">
-            <div class="card bg-dark text-light shadow-lg p-4 rounded-3 border-secondary">
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-user-plus fa-3x text-primary"></i>
-                        <h2 class="mt-3">Create Your Account</h2>
-                        <p class="text-white-50">Join MediSphere to manage your health.</p>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card bg-dark text-light shadow-lg p-4 rounded-3 border-secondary">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-plus fa-3x text-primary"></i>
+                    <h2 class="mt-3">Create Your Account</h2>
+                    <p class="text-white-50">Join MediCare to manage your health.</p>
+                </div>
+                
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control form-control-dark bg-secondary text-light border-secondary", placeholder="name@example.com", required=True) }}
                     </div>
-                    
-                    <form method="POST" action="">
-                        {{ form.hidden_tag() }}
-                        <div class="mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control form-control-dark bg-secondary text-light border-secondary", placeholder="name@example.com") }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control form-control-dark bg-secondary text-light border-secondary", placeholder="Minimum 8 characters") }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.confirm_password.label(class="form-label") }}
-                            {{ form.confirm_password(class="form-control form-control-dark bg-secondary text-light border-secondary", placeholder="Confirm your password") }}
-                        </div>
-                        <div class="d-grid mt-4">
-                            {{ form.submit(class="btn btn-primary btn-lg") }}
-                        </div>
-                    </form>
-                    <div class="text-center mt-4">
-                        <small>
-                            Already have an account? <a href="{{ url_for('main.login') }}" class="text-primary fw-bold">Login</a>
-                        </small>
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control form-control-dark bg-secondary text-light border-secondary", placeholder="Minimum 8 characters", required=True) }}
                     </div>
+                    <div class="mb-3">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-control form-control-dark bg-secondary text-light border-secondary", placeholder="Confirm your password", required=True) }}
+                    </div>
+                    <div class="d-grid mt-4">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        Already have an account? <a href="{{ url_for('main.login') }}" class="text-primary fw-bold">Login</a>
+                    </small>
                 </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock content %}

@@ -21,6 +21,7 @@ class User(db.Model, UserMixin):
     # Role differentiates between user types
     role = db.Column(db.String(10), nullable=False)  # 'admin', 'doctor', 'patient'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     # Relationships
     doctor_profile = db.relationship('DoctorProfile', backref='user', uselist=False, cascade="all, delete-orphan")

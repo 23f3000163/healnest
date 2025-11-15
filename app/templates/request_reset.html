@@ -12,7 +12,7 @@
                     {{ form.hidden_tag() }}
                     <div class="mb-3">
                         {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control form-control-dark bg-secondary text-light border-secondary") }}
+                        {{ form.email(class="form-control form-control-dark bg-secondary text-light border-secondary", required=True, type="email") }}
                     </div>
                     <div class="d-grid">
                         {{ form.submit(class="btn btn-primary btn-lg") }}

@@ -11,11 +11,11 @@
                     {{ form.hidden_tag() }}
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control form-control-dark bg-secondary text-light border-secondary") }}
+                        {{ form.password(class="form-control form-control-dark bg-secondary text-light border-secondary", required=True) }}
                     </div>
                     <div class="mb-3">
                         {{ form.confirm_password.label(class="form-label") }}
-                        {{ form.confirm_password(class="form-control form-control-dark bg-secondary text-light border-secondary") }}
+                        {{ form.confirm_password(class="form-control form-control-dark bg-secondary text-light border-secondary", required=True) }}
                     </div>
                     <div class="d-grid mt-4">
                         {{ form.submit(class="btn btn-primary btn-lg") }}

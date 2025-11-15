@@ -37,25 +37,32 @@ def dashboard():
 @patient_bp.route('/my_history')
 @login_required
 def my_history():
-    """
-    Shows a detailed, read-only view of the patient's own
-    complete appointment history.
-    """
     if current_user.role != 'patient':
         flash('You are not authorized to access this page.', 'danger')
         return redirect(url_for('main.home'))
     
-    # Get all past appointments (Completed or Cancelled) for the logged-in patient
-    past_appointments = Appointment.query.filter(
+    # Patient sees ALL their completed appointments
+    patient_history = Appointment.query.filter(
         Appointment.patient_id == current_user.id,
-        Appointment.status.in_(['Completed', 'Cancelled'])
+        Appointment.status == 'Completed'
     ).order_by(Appointment.appointment_datetime.desc()).all()
 
+    # --- NEW: Calculate Patient Age ---
+    patient_age = None
+    if current_user.patient_profile and current_user.patient_profile.date_of_birth:
+        today = date.today()
+        patient_age = today.year - current_user.patient_profile.date_of_birth.year - \
+                      ((today.month, today.day) < (current_user.patient_profile.date_of_birth.month, current_user.patient_profile.date_of_birth.day))
+
     return render_template(
-        'patient/my_history.html',
+        'admin/patient_history.html', # Reusing the smart template
         title='My Appointment History',
-        appointments=past_appointments
+        patient=current_user, # The patient is the current user
+        history=patient_history,
+        patient_age=patient_age, # Pass the new age variable
+        back_url=url_for('patient.dashboard')
     )
+    
 
 @patient_bp.route('/profile', methods=['GET', 'POST'])
 @login_required

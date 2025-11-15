@@ -157,30 +157,34 @@ def set_availability():
 @doctor_bp.route('/patient_history/<int:user_id>')
 @login_required
 def view_patient_history(user_id):
-    """
-    Shows a read-only view of a specific patient's complete history
-    for the logged-in doctor.
-    """
     if current_user.role != 'doctor':
         flash('You are not authorized to access this page.', 'danger')
-        return redirect(url_for('main.home'))
+        return redirect(url_for('doctor.dashboard'))
     
-    # Get the patient's User object
     patient = User.query.get_or_404(user_id)
     if patient.role != 'patient':
         flash('This user is not a patient.', 'warning')
         return redirect(url_for('doctor.dashboard'))
 
-    # Get all COMPLETED appointments for this patient WITH THIS doctor
+    # Doctor sees only appointments THEY completed for this patient
     patient_history = Appointment.query.filter(
         Appointment.patient_id == patient.id,
-        Appointment.doctor_id == current_user.id, # Ensure doctor can only see their own history
+        Appointment.doctor_id == current_user.id,
         Appointment.status == 'Completed'
     ).order_by(Appointment.appointment_datetime.desc()).all()
 
+    # --- NEW: Calculate Patient Age ---
+    patient_age = None
+    if patient.patient_profile and patient.patient_profile.date_of_birth:
+        today = date.today()
+        patient_age = today.year - patient.patient_profile.date_of_birth.year - \
+                      ((today.month, today.day) < (patient.patient_profile.date_of_birth.month, patient.patient_profile.date_of_birth.day))
+
     return render_template(
-        'doctor/patient_history.html',
+        'admin/patient_history.html', # Reusing the smart template
         title=f"History for {patient.patient_profile.full_name}",
         patient=patient,
-        history=patient_history
+        history=patient_history,
+        patient_age=patient_age, # Pass the new age variable
+        back_url=url_for('doctor.dashboard')
     )

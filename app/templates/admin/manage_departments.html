@@ -14,7 +14,7 @@
                         <div class="mb-3">
                             {{ form.name.label(class="form-label") }}
                             {% if form.name.errors %}
-                                {{ form.name(class="form-control is-invalid") }}
+                                {{ form.name(class="form-control is-invalid" , required=True) }}
                                 <div class="invalid-feedback">
                                     {% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}
                                 </div>
