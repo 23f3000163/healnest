@@ -1,0 +1,29 @@
+<svg width="330" height="100" viewBox="0 0 330 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <linearGradient id="HealnestGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D6EFD"></stop>
+      <stop offset="100%" stop-color="#00C7A6"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Premium Icon -->
+  <g transform="translate(20,10)">
+    
+    <!-- Sharp Medical Cross -->
+    <rect x="30" y="0" width="12" height="36" rx="4" fill="url(#HealnestGradient)"></rect>
+    <rect x="21" y="9" width="36" height="12" rx="4" fill="url(#HealnestGradient)"></rect>
+
+    <!-- Refined Nest Shape -->
+    <path d="M0 60 C20 88, 78 88, 98 60" stroke="url(#HealnestGradient)" stroke-width="6" stroke-linecap="round"></path>
+
+    <!-- Soft Dot (symbolizes patient/heart) -->
+    <circle cx="49" cy="68" r="7" fill="url(#HealnestGradient)"></circle>
+  </g>
+
+  <!-- Text -->
+  <text x="135" y="68" font-family="Poppins, Inter, SF Pro Display, sans-serif" font-size="42" font-weight="600" letter-spacing="0.5px" fill="url(#HealnestGradient)">
+    Healnest
+  </text>
+
+</svg>

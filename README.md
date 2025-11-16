@@ -1,4 +1,4 @@
-# medicare 
+# Healnest
 
 A modern Hospital Management System built for learning and demonstration purposes. It streamlines patient records, doctor management, appointment scheduling, and billing into one seamless platform.
 

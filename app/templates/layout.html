@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <title>{% if title %}{{ title }} - {% endif %}MediCare Hospital</title>
+    <title>{% if title %}{{ title }} - {% endif %}Healnest</title>
     <style>
         html {
             scroll-behavior: smooth;
@@ -56,6 +56,11 @@
             color: #adb5bd;
             text-decoration: none;
             transition: color 0.2s ease-in-out;
+        }
+
+        .footer-logo {
+            height: 38px;
+            width: auto;
         }
 
         .footer-main a:hover {
@@ -155,8 +160,42 @@
         .text-primary-emphasis {
             color: #052c65 !important;
         }
+
+        .navbar-brand {
+            letter-spacing: 0.5px;
+            color: #0d6efd !important;
+        }
+
+        .navbar-brand:hover {
+            opacity: 0.85;
+            transition: 0.2s;
+        }
+
+        .logo-icon {
+            height: 32px;
+            width: auto;
+            transform: translateY(2px);
+            /* aligns icon perfectly */
+        }
+
+        .logo-text {
+            font-family: "Cormorant Garamond", serif;
+            font-size: 28px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            color: #0D6EFD;
+            /* primary brand color */
+        }
+
+        .navbar-brand:hover {
+            opacity: 0.9;
+            text-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
+            transition: 0.2s ease;
+        }
     </style>
 </head>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
 
 <body class="bg-light" id="page-top">
 
@@ -164,11 +203,14 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top py-2">
         <div class="container">
             <!-- Brand -->
-            <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" href="{{ url_for('main.home') }}#page-top">
-                <img src="https://placehold.co/40x40/0d6efd/white?text=MC" alt="Logo" width="30" height="30"
-                    class="d-inline-block align-text-top me-2 rounded">
-                MediCare Hospital
+            <a class="navbar-brand d-flex align-items-center fw-semibold fs-4" href="{{ url_for('main.home') }}">
+                <img src="{{ url_for('static', filename='brand/healnest-icon.svg') }}" width="38" height="38"
+                    class="me-2">
+                <span style="font-family: 'Poppins', sans-serif; font-weight:600; letter-spacing:0.5px;">
+                    Healnest
+                </span>
             </a>
+
 
             <!-- Mobile Toggle Button -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
@@ -345,14 +387,21 @@
     <footer class="footer-main mt-auto py-5">
         <div class="container">
             <div class="row">
+
+                <!-- Logo + About -->
                 <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                    <h5 class="text-white mb-3 d-flex align-items-center">
-                        <img src="https://placehold.co/40x40/0d6efd/white?text=MC" alt="Logo" width="30" height="30"
-                            class="me-2 rounded">
-                        MediCare Hospital
-                    </h5>
-                    <p class="small">Providing exceptional healthcare services with compassion, innovation, and
-                        excellence for over 25 years.</p>
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='brand/healnest-icon.svg') }}" class="footer-logo me-2"
+                            alt="Healnest Logo">
+                        <span class="footer-brand">Healnest</span>
+                    </div>
+
+                    <p class="small">
+                        Providing exceptional healthcare services with compassion, innovation,
+                        and excellence for over 25 years.
+                    </p>
+
+                    <!-- Social Icons -->
                     <div class="mt-3">
                         <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
@@ -360,8 +409,10 @@
                         <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
+
+                <!-- Quick Links -->
                 <div class="col-lg-2 col-6 mb-4 mb-lg-0">
-                    <h5 class="text-white mb-3">Quick Links</h5>
+                    <h5 class="footer-title">Quick Links</h5>
                     <ul class="list-unstyled small">
                         <li class="mb-2"><a href="{{ url_for('main.home') }}">Home</a></li>
                         <li class="mb-2"><a href="{{ url_for('main.login') }}">Services</a></li>
@@ -370,8 +421,10 @@
                         <li class="mb-2"><a href="{{ url_for('main.login') }}">Contact</a></li>
                     </ul>
                 </div>
+
+                <!-- Medical Services -->
                 <div class="col-lg-3 col-6 mb-4 mb-lg-0">
-                    <h5 class="text-white mb-3">Medical Services</h5>
+                    <h5 class="footer-title">Medical Services</h5>
                     <ul class="list-unstyled small">
                         <li class="mb-2"><a href="{{ url_for('main.login') }}">Emergency Care</a></li>
                         <li class="mb-2"><a href="{{ url_for('main.login') }}">Cardiology</a></li>
@@ -380,23 +433,29 @@
                         <li class="mb-2"><a href="{{ url_for('main.login') }}">Pediatrics</a></li>
                     </ul>
                 </div>
+
+                <!-- Contact -->
                 <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
-                    <h5 class="text-white mb-3">Contact Info</h5>
+                    <h5 class="footer-title">Contact Info</h5>
                     <ul class="list-unstyled small">
-                        <li class="mb-2 d-flex"><i class="fas fa-map-marker-alt me-2 pt-1 flex-shrink-0"></i><span>123
-                                Medical Center Dr<br>Healthcare City, HC 12345</span></li>
-                        <li class="mb-2 d-flex"><i class="fas fa-phone me-2 pt-1 flex-shrink-0"></i><span>(555)
-                                123-4567</span></li>
-                        <li class="mb-2 d-flex"><i
-                                class="fas fa-envelope me-2 pt-1 flex-shrink-0"></i><span>info@medicarehospital.com</span>
+                        <li class="mb-2 d-flex"><i class="fas fa-map-marker-alt me-2 pt-1 flex-shrink-0"></i>
+                            <span>123 Medical Center Dr<br>Healthcare City, HC 12345</span>
+                        </li>
+                        <li class="mb-2 d-flex"><i class="fas fa-phone me-2 pt-1 flex-shrink-0"></i>
+                            <span>(555) 123-4567</span>
+                        </li>
+                        <li class="mb-2 d-flex"><i class="fas fa-envelope me-2 pt-1 flex-shrink-0"></i>
+                            <span>info@Healnest.com</span>
                         </li>
                     </ul>
                 </div>
             </div>
-            <hr style="border-color: rgba(255,255,255,0.2);">
+
+            <hr class="footer-divider">
+
             <div class="row pt-3">
                 <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
-                    <small>© 2025 MediCare Hospital. All rights reserved.</small>
+                    <small>© 2025 Healnest. All rights reserved.</small>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <small>
@@ -408,12 +467,13 @@
             </div>
         </div>
     </footer>
+
     {% else %}
     <!-- Compressed App Footer (for logged-in users) -->
     <footer class="footer-app mt-auto py-3">
         <div class="container">
             <div class="d-flex flex-wrap justify-content-between align-items-center">
-                <small class="text-muted col-md-6">© 2025 MediCare Hospital. All rights reserved.</small>
+                <small class="text-muted col-md-6">© 2025 Healnest. All rights reserved.</small>
                 <ul class="nav col-md-6 justify-content-end list-unstyled d-flex">
                     <li class="ms-3"><a class="text-muted" href="#"><small>Privacy Policy</small></a></li>
                     <li class="ms-3"><a class="text-muted" href="#"><small>Terms of Service</small></a></li>
@@ -425,13 +485,13 @@
     <!-- End Dynamic Footer -->
 
 
-   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     {% if current_user.is_authenticated %}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // ... (your search bar script) ...
         });
     </script>
@@ -439,4 +499,5 @@
 
     {% block scripts %}{% endblock scripts %}
 </body>
+
 </html>

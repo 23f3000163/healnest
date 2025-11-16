@@ -1,28 +1,22 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<!-- 1. Hero Section -->
-<div class="bg-primary text-white">
-    <div class="container col-xxl-8 px-4 py-5">
-        <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
-            <div class="col-10 col-sm-8 col-lg-6">
-                <img src="https://placehold.co/700x500/ffffff/0d6efd?text=Modern+Hospital"
-                    class="d-block mx-lg-auto img-fluid rounded shadow-lg" alt="Hospital Building" loading="lazy"
-                    onerror="this.onerror=null; this.src='https://placehold.co/700x500/cccccc/ffffff?text=Image+Not+Found'">
-            </div>
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold lh-1 mb-3">Your Health is Our <span style="color:#ffc107;">Priority</span>
-                </h1>
-                <p class="lead">Providing world-class healthcare services with compassionate care, advanced technology,
-                    and expert medical professionals dedicated to your wellbeing.</p>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
-                    <a href="{{ url_for('main.login') }}" type="button" class="btn btn-light btn-lg px-4 fw-semibold"><i
-                            class="fas fa-user-md me-2"></i>Find a Doctor</a>
-                </div>
-            </div>
-        </div>
+<!-- HERO SECTION -->
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+        <h1>Your Health is Our <span>Priority</span></h1>
+        <p>Trusted healthcare powered by advanced technology, expert doctors, and compassionate patient care.</p>
+
+        <a href="#" class="hero-btn">
+            <i class="fas fa-user-md"></i> Find a Doctor
+        </a>
     </div>
-</div>
+</section>
+
+
+
 
 
 <!-- 2. Stats Section -->
@@ -59,31 +53,32 @@
 </div>
 
 
-<!-- 3. About Section -->
 <div class="container px-4 py-5" id="about">
     <div class="row align-items-center g-5">
-        <div class="col-lg-6 order-lg-2"> <!-- Image on the right for larger screens -->
-            <img src="https://placehold.co/600x400/eeeeee/333333?text=Smiling+Medical+Staff"
-                class="img-fluid rounded shadow-lg" alt="Medical Staff"
-                onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/ffffff?text=Image+Not+Found'">
-        </div>
+
+        <!-- TEXT FIRST (LEFT SIDE) -->
         <div class="col-lg-6 order-lg-1">
-            <h2 class="fw-bold mb-3">About MediCare Hospital</h2>
-            <p class="lead text-muted mb-4">For over 25 years, MediCare Hospital has been at the forefront of healthcare
-                innovation, providing exceptional medical care with compassion and excellence.</p>
+            <h2 class="fw-bold mb-3">About Healnest</h2>
+            <p class="lead text-muted mb-4">
+                For over 25 years, Healnest has been at the forefront of healthcare innovation,
+                providing exceptional medical care with compassion and excellence.
+            </p>
+
             <ul class="list-unstyled">
                 <li class="d-flex mb-3 align-items-start">
-                    <div class="icon-circle bg-primary-soft text-primary me-3 flex-shrink-0 mt-1"> <i
-                            class="fas fa-shield-alt"></i> </div>
+                    <div class="icon-circle bg-primary-soft text-primary me-3 flex-shrink-0 mt-1">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
                     <div>
                         <h5 class="mb-1 fw-semibold">Excellence in Care</h5>
-                        <small class="text-muted">Recognized nationally for our commitment to patient safety and quality
-                            outcomes.</small>
+                        <small class="text-muted">Recognized nationally for our commitment to patient
+                            safety and quality outcomes.</small>
                     </div>
                 </li>
                 <li class="d-flex mb-3 align-items-start">
-                    <div class="icon-circle bg-success-soft text-success me-3 flex-shrink-0 mt-1"> <i
-                            class="fas fa-microscope"></i> </div>
+                    <div class="icon-circle bg-success-soft text-success me-3 flex-shrink-0 mt-1">
+                        <i class="fas fa-microscope"></i>
+                    </div>
                     <div>
                         <h5 class="mb-1 fw-semibold">Advanced Technology</h5>
                         <small class="text-muted">State-of-the-art medical equipment and innovative treatment
@@ -91,8 +86,9 @@
                     </div>
                 </li>
                 <li class="d-flex align-items-start">
-                    <div class="icon-circle bg-warning-soft text-warning me-3 flex-shrink-0 mt-1"> <i
-                            class="fas fa-hand-holding-heart"></i> </div>
+                    <div class="icon-circle bg-warning-soft text-warning me-3 flex-shrink-0 mt-1">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
                     <div>
                         <h5 class="mb-1 fw-semibold">Compassionate Care</h5>
                         <small class="text-muted">Patient-centered approach with personalized treatment plans and
@@ -100,11 +96,20 @@
                     </div>
                 </li>
             </ul>
+
             <div class="mt-4">
                 <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg me-2">Learn More About Us</a>
                 <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary btn-lg">Our Mission</a>
             </div>
         </div>
+
+        <!-- IMAGE (RIGHT SIDE) -->
+        <div class="col-lg-6 order-lg-2 text-center">
+            <div class="about-image-wrapper">
+                <img src="{{ url_for('static', filename='images/staff.jpg') }}" class="about-image" alt="Medical Staff">
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -117,7 +122,8 @@
         <!-- Service Card 1 -->
         <div class="col-lg-4 col-md-6">
             <div class="card h-100 border-0 shadow-sm p-4 text-start hover-lift">
-                <div class="icon-circle bg-danger-soft text-danger mb-3"> <i class="fas fa-heartbeat fs-4"></i></div>
+                <div class="icon-circle bg-danger-soft text-danger mb-3"> <i class="fas fa-heartbeat fs-4"></i>
+                </div>
                 <h4 class="card-title">Cardiology</h4>
                 <ul class="list-unstyled text-muted small mt-3">
                     <li class="mb-1"><i class="fas fa-check text-success me-2"></i>ECG & Stress Testing</li>
@@ -166,7 +172,8 @@
 <!-- 5. Departments Section -->
 <div class="container px-4 py-5 text-center" id="departments">
     <h2 class="fw-bold mb-3">Hospital Departments</h2>
-    <p class="lead text-muted col-lg-8 mx-auto mb-5">Our specialized departments work together to provide comprehensive
+    <p class="lead text-muted col-lg-8 mx-auto mb-5">Our specialized departments work together to provide
+        comprehensive
         healthcare services across all medical specialties.</p>
     <div class="row g-4">
         <!-- Department Card 1 -->
@@ -182,7 +189,8 @@
         <!-- Department Card 2 -->
         <div class="col-lg-3 col-md-6">
             <div class="card h-100 border-0 shadow-sm p-4 text-center hover-lift">
-                <div class="icon-circle bg-info-soft text-info mx-auto mb-3"> <i class="fas fa-x-ray fs-4"></i> </div>
+                <div class="icon-circle bg-info-soft text-info mx-auto mb-3"> <i class="fas fa-x-ray fs-4"></i>
+                </div>
                 <h5 class="card-title">Radiology</h5>
                 <p class="card-text small text-muted">Advanced imaging and diagnostic services.</p>
                 <span class="badge bg-warning text-dark mt-auto align-self-center">Mon-Sat</span>
@@ -218,8 +226,9 @@
 <!-- 6. Testimonials Section -->
 <div class="container px-4 py-5 bg-white rounded shadow-sm">
     <h2 class="text-center fw-bold mb-3">Patient Testimonials</h2>
-    <p class="lead text-muted text-center col-lg-8 mx-auto mb-5">Hear from our patients about their experiences and the
-        quality of care they received at MediCare Hospital.</p>
+    <p class="lead text-muted text-center col-lg-8 mx-auto mb-5">Hear from our patients about their experiences and
+        the
+        quality of care they received at Healnest</p>
     <div class="row g-4">
         <!-- Testimonial Card 1 -->
         <div class="col-lg-4">
@@ -234,7 +243,8 @@
                             class="fas fa-star"></i><i class="fas fa-star"></i>
                     </div>
                     <blockquote class="blockquote mb-0 fs-6 text-center mt-auto">
-                        <p><small>"The care I received during my cardiac surgery was exceptional. The entire team was
+                        <p><small>"The care I received during my cardiac surgery was exceptional. The entire team
+                                was
                                 professional, compassionate, and made me feel comfortable throughout the
                                 process."</small></p>
                     </blockquote>
@@ -254,7 +264,8 @@
                             class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
                     </div>
                     <blockquote class="blockquote mb-0 fs-6 text-center mt-auto">
-                        <p><small>"After my knee replacement surgery, the rehabilitation team helped me get back to my
+                        <p><small>"After my knee replacement surgery, the rehabilitation team helped me get back to
+                                my
                                 active lifestyle. The facilities are modern and the staff is incredibly
                                 supportive."</small></p>
                     </blockquote>
@@ -288,9 +299,11 @@
 <div class="container px-4 py-5 text-center my-5">
     <div class="p-5 bg-primary-soft rounded-3 shadow">
         <h2 class="fw-bold mb-3 text-primary-emphasis">Ready to Take Control of Your Health?</h2>
-        <p class="lead text-muted col-lg-8 mx-auto mb-4">Schedule your visit with our expert medical professionals. Log
+        <p class="lead text-muted col-lg-8 mx-auto mb-4">Schedule your visit with our expert medical professionals.
+            Log
             in or sign up to easily choose your preferred date, time, and department online.</p>
-        <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg px-5 shadow">Book Your Appointment Now</a>
+        <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg px-5 shadow">Book Your Appointment
+            Now</a>
     </div>
 </div>
 
@@ -305,13 +318,168 @@
 
 <!-- Add simple soft background colors for icon circles -->
 <style>
-    .bg-success-soft {
-        background-color: rgba(25, 135, 84, 0.1);
+    /* FULL PAGE HERO */
+    /* === HERO SECTION STYLING === */
+    .hero-section {
+        position: relative;
+        height: 100vh;
+        width: 100%;
+        background: url("{{ url_for('static', filename='images/doctors.jpg') }}") no-repeat center center/cover;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-left: 8vw;
+        color: white;
     }
 
-    .bg-warning-soft {
-        background-color: rgba(255, 193, 7, 0.1);
+    /* Blue Overlay */
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(13, 110, 253, 0.55);
+        backdrop-filter: blur(2px);
+    }
+
+    /* Text Container */
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 600px;
+    }
+
+    /* Heading */
+    .hero-content h1 {
+        font-size: 3.8rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 15px;
+    }
+
+    .hero-content h1 span {
+        color: #ffc107;
+    }
+
+    /* Sub text */
+    .hero-content p {
+        font-size: 1.2rem;
+        margin-bottom: 35px;
+    }
+
+    /* Button */
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #ffc107;
+        color: #000;
+        padding: 15px 30px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .hero-btn:hover {
+        background: white;
+        transform: translateY(-3px);
+    }
+
+    /* Responsive Fix */
+    @media (max-width: 768px) {
+        .hero-section {
+            justify-content: center;
+            text-align: center;
+            padding-left: 0;
+        }
+
+        .hero-content h1 {
+            font-size: 2.5rem;
+        }
+
+        .hero-btn {
+            justify-content: center;
+        }
+    }
+
+    /* ==== Fade In Animation ==== */
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-content h1,
+    .hero-content p,
+    .hero-btn {
+        opacity: 0;
+        animation: fadeInUp 1.2s ease forwards;
+    }
+
+    /* Stagger the animation timing */
+    .hero-content h1 {
+        animation-delay: 0.2s;
+    }
+
+    .hero-content p {
+        animation-delay: 0.5s;
+    }
+
+    .hero-btn {
+        animation-delay: 0.9s;
+    }
+
+    .hero-btn:hover {
+        background: #ffca2c;
+        transform: translateY(-4px) scale(1.03);
+        box-shadow: 0px 8px 18px rgba(255, 193, 7, 0.3);
+    }
+
+    .about-image-wrapper {
+        width: 100%;
+        height: 350px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeIn 1.4s ease-out forwards;
+    }
+
+    .about-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: 0.5s ease;
+    }
+
+    .about-image-wrapper:hover .about-image {
+        transform: scale(1.05);
+        transition: 0.5s ease-in-out;
+    }
+
+    .about-image {
+        transition: 0.6s ease-in-out;
+    }
+
+
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
+
+
 
 {% endblock content %}
