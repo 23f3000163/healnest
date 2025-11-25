@@ -181,14 +181,26 @@ def delete_doctor(user_id):
     if current_user.role != 'admin':
         flash('You are not authorized to perform this action.', 'danger')
         return redirect(url_for('main.home'))
+
     doctor_user = User.query.get_or_404(user_id)
+
     if doctor_user.role != 'doctor':
         flash('This user is not a doctor.', 'warning')
         return redirect(url_for('admin.manage_doctors'))
+
+    # Get doctor display name
+    if doctor_user.doctor_profile and doctor_user.doctor_profile.full_name:
+        display_name = f"Dr. {doctor_user.doctor_profile.full_name}"
+    else:
+        display_name = doctor_user.email  # fallback
+
     db.session.delete(doctor_user)
     db.session.commit()
-    flash(f'Doctor account for {doctor_user.email} has been deleted.', 'success')
+
+    flash(f'{display_name} has been permanently deleted.', 'danger')
+
     return redirect(url_for('admin.manage_doctors'))
+
 
 @admin_bp.route('/patients')
 @login_required
@@ -225,14 +237,25 @@ def delete_patient(user_id):
     if current_user.role != 'admin':
         flash('You are not authorized to perform this action.', 'danger')
         return redirect(url_for('main.home'))
+
     patient_user = User.query.get_or_404(user_id)
+
     if patient_user.role != 'patient':
         flash('This user is not a patient.', 'warning')
         return redirect(url_for('admin.manage_patients'))
+
+    # Determine patient display name
+    if patient_user.patient_profile and patient_user.patient_profile.full_name:
+        display_name = patient_user.patient_profile.full_name
+    else:
+        display_name = patient_user.email  # fallback
+
     db.session.delete(patient_user)
     db.session.commit()
-    flash(f'Patient account for {patient_user.email} has been permanently deleted.', 'success')
+
+    flash(f'{display_name} has been permanently deleted.', 'danger')
     return redirect(url_for('admin.manage_patients'))
+
 
 @admin_bp.route('/departments', methods=['GET', 'POST'])
 @login_required
@@ -303,9 +326,19 @@ def blacklist_user(user_id):
     user_to_blacklist = User.query.get_or_404(user_id)
     user_to_blacklist.is_active = False
     db.session.commit()
+
+    # Determine displayed name
+    if user_to_blacklist.role == 'doctor' and user_to_blacklist.doctor_profile:
+        display_name = f"Dr. {user_to_blacklist.doctor_profile.full_name}"
+    elif user_to_blacklist.role == 'patient' and user_to_blacklist.patient_profile:
+        display_name = user_to_blacklist.patient_profile.full_name
+    else:
+        display_name = user_to_blacklist.email  # fallback
+
+    flash(f'{display_name} has been blacklisted.', 'warning')
     
-    flash(f'User {user_to_blacklist.email} has been blacklisted.', 'warning')
-    return redirect(request.referrer or url_for('admin.dashboard'))
+    return redirect(request.referrer or url_for('admin.manage_doctors'))
+
 
 @admin_bp.route('/user/activate/<int:user_id>', methods=['POST'])
 @login_required
@@ -316,6 +349,39 @@ def activate_user(user_id):
     user_to_activate = User.query.get_or_404(user_id)
     user_to_activate.is_active = True
     db.session.commit()
+
+    # Determine proper display name
+    if user_to_activate.role == 'doctor' and user_to_activate.doctor_profile:
+        display_name = f"Dr. {user_to_activate.doctor_profile.full_name}"
+    elif user_to_activate.role == 'patient' and user_to_activate.patient_profile:
+        display_name = user_to_activate.patient_profile.full_name
+    else:
+        display_name = user_to_activate.email  # fallback
     
-    flash(f'User {user_to_activate.email} has been re-activated.', 'success')
+    flash(f'{display_name} has been re-activated.', 'success')
+
     return redirect(request.referrer or url_for('admin.dashboard'))
+
+@admin_bp.route('/department/delete/<int:dept_id>', methods=['POST'])
+@login_required
+def delete_department(dept_id):
+    """
+    Deletes a department. 
+    Note: You might want to handle cases where doctors are still assigned 
+    to this department (SQLAlchemy might raise an IntegrityError).
+    """
+    if current_user.role != 'admin':
+        flash('You are not authorized to perform this action.', 'danger')
+        return redirect(url_for('main.home'))
+
+    department = Department.query.get_or_404(dept_id)
+    
+    try:
+        db.session.delete(department)
+        db.session.commit()
+        flash(f"Department '{department.name}' has been deleted.", 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Cannot delete this department because doctors are currently assigned to it.', 'danger')
+
+    return redirect(url_for('admin.manage_departments'))

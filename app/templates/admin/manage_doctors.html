@@ -1,64 +1,70 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Manage Doctors</h2>
-        <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-primary me-2">
-            <i class="fas fa-plus me-2"></i>Add New Doctor
-        </a>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Manage Doctors</h2>
+    <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-primary me-2">
+        <i class="fas fa-plus me-2"></i>Add New Doctor
+    </a>
+</div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Department</th>
-                            <th style="width: 10%;">Status</th>
-                            <th style="width: 20%;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for doctor in doctors %}
-                        <tr>
-                            <td>Dr. {{ doctor.doctor_profile.full_name }}</td>
-                            <td>{{ doctor.email }}</td>
-                            <td>{{ doctor.doctor_profile.department.name }}</td>
-                            <td>
-                                {% if doctor.is_active %}
-                                    <span class="badge bg-success">Active</span>
-                                {% else %}
-                                    <span class="badge bg-dark">Blacklisted</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('admin.edit_doctor', user_id=doctor.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                
-                                <form action="{{ url_for('admin.delete_doctor', user_id=doctor.id) }}" method="POST" class="d-inline" onsubmit="return confirm('DELETE: Are you sure you want to PERMANENTLY DELETE this doctor?');">
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
-                                
-                                {% if doctor.is_active %}
-                                    <form action="{{ url_for('admin.blacklist_user', user_id=doctor.id) }}" method="POST" class="d-inline" onsubmit="return confirm('BLACKLIST: Are you sure you want to blacklist this doctor?');">
-                                        <button type="submit" class="btn btn-sm btn-dark">Blacklist</button>
-                                    </form>
-                                {% else %}
-                                    <form action="{{ url_for('admin.activate_user', user_id=doctor.id) }}" method="POST" class="d-inline">
-                                        <button type="submit" class="btn btn-sm btn-success">Activate</button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">No doctors found.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th style="width: 10%;">Status</th>
+                        <th style="width: 20%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doctor in doctors %}
+                    <tr>
+                        <td>Dr. {{ doctor.doctor_profile.full_name }}</td>
+                        <td>{{ doctor.email }}</td>
+                        <td>{{ doctor.doctor_profile.department.name }}</td>
+                        <td>
+                            {% if doctor.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-dark">Blacklisted</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.edit_doctor', user_id=doctor.id) }}"
+                                class="btn btn-sm btn-warning">Edit</a>
+
+                            <form action="{{ url_for('admin.delete_doctor', user_id=doctor.id) }}" method="POST"
+                                class="d-inline"
+                                onsubmit="return confirm('DELETE: Are you sure you want to PERMANENTLY DELETE this doctor?');">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+
+                            {% if doctor.is_active %}
+                            <form action="{{ url_for('admin.blacklist_user', user_id=doctor.id) }}" method="POST"
+                                class="d-inline"
+                                onsubmit="return confirm('BLACKLIST: Are you sure you want to suspend Dr. {{ doctor.doctor_profile.full_name }}? They will not be able to log in.');">
+                                <button type="submit" class="btn btn-sm btn-dark">Blacklist</button>
+                            </form>
+                            {% else %}
+                            <form action="{{ url_for('admin.activate_user', user_id=doctor.id) }}" method="POST"
+                                class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No doctors found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 {% endblock content %}

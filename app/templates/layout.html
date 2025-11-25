@@ -99,8 +99,8 @@
                             <li><a class="dropdown-item"
                                     href="{{ url_for('patient.dashboard') }}#departmentsAccordion"><i
                                         class="fas fa-calendar-plus fa-fw me-2"></i>Book Appointment</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-medical fa-fw me-2"></i>My
-                                    Records</a></li> <!-- Placeholder -->
+                            <li><a class="dropdown-item" href="{{ url_for('patient.my_history') }}"><i
+                                        class="fas fa-file-medical fa-fw me-2"></i>My Records</a></li>
                             {% endif %}
                         </ul>
                     </div>

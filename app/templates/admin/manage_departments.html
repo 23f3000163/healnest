@@ -1,56 +1,60 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h2 class="mb-4">Manage Hospital Departments</h2>
+<h2 class="mb-4">Manage Hospital Departments</h2>
 
-    <div class="row">
-        <div class="col-md-5">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    Add New Department
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="">
-                        {{ form.hidden_tag() }}
-                        <div class="mb-3">
-                            {{ form.name.label(class="form-label") }}
-                            {% if form.name.errors %}
-                                {{ form.name(class="form-control is-invalid" , required=True) }}
-                                <div class="invalid-feedback">
-                                    {% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}
-                                </div>
-                            {% else %}
-                                {{ form.name(class="form-control") }}
-                            {% endif %}
-                        </div>
-                        <div class="mb-3">
-                            {{ form.description.label(class="form-label") }}
-                            {{ form.description(class="form-control") }}
-                        </div>
-                        {{ form.submit(class="btn btn-primary") }}
-                    </form>
-                </div>
+<div class="row">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                Add New Department
             </div>
-        </div>
-
-        <div class="col-md-7">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    Existing Departments
-                </div>
-                <ul class="list-group list-group-flush">
-                    {% for dept in departments %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ dept.name }}
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary">Edit</button>
-                            <button class="btn btn-sm btn-outline-danger">Delete</button>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {% if form.name.errors %}
+                        {{ form.name(class="form-control is-invalid" , required=True) }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}
                         </div>
-                    </li>
-                    {% else %}
-                    <li class="list-group-item text-muted">No departments have been added yet.</li>
-                    {% endfor %}
-                </ul>
+                        {% else %}
+                        {{ form.name(class="form-control") }}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control") }}
+                    </div>
+                    {{ form.submit(class="btn btn-primary") }}
+                </form>
             </div>
         </div>
     </div>
+
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                Existing Departments
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for dept in departments %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ dept.name }}
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                        <form action="{{ url_for('admin.delete_department', dept_id=dept.id) }}" method="POST"
+                            class="d-inline"
+                            onsubmit="return confirm('Are you sure you want to delete the {{ dept.name }} department?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">No departments have been added yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
 {% endblock content %}

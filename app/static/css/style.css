@@ -517,6 +517,7 @@ a:hover {
 .navbar .btn-login:hover {
     background: var(--brand-primary) !important;
     color: #fff !important;
+    transform: translateY(-2px);
 }
 
 .navbar .btn-signup {
@@ -765,4 +766,16 @@ textarea.form-control:focus {
     height: 38px !important;
     width: 42px !important;
     border-radius: 10px;
+}
+
+.alert-warning {
+    background-color: #FF9800 !important; /* Orange */
+    color: #ffffff !important; /* White text for better contrast */
+    border-color: #F57C00 !important; /* Slightly darker orange border */
+}
+
+/* Optional: Style the links inside the warning alert to be white too */
+.alert-warning a {
+    color: #ffffff !important;
+    text-decoration: underline;
 }
