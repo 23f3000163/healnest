@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, TimeField, SelectField, TextAreaField, FieldList, FormField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, TimeField, SelectField, TextAreaField, FieldList, FormField, IntegerField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange, Optional
 from app.models import User, Department
 
 # --- Keep your existing forms ---
@@ -130,3 +130,10 @@ class ResetPasswordForm(FlaskForm):
     password = PasswordField('New Password', validators=[DataRequired(), Length(min=8)])
     confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Reset Password')    
+
+class DoctorUpdateProfileForm(FlaskForm):
+    full_name = StringField('Full Name', validators=[DataRequired(), Length(min=2, max=100)])
+    qualifications = StringField('Qualifications', validators=[Optional(), Length(max=100)], render_kw={"placeholder": "e.g., MBBS, MD - Medical Oncology"})
+    experience_years = StringField('Experience (Years)', validators=[Optional()], render_kw={"placeholder": "e.g., 10"})
+    bio = TextAreaField('Professional Bio', validators=[Optional()], render_kw={"rows": 4, "placeholder": "Describe your experience and specialization..."})
+    submit = SubmitField('Update Profile')

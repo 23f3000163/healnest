@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from app.models import Appointment, Treatment, Availability, User, DoctorProfile, Department, Notification
 from . import doctor_bp
 from datetime import datetime, date, time, timedelta
-from app.forms import TreatmentForm, UpdateAvailabilityForm, BookingForm
+from app.forms import TreatmentForm, UpdateAvailabilityForm, BookingForm, DoctorUpdateProfileForm
 from app import db
 from sqlalchemy import or_
 
@@ -188,3 +188,32 @@ def view_patient_history(user_id):
         patient_age=patient_age, # Pass the new age variable
         back_url=url_for('doctor.dashboard')
     )
+
+@doctor_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    """
+    Handles viewing and updating the doctor's own profile.
+    """
+    if current_user.role != 'doctor':
+        return redirect(url_for('main.home'))
+
+    profile = current_user.doctor_profile
+    form = DoctorUpdateProfileForm(obj=profile)
+
+    if form.validate_on_submit():
+        profile.full_name = form.full_name.data
+        profile.qualifications = form.qualifications.data
+        # Save new fields
+        try:
+            profile.experience_years = int(form.experience_years.data) if form.experience_years.data else 0
+        except ValueError:
+            profile.experience_years = 0 # Handle non-integer input safely
+            
+        profile.bio = form.bio.data
+        
+        db.session.commit()
+        flash('Your profile has been updated successfully!', 'success')
+        return redirect(url_for('doctor.profile'))
+
+    return render_template('doctor/profile.html', title='My Profile', form=form)

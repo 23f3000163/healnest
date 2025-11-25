@@ -1,6 +1,23 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h2 class="mb-4">All System Appointments</h2>
+    <!-- Custom CSS to force consistent badge sizing -->
+    <style>
+        .table-badge {
+            font-size: 0.85rem; /* Standard small size */
+            padding: 0.4em 0.8em; /* Standard padding */
+            border-radius: 50rem; /* Pill shape */
+            font-weight: 600; /* Semi-bold text */
+            text-transform: capitalize; /* "booked" -> "Booked" */
+            display: inline-block;
+            line-height: 1;
+            vertical-align: middle;
+        }
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>All System Appointments</h2>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary me-2">Back to Dashboard</a>
+    </div>
 
     <div class="card shadow-sm">
         <div class="card-body">
@@ -23,13 +40,16 @@
                             <td>{{ appt.doctor.doctor_profile.department.name }}</td>
                             <td>{{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
                             <td>
-                                <span class="badge 
-                                    {% if appt.status == 'Booked' %} bg-primary
-                                    {% elif appt.status == 'Completed' %} bg-success
-                                    {% elif appt.status == 'Cancelled' %} bg-secondary
-                                    {% else %} bg-warning {% endif %}">
-                                    {{ appt.status }}
-                                </span>
+                                <!-- Using the new .table-badge class for consistency -->
+                                {% if appt.status == 'Booked' %}
+                                    <span class="badge bg-primary table-badge">Booked</span>
+                                {% elif appt.status == 'Completed' %}
+                                    <span class="badge bg-success table-badge">Completed</span>
+                                {% elif appt.status == 'Cancelled' %}
+                                    <span class="badge bg-danger table-badge">Cancelled</span>
+                                {% else %}
+                                    <span class="badge bg-secondary table-badge">{{ appt.status }}</span>
+                                {% endif %}
                             </td>
                         </tr>
                         {% else %}

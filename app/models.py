@@ -27,8 +27,8 @@ class User(db.Model, UserMixin):
     doctor_profile = db.relationship('DoctorProfile', backref='user', uselist=False, cascade="all, delete-orphan")
     patient_profile = db.relationship('PatientProfile', backref='user', uselist=False, cascade="all, delete-orphan")
     
-    doctor_appointments = db.relationship('Appointment', foreign_keys='Appointment.doctor_id', backref='doctor', lazy=True)
-    patient_appointments = db.relationship('Appointment', foreign_keys='Appointment.patient_id', backref='patient', lazy=True)
+    appointments_as_patient = db.relationship('Appointment', foreign_keys='Appointment.patient_id', backref='patient', lazy=True, cascade="all, delete-orphan")
+    appointments_as_doctor = db.relationship('Appointment', foreign_keys='Appointment.doctor_id', backref='doctor', lazy=True, cascade="all, delete-orphan")
     
     availabilities = db.relationship('Availability', backref='doctor', lazy=True, cascade="all, delete-orphan")
     notifications = db.relationship('Notification', backref='user', lazy=True, cascade="all, delete-orphan")
@@ -84,7 +84,9 @@ class DoctorProfile(db.Model):
     full_name = db.Column(db.String(100), nullable=False)
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=False)
     qualifications = db.Column(db.String(200))
+    experience_years = db.Column(db.Integer, default=0)
     bio = db.Column(db.Text)
+   
 
 class Availability(db.Model):
     """
@@ -176,3 +178,4 @@ class Notification(db.Model):
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+

@@ -1,0 +1,768 @@
+:root {
+    --brand-primary: #00796B;
+    --brand-primary-dark: #004D40;
+    --brand-accent: #1BAFA0;
+    --brand-danger: #D9534F;
+    --brand-warning: #F4B400;
+    --brand-success: #28A745;
+    --brand-info: #0091EA;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 18px;
+
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.10);
+}
+
+/* ==============================================
+   HEALNEST UI DESIGN SYSTEM
+   Clean Healthcare + Premium SaaS Aesthetic
+   ============================================== */
+
+/* -----------------------------
+   STEP 1: DESIGN TOKENS
+------------------------------ */
+:root {
+    /* Brand Colors */
+    --brand-primary: #00897B;
+    --brand-primary-dark: #00695C;
+    --brand-primary-light: #E0F2F1;
+
+    /* Status Colors */
+    --success: #2E7D32;
+    --warning: #ED6C02;
+    --danger: #C62828;
+    --info: #0288D1;
+
+    /* Neutral Palette */
+    --text-dark: #1A1D1E;
+    --text-medium: #5F6469;
+    --text-light: #AEB4BA;
+
+    --bg-light: #F9FAFB;
+    --bg-white: #FFFFFF;
+    --bg-glass: rgba(255, 255, 255, 0.65);
+
+    /* Shadows */
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-medium: 0 6px 20px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+    /* Radii */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 22px;
+    --radius-full: 50px;
+
+    /* Transitions */
+    --transition-fast: .15s ease-in-out;
+    --transition-medium: .25s ease;
+}
+
+/* -----------------------------
+   STEP 2: GLOBAL SYSTEM STYLES
+------------------------------ */
+
+body {
+    font-family: "Inter", system-ui, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+a {
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+a:hover {
+    opacity: .7;
+}
+
+/* -----------------------------
+ STEP 3: BUTTON SYSTEM
+------------------------------ */
+
+.btn {
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    transition: var(--transition-medium);
+}
+
+.btn-primary {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--brand-primary-dark);
+    border-color: var(--brand-primary-dark);
+    box-shadow: var(--shadow-soft);
+}
+
+.btn-soft {
+    background-color: var(--brand-primary-light);
+    color: var(--brand-primary-dark);
+    border: none;
+}
+
+.btn-soft:hover {
+    box-shadow: var(--shadow-soft);
+}
+
+/* Rounded App-like Buttons */
+.btn-pill {
+    border-radius: var(--radius-full);
+}
+
+/* -----------------------------
+ STEP 4: CARDS & PANELS
+------------------------------ */
+
+.card {
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--bg-white);
+    box-shadow: var(--shadow-soft);
+    transition: var(--transition-medium);
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* SaaS Glassmorphism Elements */
+.card-glass {
+    backdrop-filter: blur(14px);
+    background: var(--bg-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* -----------------------------
+ STEP 5: NAVBAR & HEADER
+------------------------------ */
+
+.navbar {
+    background: var(--bg-white);
+    box-shadow: var(--shadow-soft);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+    color: var(--text-medium);
+}
+
+.navbar .nav-link.active {
+    color: var(--brand-primary);
+    border-bottom: none
+}
+/* Remove default nav underline styling */
+.navbar-nav .nav-link {
+    border-bottom: none !important;
+}
+
+
+/* -----------------------------
+ STEP 6: TABLES & FORMS
+------------------------------ */
+
+.table-hover tbody tr:hover {
+    background-color: var(--brand-primary-light);
+}
+
+.form-control {
+    border-radius: var(--radius-sm);
+    border: 1px solid #CCD3DB;
+    transition: var(--transition-fast);
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.18);
+    border-color: var(--brand-primary);
+}
+
+/* -----------------------------
+ STEP 7: ALERTS & BADGES
+------------------------------ */
+
+.badge {
+    padding: 6px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+}
+
+.badge-success {
+    background: rgba(46, 125, 50, 0.15);
+    color: var(--success);
+}
+
+.badge-warning {
+    background: rgba(238, 190, 28, 0.15);
+    color: var(--warning);
+}
+
+.badge-danger {
+    background: rgba(198, 40, 40, 0.15);
+    color: var(--danger);
+}
+
+.badge-info {
+    background: rgba(2, 136, 209, 0.15);
+    color: var(--info);
+}
+
+/* -----------------------------
+ STEP 8: INTERACTION & ANIMATION
+------------------------------ */
+
+.hover-lift {
+    transition: var(--transition-medium);
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.blur {
+    backdrop-filter: blur(12px);
+}
+
+/* Utility spacing */
+.section {
+    padding: 2rem 1rem;
+}
+
+
+/* --------------------------
+   LOGIN & AUTH SCREENS
+--------------------------- */
+
+/* Background */
+.auth-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, #F9FAFA, #E9F5F2);
+    padding: 2rem;
+}
+
+/* Glassmorphism card */
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Title icon */
+.icon-lg {
+    font-size: 42px;
+    color: var(--brand-primary);
+}
+
+/* Input fields */
+.form-input-pill {
+    border-radius: 50px;
+    padding: 0.75rem 1.2rem;
+    border: 1px solid #dce3e8;
+    transition: .2s;
+}
+
+.form-input-pill:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.15);
+}
+
+/* Buttons */
+.btn-pill {
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+
+.btn-primary:hover {
+    background: var(--brand-primary-dark);
+    border-color: var(--brand-primary-dark);
+    transform: translateY(-1px);
+}
+
+/* Soft shadow */
+.shadow-soft {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* Improve spacing consistency between auth components */
+.auth-card form .form-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-medium);
+}
+
+/* Improve call-to-action link styling */
+.auth-wrapper a {
+    color: var(--brand-primary);
+    transition: 0.2s;
+}
+
+.auth-wrapper a:hover {
+    opacity: 0.75;
+}
+
+/* Password toggle eye icon */
+.password-toggle {
+    position: absolute;
+    right: 18px;
+    top: 39px;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: .2s;
+}
+
+.password-toggle:hover {
+    color: var(--brand-primary);
+}
+
+/* Strength Meter */
+.password-strength {
+    height: 6px;
+    width: 100%;
+    background: #e5e7eb;
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.password-strength #strengthBar {
+    height: 100%;
+    width: 0%;
+    background: var(--danger);
+    border-radius: 50px;
+    transition: width .3s ease, background .3s;
+}
+
+/* Success mark */
+.success-border {
+    border-color: var(--success) !important;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15) !important;
+}
+
+:root {
+    --brand-primary: #2F7665;
+    /* Your Login button color */
+}
+
+/* Auth Page Icon Styling */
+.auth-card .icon-lg {
+    font-size: 46px;
+    color: var(--brand-primary) !important;
+    opacity: 0.95;
+    transition: 0.25s ease;
+}
+
+.auth-card .icon-lg:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.auth-card .icon-lg {
+    color: var(--brand-primary);
+    filter: drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.1));
+}
+
+/* Consistent button style (enabled + disabled) */
+.btn-brand {
+    background-color: var(--brand-primary);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: opacity .3s ease, transform .2s ease;
+}
+
+/* Disabled state should look same color but softer */
+.btn-brand:disabled,
+.btn-brand.disabled {
+    background-color: var(--brand-primary) !important;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Hover & active */
+.btn-brand:not(:disabled):hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+.btn-brand:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+.navbar .btn-login {
+    border-radius: 12px;
+    color: var(--brand-primary) !important;
+    border: 2px solid var(--brand-primary) !important;
+    font-weight: 600;
+    padding: 6px 18px;
+    transition: 0.25s ease;
+}
+
+.navbar .btn-login:hover {
+    background-color: var(--brand-primary) !important;
+    color: #ffffff !important;
+}
+
+/* Sign Up CTA */
+.navbar .btn-signup {
+    background-color: var(--brand-primary) !important;
+    color: #ffffff !important;
+    border-radius: 12px;
+    border: none !important;
+    font-weight: 600;
+    padding: 6px 20px;
+    transition: 0.25s ease;
+}
+
+.navbar .btn-signup:hover {
+    opacity: 0.85;
+}
+
+/* Remove default focus shadows */
+.navbar button:focus,
+.navbar a.btn:focus {
+    box-shadow: 0 0 0 3px rgba(47, 118, 101, 0.25) !important;
+}
+
+/* =========================================================
+   🌿 HEALNEST PREMIUM UI — CONTROLLED BRAND APPLICATION
+   ========================================================= */
+
+/* Brand Variables */
+:root {
+    --brand-primary: #2F7665;
+    --brand-primary-hover: #276255;
+    --brand-primary-light: #E7F3F1;
+    --brand-text-light: #ffffff;
+    --brand-shadow: rgba(47, 118, 101, 0.28);
+}
+
+/* ------------------------------------------------
+   🍃 BRAND BUTTONS (ONLY THESE USE TEAL)
+   ------------------------------------------------ */
+
+/* Any button you want to appear green must include class="btn-brand" */
+.btn-brand {
+    background: var(--brand-primary) !important;
+    color: var(--brand-text-light) !important;
+    border-radius: 12px !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 10px 18px !important;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+/* Hover + Active */
+.btn-brand:hover {
+    background: var(--brand-primary-hover) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px var(--brand-shadow);
+}
+.btn-brand:active {
+    transform: scale(.96);
+}
+
+/* Disabled = Same color, softer */
+.btn-brand:disabled {
+    opacity: .45 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ------------------------------------------------
+   🔹 NAVBAR BUTTONS (DO NOT AFFECT ALL BUTTONS)
+   ------------------------------------------------ */
+.navbar .btn-login {
+    border: 2px solid var(--brand-primary);
+    color: var(--brand-primary) !important;
+    border-radius: 12px;
+    padding: 6px 18px;
+    font-weight: 600;
+    background: transparent;
+    transition: .25s;
+}
+.navbar .btn-login:hover {
+    background: var(--brand-primary) !important;
+    color: #fff !important;
+}
+
+.navbar .btn-signup {
+    background: var(--brand-primary) !important;
+    color: #fff !important;
+    border-radius: 12px;
+    padding: 6px 20px;
+    font-weight: 600;
+    transition: .25s;
+}
+.navbar .btn-signup:hover {
+    opacity: .85;
+    transform: translateY(-2px);
+}
+
+/* ------------------------------------------------
+   ✨ PREMIUM MOTION (Applies to ALL)
+   ------------------------------------------------ */
+
+button,
+.btn {
+    transition: transform .2s ease, opacity .25s ease, box-shadow .25s ease;
+}
+
+button:hover:not(:disabled),
+.btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+/* Soft shadow, but ONLY on hover */
+.btn:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+/* ------------------------------------------------
+   ⭐ ACTIVE PAGE NAVIGATION HIGHLIGHT
+   ------------------------------------------------ */
+.navbar-nav .nav-link.active {
+    font-weight: 600;
+    color: var(--brand-primary) !important;
+    position: relative;
+}
+.navbar-nav .nav-link.active::after {
+    content: "";
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    bottom: -6px;
+    left: 0;
+    border-radius: 4px;
+    background: var(--brand-primary);
+}
+
+/* Subtle hover */
+.navbar-nav .nav-link {
+    transition: .25s ease;
+}
+.navbar-nav .nav-link:hover {
+    transform: translateY(-2px);
+}
+
+/* 🔹 Convert all page header bars to brand theme */
+.page-title-bar,
+.section-banner,
+.bg-primary,
+.header-strip {
+    background-color: var(--brand-primary) !important;
+    color: #ffffff !important;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+/* Ensure text inside stays white */
+.page-title-bar *,
+.bg-primary *,
+.header-strip *,
+.section-banner * {
+    color: #ffffff !important;
+}
+
+.page-title-bar {
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Search Icon Button Hover Color */
+.search-btn svg,
+
+
+/* When hovering over the search button */
+.search-btn:hover svg,
+
+
+
+.search-btn:hover svg {
+    color: #fff !important;
+}
+
+/* Brand Search Button */
+.search-btn {
+    border: 2px solid var(--brand-primary) !important;
+    color: var(--brand-primary) !important;
+    background: transparent !important;
+    border-radius: 10px;
+    transition: all .25s ease-in-out;
+}
+
+/* Icon motion + color change */
+.search-btn i {
+    transition: all .3s ease-in-out;
+}
+
+/* Hover Behavior */
+.search-btn:hover {
+    background: rgba(47,118,101,0.08); /* soft teal tint */
+    box-shadow: 0 4px 12px rgba(47,118,101,0.15);
+}
+
+.search-btn:hover i {
+    color: var(--brand-primary-hover) !important;
+    transform: translateX(4px);
+}
+.search-btn:hover svg {
+    transform: translateX(4px);
+    color: var(--brand-primary-hover) !important;
+}
+.search-btn:hover {
+    background: rgba(47, 118, 101, 0.06); /* Light teal tint */
+    box-shadow: 0 4px 12px rgba(47, 118, 101, 0.15);
+}
+.search-btn:hover i,
+.search-btn:hover svg {
+    transform: translateX(6px);
+    transition-timing-function: cubic-bezier(.25,.1,.25,1);
+}
+
+/* ===========================
+   🔍 Healnest Search Input Style
+   =========================== */
+
+.search-input {
+    border-radius: 10px !important;
+    border: 2px solid #d9e4e2 !important; /* subtle grey/green neutral tone */
+    padding: 4px 14px !important;
+    transition: all 0.25s ease-in-out;
+    font-size: 0.95rem;
+}
+
+/* Placeholder style */
+.search-input::placeholder {
+    color: #8aa29e;
+    opacity: 0.8;
+}
+
+/* Focus style with brand color */
+.search-input:focus {
+    border-color: var(--brand-primary) !important;
+    box-shadow: 0 0 0 4px rgba(47,118,101,0.15) !important;
+    outline: none !important;
+}
+
+/* Matching hover subtle animation */
+.search-input:hover {
+    border-color: var(--brand-primary-hover) !important;
+}
+
+.nav-search button:hover {
+    background-color: var(--brand-primary-hover);
+    color: white;
+}
+
+/* Apply Brand Style to Quick Actions Button */
+.quick-actions-btn {
+    border: 2px solid var(--brand-primary) !important;
+    color: var(--brand-primary) !important;
+    background: transparent !important;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all .25s ease-in-out;
+}
+
+/* Hover effect */
+.quick-actions-btn:hover {
+    background: var(--brand-primary) !important;
+    color: #fff !important;
+    transform: scale(1.03);
+    box-shadow: 0px 6px 16px rgba(47,118,101,.25);
+}
+
+.form-card {
+    background: #ffffff;
+    border-radius: 16px;
+    transition: 0.2s ease;
+}
+
+.form-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* Brand teal heading */
+.text-brand {
+    color: var(--brand-primary);
+}
+
+.form-label {
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+/* Inputs */
+.form-control, .form-select {
+    border-radius: 10px;
+    height: 50px;
+    border: 1px solid #dadce0;
+    transition: all 0.25s ease;
+}
+
+.form-control:focus, 
+.form-select:focus,
+textarea.form-control:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(47,118,101,0.15);
+}
+
+/* Submit Button */
+.submit-btn {
+    height: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+}
+/* Make search bar compact */
+.nav-search {
+    width: 260px !important;   /* adjust size */
+}
+
+.nav-search input {
+    height: 38px !important;
+    font-size: 14px;
+    border-radius: 10px;
+}
+
+.nav-search button {
+    height: 38px !important;
+    width: 42px !important;
+    border-radius: 10px;
+}
