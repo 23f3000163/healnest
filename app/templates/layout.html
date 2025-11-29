@@ -21,7 +21,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top bg-white shadow-sm py-2">
 
-        <div class="container">
+        <div class="container-fluid px-2">
             <!-- Brand -->
             <a class="navbar-brand d-flex align-items-center fw-semibold fs-4" href="{{ url_for('main.home') }}">
                 <img src="{{ url_for('static', filename='brand/healnest-icon.svg') }}" width="38" height="38"
@@ -53,10 +53,14 @@
                     <li class="nav-item"><a class="nav-link"
                             href="{{ url_for(current_user.role + '.dashboard') }}">Dashboard</a></li>
                     {% if current_user.role == 'admin' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_doctors') }}">Manage
-                            Doctors</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_patients') }}">Manage
-                            Patients</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_doctors') }}">Doctors</a>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_patients') }}">Patients</a>
+                    </li>
+                    <li class="nav-item"><a class="nav-link"
+                            href="{{ url_for('admin.manage_appointments') }}">Appointments</a></li>
+                    <li class="nav-item"><a class="nav-link"
+                            href="{{ url_for('admin.manage_departments') }}">Departments</a></li>
                     {% endif %}
                     {% endif %}
                 </ul>

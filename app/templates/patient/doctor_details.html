@@ -20,7 +20,7 @@
         </div>
         <div class="card-footer bg-light text-end">
             <a href="{{ url_for('patient.book_appointment', doctor_id=doctor.id) }}" class="btn btn-primary">Check Availability & Book</a>
-            <a href="{{ url_for('patient.department_details', department_id=doctor.department_id) }}" class="btn btn-secondary">Go Back</a>
+            <a href="{{ url_for('patient.department_details', department_id=doctor.department_id) }}" class="btn btn-outline-secondary">Go Back</a>
         </div>
     </div>
 {% endblock content %}

@@ -57,15 +57,33 @@ def dashboard():
 def dashboard_stats():
     """
     API endpoint to provide data for the admin dashboard charts.
+    Accepts a URL parameter 'range' (7, 30, 90, or 'year').
     """
     if current_user.role != 'admin':
         return jsonify(error="Unauthorized"), 403
 
-    # --- Query 1: Total Counts ---
+    # --- 1. Handle Date Range Logic ---
+    time_range = request.args.get('range', '7') # Default to 7 days
+    today = date.today()
+
+    if time_range == '30':
+        start_date = today - timedelta(days=29)
+        days_count = 30
+    elif time_range == '90':
+        start_date = today - timedelta(days=89)
+        days_count = 90
+    elif time_range == 'year':
+        start_date = date(today.year, 1, 1)
+        days_count = (today - start_date).days + 1
+    else: # Default '7'
+        start_date = today - timedelta(days=6)
+        days_count = 7
+
+    # --- 2. Query Total Counts (Unchanged) ---
     doctor_count = User.query.filter_by(role='doctor').count()
     patient_count = User.query.filter_by(role='patient').count()
 
-    # --- Query 2: Appointments by Department ---
+    # --- 3. Query Appointments by Department (Unchanged) ---
     appt_by_dept = db.session.query(
         Department.name, func.count(Appointment.id)
     ).join(
@@ -79,34 +97,34 @@ def dashboard_stats():
     dept_labels = [row[0] for row in appt_by_dept]
     dept_values = [row[1] for row in appt_by_dept]
 
-    # --- Query 3: NEW - New Patients in Last 7 Days (SQLite compatible) ---
-    seven_days_ago = datetime.utcnow() - timedelta(days=6)
-    
-    # Use strftime to group by date in a way SQLite understands
+    # --- 4. Query New Patient Trends (Dynamic Range) ---
+    # We filter by the calculated start_date
     new_patient_data = db.session.query(
-        func.strftime('%Y-%m-%d', User.created_at), func.count(User.id)
+        func.date(User.created_at), func.count(User.id)
     ).filter(
         User.role == 'patient',
-        User.created_at >= seven_days_ago
+        func.date(User.created_at) >= start_date
     ).group_by(
-        func.strftime('%Y-%m-%d', User.created_at)
-    ).order_by(
-        func.strftime('%Y-%m-%d', User.created_at)
+        func.date(User.created_at)
     ).all()
     
-    # Format data for the line chart (fill in missing days with 0)
-    patient_trend_labels = [(date.today() - timedelta(days=i)) for i in range(6, -1, -1)]
-    patient_trend_values = [0] * 7
+    # Create the list of labels (dates) for the chart
+    # We generate a list of all dates in the range to ensure the chart shows 0 for days with no signups
+    patient_trend_labels = []
+    patient_trend_values = []
     
+    # Convert DB results to a dictionary for easy lookup: {'2025-11-17': 5, ...}
     db_data_map = {day_str: count for day_str, count in new_patient_data}
     
-    for i, date_obj in enumerate(patient_trend_labels):
-        date_str_key = date_obj.strftime("%Y-%m-%d")
-        if date_str_key in db_data_map:
-            patient_trend_values[i] = db_data_map[date_str_key]
-
-    # Convert date objects to user-friendly strings (e.g., "Nov 13")
-    patient_trend_labels_formatted = [day.strftime("%b %d") for day in patient_trend_labels]
+    for i in range(days_count):
+        current_day = start_date + timedelta(days=i)
+        date_str_key = current_day.strftime("%Y-%m-%d")
+        
+        # Format label (e.g., "Nov 17")
+        patient_trend_labels.append(current_day.strftime("%b %d"))
+        
+        # Get value from DB map, or 0 if not found
+        patient_trend_values.append(db_data_map.get(date_str_key, 0))
 
     return jsonify(
         total_counts={
@@ -118,12 +136,10 @@ def dashboard_stats():
             'values': dept_values
         },
         new_patient_trend={
-            'labels': patient_trend_labels_formatted,
+            'labels': patient_trend_labels,
             'values': patient_trend_values
         }
     )
-
-# --- (ALL YOUR OTHER ADMIN ROUTES GO HERE) ---
 
 @admin_bp.route('/add_doctor', methods=['GET', 'POST'])
 @login_required
@@ -138,7 +154,7 @@ def add_doctor():
         user = User(email=form.email.data, password_hash=hashed_password, role='doctor')
         db.session.add(user)
         db.session.commit() 
-        profile = DoctorProfile(user_id=user.id, full_name=form.full_name.data, department_id=form.department_id.data, qualifications='MD')
+        profile = DoctorProfile(user_id=user.id, full_name=form.full_name.data, department_id=form.department_id.data, contact_number=form.contact_number.data, qualifications='MD')
         db.session.add(profile)
         db.session.commit()
         flash(f'Doctor account for Dr. {form.full_name.data} has been created.', 'success')
@@ -167,6 +183,7 @@ def edit_doctor(user_id):
     if form.validate_on_submit():
         profile.full_name = form.full_name.data
         doctor_user.email = form.email.data
+        profile.contact_number = form.contact_number.data
         profile.department_id = form.department_id.data
         db.session.commit()
         flash('Doctor profile has been updated successfully.', 'success')
@@ -183,22 +200,25 @@ def delete_doctor(user_id):
         return redirect(url_for('main.home'))
 
     doctor_user = User.query.get_or_404(user_id)
-
+    
+    # 1. Safety Check: Ensure it's actually a doctor
     if doctor_user.role != 'doctor':
         flash('This user is not a doctor.', 'warning')
         return redirect(url_for('admin.manage_doctors'))
 
-    # Get doctor display name
-    if doctor_user.doctor_profile and doctor_user.doctor_profile.full_name:
-        display_name = f"Dr. {doctor_user.doctor_profile.full_name}"
-    else:
-        display_name = doctor_user.email  # fallback
+    # 2. HISTORY CHECK: Check for ANY appointments (past or future)
+    appointment_count = Appointment.query.filter_by(doctor_id=doctor_user.id).count()
 
+    if appointment_count > 0:
+        # If they have history, BLOCK the delete
+        flash(f'Cannot delete Dr. {doctor_user.doctor_profile.full_name} because they have {appointment_count} appointment records. Please BLACKLIST them instead to preserve medical history.', 'danger')
+        return redirect(url_for('admin.manage_doctors'))
+
+    # 3. If no history exists, it is safe to permanently delete
     db.session.delete(doctor_user)
     db.session.commit()
 
-    flash(f'{display_name} has been permanently deleted.', 'danger')
-
+    flash(f'Doctor account for {doctor_user.email} has been permanently deleted.', 'success')
     return redirect(url_for('admin.manage_doctors'))
 
 
@@ -239,23 +259,29 @@ def delete_patient(user_id):
         return redirect(url_for('main.home'))
 
     patient_user = User.query.get_or_404(user_id)
-
+    
+    # 1. Safety Check: Ensure it's actually a patient
     if patient_user.role != 'patient':
         flash('This user is not a patient.', 'warning')
         return redirect(url_for('admin.manage_patients'))
 
-    # Determine patient display name
-    if patient_user.patient_profile and patient_user.patient_profile.full_name:
-        display_name = patient_user.patient_profile.full_name
-    else:
-        display_name = patient_user.email  # fallback
+    # 2. HISTORY CHECK: Check for ANY appointments
+    appointment_count = Appointment.query.filter_by(patient_id=patient_user.id).count()
 
+    if appointment_count > 0:
+        # If they have history, BLOCK the delete
+        # Using patient profile name if available, else email
+        name = patient_user.patient_profile.full_name if patient_user.patient_profile else patient_user.email
+        
+        flash(f'Cannot delete patient {name} because they have {appointment_count} appointment records. Please BLACKLIST them instead to preserve medical history.', 'danger')
+        return redirect(url_for('admin.manage_patients'))
+
+    # 3. If no history exists, it is safe to permanently delete
     db.session.delete(patient_user)
     db.session.commit()
 
-    flash(f'{display_name} has been permanently deleted.', 'danger')
+    flash(f'Patient account for {patient_user.email} has been permanently deleted.', 'success')
     return redirect(url_for('admin.manage_patients'))
-
 
 @admin_bp.route('/departments', methods=['GET', 'POST'])
 @login_required
@@ -356,7 +382,7 @@ def activate_user(user_id):
     elif user_to_activate.role == 'patient' and user_to_activate.patient_profile:
         display_name = user_to_activate.patient_profile.full_name
     else:
-        display_name = user_to_activate.email  # fallback
+        display_name = user_to_activate.email  
     
     flash(f'{display_name} has been re-activated.', 'success')
 
@@ -385,3 +411,46 @@ def delete_department(dept_id):
         flash('Cannot delete this department because doctors are currently assigned to it.', 'danger')
 
     return redirect(url_for('admin.manage_departments'))
+
+@admin_bp.route('/department/edit', methods=['POST'])
+@login_required
+def edit_department():
+    if current_user.role != 'admin':
+        flash("Unauthorized", "danger")
+        return redirect(url_for('main.home'))
+
+    dept_id = request.form.get("dept_id")
+    name = request.form.get("name")
+    description = request.form.get("description")
+
+    department = Department.query.get_or_404(dept_id)
+    department.name = name
+    department.description = description
+
+    db.session.commit()
+
+    flash("Department updated successfully!", "success")
+    return redirect(url_for('admin.manage_departments'))
+
+
+@admin_bp.route('/department/<int:dept_id>')
+@login_required
+def department_details(dept_id):
+    if current_user.role != 'admin':
+        flash("Unauthorized", "danger")
+        return redirect(url_for('main.home'))
+
+    department = Department.query.get_or_404(dept_id)
+
+    doctors = (
+        User.query
+        .join(DoctorProfile)
+        .filter(DoctorProfile.department_id == dept_id)
+        .all()
+    )
+
+    return render_template(
+        "admin/department_details.html",
+        department=department,
+        doctors=doctors
+    )

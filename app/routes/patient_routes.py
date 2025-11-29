@@ -2,7 +2,6 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import login_required, current_user
 from app.models import Department, Appointment, User, Notification, DoctorProfile, Availability
 from . import patient_bp
-# THIS IS THE CORRECTED IMPORT LINE:
 from datetime import datetime, date, time, timedelta
 from app.forms import BookingForm, UpdateProfileForm
 from app import db
@@ -55,11 +54,11 @@ def my_history():
                       ((today.month, today.day) < (current_user.patient_profile.date_of_birth.month, current_user.patient_profile.date_of_birth.day))
 
     return render_template(
-        'admin/patient_history.html', # Reusing the smart template
+        'admin/patient_history.html',
         title='My Appointment History',
-        patient=current_user, # The patient is the current user
+        patient=current_user, 
         history=patient_history,
-        patient_age=patient_age, # Pass the new age variable
+        patient_age=patient_age, 
         back_url=url_for('patient.dashboard')
     )
     
@@ -126,92 +125,129 @@ def doctor_details(doctor_profile_id):
 @patient_bp.route('/book/<int:doctor_id>', methods=['GET', 'POST'])
 @login_required
 def book_appointment(doctor_id):
-    """
-    Handles both showing the booking page for a specific doctor
-    and processing the booking form submission.
-    """
     if current_user.role != 'patient':
         flash('Only patients can book appointments.', 'danger')
         return redirect(url_for('main.home'))
 
     doctor_profile = DoctorProfile.query.get_or_404(doctor_id)
-    form = BookingForm() # We still just use this for the CSRF token
+    doctor_user_id = doctor_profile.user_id
+    form = BookingForm()
+
+  
+    MORNING_START = time(8, 0)  
+    MORNING_END = time(12, 0)   
+    EVENING_START = time(16, 0) 
+    EVENING_END = time(21, 0)   
+    SLOT_DURATION = 30          
 
     if request.method == 'POST':
-        selected_slot = request.form.get('selected_slot')
-        if not selected_slot:
-            flash('Please select an available time slot.', 'warning')
+        selected_slot_str = request.form.get('selected_slot')
+        
+        if not selected_slot_str:
+            flash('Please select a time slot.', 'warning')
             return redirect(url_for('patient.book_appointment', doctor_id=doctor_id))
 
-        date_str, slot_type = selected_slot.split('_')
-        appointment_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-
-        if slot_type == 'morning':
-            appointment_time = time(8, 0) # 8:00 AM
-        else: # evening
-            appointment_time = time(16, 0) # 4:00 PM
-        
+        # Parse the specific date and time selected
+        date_part, time_part = selected_slot_str.split('_')
+        appointment_date = datetime.strptime(date_part, '%Y-%m-%d').date()
+        appointment_time = datetime.strptime(time_part, '%H:%M').time()
         appointment_datetime = datetime.combine(appointment_date, appointment_time)
 
+        # Check for double booking
         existing_appointment = Appointment.query.filter_by(
-            doctor_id=doctor_profile.user_id,
+            doctor_id=doctor_user_id,
             appointment_datetime=appointment_datetime,
             status='Booked'
         ).first()
 
         if existing_appointment:
-            flash('This time slot was just booked by someone else. Please select a different slot.', 'warning')
+            flash('Sorry, that specific time slot has just been booked. Please choose another.', 'warning')
             return redirect(url_for('patient.book_appointment', doctor_id=doctor_id))
 
+        # Create Appointment
         new_appointment = Appointment(
             patient_id=current_user.id,
-            doctor_id=doctor_profile.user_id,
+            doctor_id=doctor_user_id,
             appointment_datetime=appointment_datetime,
             status='Booked'
         )
         db.session.add(new_appointment)
-
-        doctor_user = User.query.get(doctor_profile.user_id)
-        patient_name = current_user.patient_profile.full_name
-        notification_message = f"New appointment booked by {patient_name} for {appointment_datetime.strftime('%d %b at %I:%M %p')}."
-        new_notification = Notification(user_id=doctor_user.id, message=notification_message)
-        db.session.add(new_notification)
+        
+        # Notification
+        msg = f"New appointment booked by {current_user.patient_profile.full_name} for {appointment_datetime.strftime('%d %b at %I:%M %p')}."
+        db.session.add(Notification(user_id=doctor_user_id, message=msg))
         
         db.session.commit()
-        flash('Your appointment has been successfully booked!', 'success')
+        flash('Appointment booked successfully!', 'success')
         return redirect(url_for('patient.dashboard'))
 
-    # --- GET Request Logic ---
-    today = date.today() # This line was causing the error
+    # --- GET Request: Generate Slots ---
+    today = date.today()
     days = [today + timedelta(days=i) for i in range(7)]
     
-    available_slots_db = Availability.query.filter(
-        Availability.doctor_id == doctor_profile.user_id,
+    # 1. Get Doctor's Block Availability (e.g., is he working Morning?)
+    avail_blocks = Availability.query.filter(
+        Availability.doctor_id == doctor_user_id,
         Availability.available_date.in_(days)
     ).all()
-    available_slots_set = {f"{slot.available_date.isoformat()}_{slot.slot}" for slot in available_slots_db}
-    
-    booked_appointments_db = Appointment.query.filter(
-        Appointment.doctor_id == doctor_profile.user_id,
+    # Map: "2025-11-20" -> ['morning', 'evening']
+    active_blocks = {}
+    for block in avail_blocks:
+        day_str = block.available_date.isoformat()
+        if day_str not in active_blocks: active_blocks[day_str] = []
+        active_blocks[day_str].append(block.slot)
+
+    # 2. Get Specific Booked Times
+    booked_appts = Appointment.query.filter(
+        Appointment.doctor_id == doctor_user_id,
         db.func.date(Appointment.appointment_datetime).in_(days),
         Appointment.status == 'Booked'
     ).all()
-    
-    booked_slots_set = set()
-    for appt in booked_appointments_db:
-        if appt.appointment_datetime.time() < time(13, 0):
-            booked_slots_set.add(f"{appt.appointment_datetime.date().isoformat()}_morning")
-        else:
-            booked_slots_set.add(f"{appt.appointment_datetime.date().isoformat()}_evening")
+    # Set of strings: "2025-11-20_09:30"
+    booked_slots = {f"{a.appointment_datetime.strftime('%Y-%m-%d_%H:%M')}" for a in booked_appts}
+
+    # 3. Generate the 30-min slots
+    # Structure: generated_slots['2025-11-20']['morning'] = ['08:00', '08:30'...]
+    generated_slots = {}
+
+    def make_slots(start, end):
+        times = []
+        current = datetime.combine(today, start)
+        end_dt = datetime.combine(today, end)
+        while current < end_dt:
+            times.append(current.time().strftime('%H:%M'))
+            current += timedelta(minutes=SLOT_DURATION)
+        return times
+
+    morning_times = make_slots(MORNING_START, MORNING_END)
+    evening_times = make_slots(EVENING_START, EVENING_END)
+
+    for day in days:
+        day_str = day.isoformat()
+        generated_slots[day_str] = {'morning': [], 'evening': []}
+        
+        if day_str in active_blocks:
+            # If doctor works morning, add 30-min morning slots
+            if 'morning' in active_blocks[day_str]:
+                for t in morning_times:
+                    slot_key = f"{day_str}_{t}"
+                    if slot_key not in booked_slots: # Only add if NOT booked
+                        generated_slots[day_str]['morning'].append(t)
             
+            # If doctor works evening, add 30-min evening slots
+            if 'evening' in active_blocks[day_str]:
+                for t in evening_times:
+                    slot_key = f"{day_str}_{t}"
+                    if slot_key not in booked_slots:
+                        generated_slots[day_str]['evening'].append(t)
+
     return render_template(
         'patient/book_appointment.html', 
         title='Book Appointment', 
         form=form, 
         doctor=doctor_profile, 
         days=days,
-        available_slots=available_slots_set,
-        booked_slots=booked_slots_set
+        generated_slots=generated_slots
     )
 
 @patient_bp.route('/cancel/<int:appointment_id>', methods=['POST'])

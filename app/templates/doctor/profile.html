@@ -52,6 +52,11 @@
                                     Experience Overall</span>
                             </p>
                             {% endif %}
+                            <div class="text-muted small">
+                                <i class="fas fa-phone me-1"></i> {{ current_user.doctor_profile.contact_number or 'No
+                                contact info' }}
+                            </div>
+
 
                             <div class="mb-4">
                                 <p class="text-muted small">
@@ -83,6 +88,10 @@
                             <div class="col-md-6">
                                 {{ form.experience_years.label(class="form-label form-label-bold") }}
                                 {{ form.experience_years(class="form-control") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.contact_number.label(class="form-label form-label-bold") }}
+                                {{ form.contact_number(class="form-control") }}
                             </div>
                             <div class="col-12">
                                 {{ form.qualifications.label(class="form-label form-label-bold") }}

@@ -11,6 +11,10 @@
                 {{ form.full_name.label(class="form-label") }}
                 {{ form.full_name(class="form-control", required=True) }}
             </div>
+            <div class="col-md-6 mb-3">
+                {{ form.contact_number.label(class="form-label") }}
+                {{ form.contact_number(class="form-control", placeholder="+91...", required=True) }}
+            </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.email.label(class="form-label") }}
@@ -22,8 +26,8 @@
                 </div>
             </div>
             <div class="form-group mt-4">
-                {{ form.submit(class="btn btn-primary") }}
-                <a href="{{ url_for('admin.manage_doctors') }}" class="btn btn-secondary">Cancel</a>
+                {{ form.submit(class="btn btn-outline-primary") }}
+                <a href="{{ url_for('admin.manage_doctors') }}" class="btn btn-outline-secondary">Cancel</a>
             </div>
         </form>
     </div>

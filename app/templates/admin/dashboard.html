@@ -1,258 +1,349 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Admin Dashboard</h2>
-    </div>
+<style>
+    
+    #chartTimeRange {
+        background-color: #f8f9fa;
+        /* Light grey background */
+        border: 1px solid #e9ecef;
+        /* Subtle border */
+        color: #495057;
+        /* Dark grey text */
+        font-size: 0.875rem;
+        /* Smaller, professional font size */
+        font-weight: 500;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        /* Extra right padding for arrow */
+        border-radius: 6px;
+        /* Rounded corners */
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <i class="fas fa-user-md fa-3x text-primary mb-3"></i>
-                    <h6 class="card-subtitle mb-2 text-muted">Total Doctors</h6>
-                    <p class="card-text fs-2 fw-bold">{{ doctor_count }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <i class="fas fa-user-injured fa-3x text-success mb-3"></i>
-                    <h6 class="card-subtitle mb-2 text-muted">Total Patients</h6>
-                    <p class="card-text fs-2 fw-bold">{{ patient_count }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <i class="fas fa-calendar-check fa-3x text-info mb-3"></i>
-                    <h6 class="card-subtitle mb-2 text-muted">Total Appointments</h6>
-                    <p class="card-text fs-2 fw-bold">{{ appointment_count }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+       
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+    }
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Quick Actions</h5>
-        </div>
-        <div class="card-body">
-            <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-primary"><i class="fas fa-user-plus me-2"></i>Add Doctor</a>
-            <a href="{{ url_for('admin.manage_departments') }}" class="btn btn-success"><i class="fas fa-building me-2"></i>Manage Departments</a>
-            <a href="{{ url_for('admin.manage_doctors') }}" class="btn btn-secondary"><i class="fas fa-users-cog me-2"></i>Manage Doctors</a>
-            <a href="{{ url_for('admin.manage_patients') }}" class="btn btn-secondary"><i class="fas fa-users me-2"></i>Manage Patients</a>
-        </div>
-    </div>
+    /* Hover effect */
+    #chartTimeRange:hover {
+        background-color: #e2e6ea;
+        border-color: #adb5bd;
+    }
 
-    <div class="row mb-4">
-        <div class="col-lg-7 mb-4 mb-lg-0">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="mb-0">New Patient Registrations (Last 7 Days)</h5>
-                </div>
-                <div class="card-body">
-                    <div style="height: 300px;">
-                        <canvas id="patientTrendChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-5">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class_mb-0">Total User Breakdown</h5>
-                </div>
-                <div class="card-body">
-                    <div style="height: 300px;">
-                        <canvas id="userChart"></canvas>
-                    </div>
-                </div>
+    /* Focus/Active effect */
+    #chartTimeRange:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        /* Blue glow */
+        border-color: #86b7fe;
+    }
+</style>
+```
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Admin Dashboard</h2>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <i class="fas fa-user-md fa-3x text-primary mb-3"></i>
+                <h6 class="card-subtitle mb-2 text-muted">Total Doctors</h6>
+                <p class="card-text fs-2 fw-bold">{{ doctor_count }}</p>
             </div>
         </div>
     </div>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Registered Doctors</h5>
-            <a href="{{ url_for('admin.manage_doctors') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <i class="fas fa-user-injured fa-3x text-success mb-3"></i>
+                <h6 class="card-subtitle mb-2 text-muted">Total Patients</h6>
+                <p class="card-text fs-2 fw-bold">{{ patient_count }}</p>
+            </div>
         </div>
-        <ul class="list-group list-group-flush">
-            {% for doctor in doctors %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    {% if not doctor.is_active %}
-                        <span class="badge bg-dark me-2">Blacklisted</span>
-                    {% endif %}
-                    Dr. {{ doctor.doctor_profile.full_name }}
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-body">
+                <i class="fas fa-calendar-check fa-3x text-info mb-3"></i>
+                <h6 class="card-subtitle mb-2 text-muted">Total Appointments</h6>
+                <p class="card-text fs-2 fw-bold">{{ appointment_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Quick Actions</h5>
+    </div>
+    <div class="card-body">
+        <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-outline-primary"><i class="fas fa-user-plus me-2"></i>Add
+            Doctor</a>
+        <a href="{{ url_for('admin.manage_departments') }}" class="btn btn-outline-success"><i
+                class="fas fa-building me-2"></i>Manage Departments</a>
+        <a href="{{ url_for('admin.manage_doctors') }}" class="btn btn-outline-secondary"><i
+                class="fas fa-users-cog me-2"></i>Manage Doctors</a>
+        <a href="{{ url_for('admin.manage_patients') }}" class="btn btn-outline-secondary"><i
+                class="fas fa-users me-2"></i>Manage Patients</a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-7 mb-4 mb-lg-0">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">New Patient Registrations</h5>
+                <select id="chartTimeRange" class="form-select form-select-sm w-auto border-0 bg-light">
+                    <option value="7" selected>Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="year">This Year</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="patientTrendChart"></canvas>
                 </div>
-                <div>
-                    <a href="{{ url_for('admin.edit_doctor', user_id=doctor.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                    
-                    <form action="{{ url_for('admin.delete_doctor', user_id=doctor.id) }}" method="POST" class="d-inline" onsubmit="return confirm('DELETE: Are you sure you want to PERMANENTLY DELETE this doctor?');">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                    
-                    {% if doctor.is_active %}
-                        <form action="{{ url_for('admin.blacklist_user', user_id=doctor.id) }}" method="POST" class="d-inline" onsubmit="return confirm('BLACKLIST: Are you sure you want to blacklist this doctor?');">
-                            <button type="submit" class="btn btn-sm btn-dark">Blacklist</button>
-                        </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Total User Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="userChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recently Added Doctors</h5>
+        <a href="{{ url_for('admin.manage_doctors') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for doctor in doctors %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                {% if not doctor.is_active %}
+                <span class="badge bg-dark me-2">Blacklisted</span>
+                {% endif %}
+                Dr. {{ doctor.doctor_profile.full_name }}
+            </div>
+            <div>
+                <a href="{{ url_for('admin.edit_doctor', user_id=doctor.id) }}" class="btn btn-sm btn-outline-warning">Edit</a>
+
+                <form action="{{ url_for('admin.delete_doctor', user_id=doctor.id) }}" method="POST" class="d-inline"
+                    onsubmit="return confirm('DELETE: Are you sure you want to PERMANENTLY DELETE this doctor?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+
+                {% if doctor.is_active %}
+                <form action="{{ url_for('admin.blacklist_user', user_id=doctor.id) }}" method="POST" class="d-inline"
+                    onsubmit="return confirm('BLACKLIST: Are you sure you want to blacklist this doctor?');">
+                    <button type="submit" class="btn btn-sm btn-outline-dark">Blacklist</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('admin.activate_user', user_id=doctor.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-success">Activate</button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No doctors found.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recently Registered Patients</h5>
+        <a href="{{ url_for('admin.manage_patients') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for patient in patients %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                {% if not patient.is_active %}
+                <span class="badge bg-dark me-2">Blacklisted</span>
+                {% endif %}
+                {{ patient.patient_profile.full_name }}
+            </div>
+            <div>
+                <a href="{{ url_for('admin.edit_patient', user_id=patient.id) }}"
+                    class="btn btn-sm btn-outline-warning">Edit</a>
+
+                <form action="{{ url_for('admin.delete_patient', user_id=patient.id) }}" method="POST" class="d-inline"
+                    onsubmit="return confirm('DELETE: Are you sure you want to PERMANENTLY DELETE this patient?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+
+                {% if patient.is_active %}
+                <form action="{{ url_for('admin.blacklist_user', user_id=patient.id) }}" method="POST" class="d-inline"
+                    onsubmit="return confirm('BLACKLIST: Are you sure you want to blacklist this patient?');">
+                    <button type="submit" class="btn btn-sm btn-outline-dark">Blacklist</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('admin.activate_user', user_id=patient.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-success">Activate</button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No patients found.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Upcoming Appointments</h5>
+        <a href="{{ url_for('admin.manage_appointments') }}" class="btn btn-sm btn-outline-secondary">View
+            All</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 10%;">Sr No.</th>
+                        <th>Patient Name</th>
+                        <th>Doctor Name</th>
+                        <th>Department</th>
+                        <th>Date & Time</th>
+                        <th>Patient History</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in appointments %}
+                    <tr>
+                        <td>{{ loop.index }}.</td>
+                        <td>{{ appt.patient.patient_profile.full_name }}</td>
+                        <td>Dr. {{ appt.doctor.doctor_profile.full_name }}</td>
+                        <td>{{ appt.doctor.doctor_profile.department.name }}</td>
+                        <td>{{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.view_patient_history', user_id=appt.patient.id) }}"
+                                class="btn btn-sm btn-outline-info">View</a>
+                        </td>
+                    </tr>
                     {% else %}
-                        <form action="{{ url_for('admin.activate_user', user_id=doctor.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-success">Activate</button>
-                        </form>
-                    {% endif %}
-                </div>
-            </li>
-            {% else %}
-            <li class="list-group-item text-muted">No doctors found.</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Registered Patients</h5>
-            <a href="{{ url_for('admin.manage_patients') }}" class="btn btn-sm btn-outline-secondary">View All</a>
-        </div>
-        <ul class="list-group list-group-flush">
-            {% for patient in patients %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    {% if not patient.is_active %}
-                        <span class="badge bg-dark me-2">Blacklisted</span>
-                    {% endif %}
-                    {{ patient.patient_profile.full_name }}
-                </div>
-                <div>
-                    <a href="{{ url_for('admin.edit_patient', user_id=patient.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                    
-                    <form action="{{ url_for('admin.delete_patient', user_id=patient.id) }}" method="POST" class="d-inline" onsubmit="return confirm('DELETE: Are you sure you want to PERMANENTLY DELETE this patient?');">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-
-                    {% if patient.is_active %}
-                        <form action="{{ url_for('admin.blacklist_user', user_id=patient.id) }}" method="POST" class="d-inline" onsubmit="return confirm('BLACKLIST: Are you sure you want to blacklist this patient?');">
-                            <button type="submit" class="btn btn-sm btn-dark">Blacklist</button>
-                        </form>
-                    {% else %}
-                        <form action="{{ url_for('admin.activate_user', user_id=patient.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-success">Activate</button>
-                        </form>
-                    {% endif %}
-                </div>
-            </li>
-            {% else %}
-            <li class="list-group-item text-muted">No patients found.</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Upcoming Appointments</h5>
-            <a href="{{ url_for('admin.manage_appointments') }}" class="btn btn-sm btn-outline-secondary">View All</a>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 10%;">Sr No.</th>
-                            <th>Patient Name</th>
-                            <th>Doctor Name</th>
-                            <th>Department</th>
-                            <th>Date & Time</th>
-                            <th>Patient History</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for appt in appointments %}
-                        <tr>
-                            <td>{{ loop.index }}.</td>
-                            <td>{{ appt.patient.patient_profile.full_name }}</td>
-                            <td>Dr. {{ appt.doctor.doctor_profile.full_name }}</td>
-                            <td>{{ appt.doctor.doctor_profile.department.name }}</td>
-                            <td>{{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
-                            <td>
-                                <a href="{{ url_for('admin.view_patient_history', user_id=appt.patient.id) }}" class="btn btn-sm btn-outline-info">View</a>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="6" class="text-center text-muted">No upcoming appointments.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No upcoming appointments.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 {% endblock content %}
 
 
 {% block scripts %}
 <script>
+ 
+    let patientTrendChart = null;
+
     document.addEventListener('DOMContentLoaded', function () {
-        // Fetch data from our new API
-        fetch("{{ url_for('admin.dashboard_stats') }}")
+        
+        loadChartData('7');
+
+        
+        document.getElementById('chartTimeRange').addEventListener('change', function () {
+            const selectedRange = this.value;
+            loadChartData(selectedRange);
+        });
+    });
+
+    function loadChartData(range) {
+      
+        fetch(`{{ url_for('admin.dashboard_stats') }}?range=${range}`)
             .then(response => response.json())
             .then(data => {
+                updatePatientTrendChart(data.new_patient_trend);
 
-                // 1. Render the NEW Line Chart (New Patient Trend)
-                const ctxLine = document.getElementById('patientTrendChart').getContext('2d');
-                new Chart(ctxLine, {
-                    type: 'line',
-                    data: {
-                        labels: data.new_patient_trend.labels,
-                        datasets: [{
-                            label: 'New Patients',
-                            data: data.new_patient_trend.values,
-                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
-                            borderColor: 'rgba(25, 135, 84, 1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                    }
-                });
-
-                // 2. Render the Doughnut Chart (Total Users)
-                const ctxDoughnut = document.getElementById('userChart').getContext('2d');
-                new Chart(ctxDoughnut, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Doctors', 'Patients'],
-                        datasets: [{
-                            label: 'Total Users',
-                            data: [
-                                data.total_counts.values[0],
-                                data.total_counts.values[1]
-                            ],
-                            backgroundColor: [
-                                'rgba(13, 110, 253, 0.7)',
-                                'rgba(25, 135, 84, 0.7)'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                            }
-                        }
-                    }
-                });
+               
+                if (!window.userChartRendered) {
+                    renderUserChart(data.total_counts);
+                    window.userChartRendered = true;
+                }
             })
             .catch(error => console.error('Error fetching chart data:', error));
-    });
+    }
+
+    function updatePatientTrendChart(trendData) {
+        const ctx = document.getElementById('patientTrendChart').getContext('2d');
+
+        
+        if (patientTrendChart) {
+            patientTrendChart.destroy();
+        }
+
+        patientTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: trendData.labels,
+                datasets: [{
+                    label: 'New Patients',
+                    data: trendData.values,
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
+
+    function renderUserChart(countsData) {
+        const ctxDoughnut = document.getElementById('userChart').getContext('2d');
+        new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Doctors', 'Patients'],
+                datasets: [{
+                    label: 'Total Users',
+                    data: [
+                        countsData.values[0], 
+                        countsData.values[1]  
+                    ],
+                    backgroundColor: [
+                        'rgba(13, 110, 253, 0.7)',
+                        'rgba(25, 135, 84, 0.7)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    }
 </script>
 {% endblock scripts %}

@@ -33,19 +33,19 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{{ url_for('admin.edit_patient', user_id=patient.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <a href="{{ url_for('admin.edit_patient', user_id=patient.id) }}" class="btn btn-sm btn-outline-warning">Edit</a>
                                 
                                 <form action="{{ url_for('admin.delete_patient', user_id=patient.id) }}" method="POST" class="d-inline" onsubmit="return confirm('DELETE: Are you sure you want to PERMANENTLY DELETE this patient?');">
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                 </form>
                                 
                                 {% if patient.is_active %}
                                     <form action="{{ url_for('admin.blacklist_user', user_id=patient.id) }}" method="POST" class="d-inline" onsubmit="return confirm('BLACKLIST: Are you sure you want to blacklist this patient?');">
-                                        <button type="submit" class="btn btn-sm btn-dark">Blacklist</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-dark">Blacklist</button>
                                     </form>
                                 {% else %}
                                     <form action="{{ url_for('admin.activate_user', user_id=patient.id) }}" method="POST" class="d-inline">
-                                        <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Activate</button>
                                     </form>
                                 {% endif %}
                             </td>

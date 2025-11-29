@@ -93,10 +93,7 @@ main {
     color: var(--text-dark);
 }
 
-/* ====================================================== */
-/* 1. UPDATED CSS FOR COMPRESSED FOOTER WITH !important */
-/* ====================================================== */
-/* Logged-in small footer */
+
 .footer-app {
     background: #E7F3F1;
     /* Soft teal-gray to separate UI area */
@@ -117,10 +114,7 @@ main {
     color: #ffffff !important;
     /* Force bright white on hover */
 }
-/* ----------------------------------------
-   🔹 APP FOOTER (Logged-In User Version)
-   Matches homepage footer theme
------------------------------------------ */
+
 
 .footer-app {
     background-color: #347062;  /* Brand teal */
@@ -245,3 +239,10 @@ main {
     background-color: var(--brand-bg-soft);
 }
 
+.navbar-brand {
+    margin-right: 10px !important;
+}
+
+.navbar-nav {
+    gap: 10px; /* reduces spacing between menu items */
+}

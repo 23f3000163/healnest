@@ -1,60 +1,120 @@
 {% extends "layout.html" %}
 {% block content %}
-<h2 class="mb-4">Manage Hospital Departments</h2>
 
-<div class="row">
-    <div class="col-md-5">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                Add New Department
-            </div>
-            <div class="card-body">
-                <form method="POST" action="">
-                    {{ form.hidden_tag() }}
-                    <div class="mb-3">
-                        {{ form.name.label(class="form-label") }}
-                        {% if form.name.errors %}
-                        {{ form.name(class="form-control is-invalid" , required=True) }}
-                        <div class="invalid-feedback">
-                            {% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}
-                        </div>
-                        {% else %}
-                        {{ form.name(class="form-control") }}
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.description.label(class="form-label") }}
-                        {{ form.description(class="form-control") }}
-                    </div>
-                    {{ form.submit(class="btn btn-primary") }}
-                </form>
-            </div>
-        </div>
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Manage Departments</h3>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal">
+            + Create New Department
+        </button>
     </div>
 
-    <div class="col-md-7">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                Existing Departments
-            </div>
-            <ul class="list-group list-group-flush">
-                {% for dept in departments %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ dept.name }}
-                    <div>
-                        <button class="btn btn-sm btn-outline-secondary">Edit</button>
-                        <form action="{{ url_for('admin.delete_department', dept_id=dept.id) }}" method="POST"
-                            class="d-inline"
-                            onsubmit="return confirm('Are you sure you want to delete the {{ dept.name }} department?');">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                        </form>
-                    </div>
-                </li>
-                {% else %}
-                <li class="list-group-item text-muted">No departments have been added yet.</li>
+    <div class="card shadow-sm">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Doctors</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for department in departments %}
+                <tr>
+                    <td>{{ department.name }}</td>
+                    <td>{{ department.description[:60] }}...</td>
+                    <td>
+                        <span class="badge bg-success">{{ department.doctors|length }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.department_details', dept_id=department.id) }}"
+                            class="btn btn-outline-info btn-sm">View</a>
+                        <button class="btn btn-outline-warning btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#editDeptModal" data-id="{{ department.id }}"
+                            data-name="{{ department.name }}" data-description="{{ department.description }}">
+                            Edit
+                        </button>
+                        <a href="{{ url_for('admin.delete_department', dept_id=department.id) }}"
+                            class="btn btn-outline-danger btn-sm"
+                            onclick="return confirm('Are you sure? This cannot be undone.')">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
                 {% endfor %}
-            </ul>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Add Department Modal -->
+<div class="modal fade" id="addDeptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.manage_departments') }}">
+
+                {{ form.hidden_tag() }}
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Department</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{ form.name.label }} {{ form.name(class="form-control") }}
+                    <br>
+                    {{ form.description.label }} {{ form.description(class="form-control") }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-outline-primary">Add Department</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-{% endblock content %}
+
+
+<!-- Edit Department Modal -->
+<div class="modal fade" id="editDeptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.edit_department') }}">
+                <input type="hidden" name="dept_id" id="editDeptId">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Department</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <label>Department Name</label>
+                    <input type="text" name="name" id="editDeptName" class="form-control">
+
+                    <br>
+
+                    <label>Description</label>
+                    <textarea name="description" id="editDeptDesc" class="form-control"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-outline-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.getElementById('editDeptModal').addEventListener('show.bs.modal', function (event) {
+        let button = event.relatedTarget;
+        document.getElementById('editDeptId').value = button.getAttribute('data-id');
+        document.getElementById('editDeptName').value = button.getAttribute('data-name');
+        document.getElementById('editDeptDesc').value = button.getAttribute('data-description');
+    });
+</script>
+
+{% endblock %}

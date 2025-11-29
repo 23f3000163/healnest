@@ -1,60 +1,52 @@
 {% extends "layout.html" %}
 {% block content %}
 <style>
-    /* Custom styles for the slot radio buttons */
-    .slot-radio { display: none; } /* Hide the actual radio button */
-    .slot-label {
-        display: block;
-        padding: 0.75rem 1rem;
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-        text-align: center;
+   
+    .time-slot-btn {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        margin: 4px;
+        border-radius: 6px;
+        border: 1px solid #28a745; 
+        background-color: #f8fff9;
+        color: #28a745;
         cursor: pointer;
-        /* UPDATED: Added transform and box-shadow to transition */
-        transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-    
-    /* Style for AVAILABLE slots */
-    .slot-label-available {
-        background-color: #d1e7dd; /* Light green */
-        border-color: #0f5132;
-        color: #0f5132;
-    }
-    
-    /* UPDATED: Added transform and shadow to existing hover */
-    .slot-label-available:hover {
-        background-color: #b2d8c1;
-        transform: translateY(-3px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    /* Style for BOOKED/UNAVAILABLE slots */
-    .slot-label-unavailable {
-        background-color: #f8f9fa;
-        color: #6c757d;
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-    
-    /* Style for SELECTED slot */
-    .slot-radio:checked + .slot-label {
-    background-color: #3B6E5A !important;
-    border-color: #2f5849 !important;
-    color: white !important;
+        transition: all 0.2s ease-in-out;
+        display: inline-block;
         font-weight: 500;
-         box-shadow: 0 0 4px rgba(59, 110, 90, 0.5);
+        text-align: center;
+        min-width: 100px;
+    }
+
+    .time-slot-btn:hover {
+        background-color: #28a745;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .slot-radio:checked + .time-slot-btn {
+        background-color: #198754; /* Darker green */
+        color: #fff;
+        border-color: #198754;
+        box-shadow: 0 4px 6px rgba(25, 135, 84, 0.3); /* Glow effect */
+        font-weight: bold;
+    }
+
+  
+    .slot-radio {
+        display: none;
     }
     
-    /* NEW: Make sure checked state overrides hover lift */
-    .slot-radio:checked + .slot-label:hover {
-        transform: translateY(0);
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    .slot-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 </style>
 
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
-        <h4 class="page-title-bar">Book Appointment with Dr. {{ doctor.full_name }}</h4>
+        <h4 class="mb-0">Book Appointment with Dr. {{ doctor.full_name }}</h4>
     </div>
     <div class="card-body">
         <p class="card-text text-muted">Select an available time slot below to schedule your visit.</p>
@@ -65,63 +57,81 @@
             <table class="table table-bordered align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th class="text-center">Date</th>
-                        <th class="text-center">Morning Slot (08:00 AM)</th>
-                        <th class="text-center">Evening Slot (04:00 PM)</th>
+                        <th class="text-center" style="width: 20%;">Date</th>
+                        <th class="text-center">Morning Slot (08:00 AM - 12:00 PM)</th>
+                        <th class="text-center">Evening Slot (04:00 PM - 09:00 PM)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for day in days %}
-                    {% set morning_slot = day.isoformat() + '_morning' %}
-                    {% set evening_slot = day.isoformat() + '_evening' %}
+                    {% set day_str = day.isoformat() %}
                     <tr>
-                        <td class="text-center fw-medium">
-                            {{ day.strftime('%a, %d %b %Y') }}
+                        <!-- Date Column -->
+                        <td class="text-center fw-medium bg-light">
+                            {{ day.strftime('%a, %d %b') }}
                         </td>
                         
+                        <!-- Morning Slots Column -->
                         <td>
-                            {% if morning_slot in available_slots and morning_slot not in booked_slots %}
-                                <input type="radio" class="slot-radio" name="selected_slot" 
-                                       value="{{ morning_slot }}" id="slot-{{ morning_slot }}">
-                                <label class="slot-label slot-label-available" for="slot-{{ morning_slot }}">
-                                    08:00 AM
-                                </label>
-                            {% else %}
-                                <input type="radio" class="slot-radio" disabled>
-                                <label class="slot-label slot-label-unavailable">
-                                    {% if morning_slot in booked_slots %}Booked{% else %}N/A{% endif %}
-                                </label>
-                            {% endif %}
+                            <div class="slot-container justify-content-center">
+                                {% if generated_slots[day_str]['morning'] %}
+                                    {% for time_24 in generated_slots[day_str]['morning'] %}
+                                        
+                                        
+                                        {% set hour = time_24.split(':')[0] | int %}
+                                        {% set minute = time_24.split(':')[1] %}
+                                        {% set ampm = 'AM' if hour < 12 else 'PM' %}
+                                        {% set hour_12 = hour if (hour > 0 and hour <= 12) else (hour - 12 if hour > 12 else 12) %}
+                                        {% set time_12 = "%02d:%s %s" | format(hour_12, minute, ampm) %}
+
+                                        <input type="radio" class="slot-radio" name="selected_slot" 
+                                               value="{{ day_str }}_{{ time_24 }}" id="slot-{{ day_str }}-{{ time_24 }}">
+                                        
+                                        <label class="time-slot-btn" for="slot-{{ day_str }}-{{ time_24 }}">
+                                            {{ time_12 }}
+                                        </label>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted small">No slots</span>
+                                {% endif %}
+                            </div>
                         </td>
                         
+                        <!-- Evening Slots Column -->
                         <td>
-                            {% if evening_slot in available_slots and evening_slot not in booked_slots %}
-                                <input type="radio" class="slot-radio" name="selected_slot" 
-                                       value="{{ evening_slot }}" id="slot-{{ evening_slot }}">
-                                <label class="slot-label slot-label-available" for="slot-{{ evening_slot }}">
-                                    04:00 PM
-                                </label>
-                            {% else %}
-                                <input type="radio" class="slot-radio" disabled>
-                                <label class="slot-label slot-label-unavailable">
-                                     {% if evening_slot in booked_slots %}Booked{% else %}N/A{% endif %}
-                                </label>
-                            {% endif %}
+                            <div class="slot-container justify-content-center">
+                                {% if generated_slots[day_str]['evening'] %}
+                                    {% for time_24 in generated_slots[day_str]['evening'] %}
+                                      
+                                        {% set hour = time_24.split(':')[0] | int %}
+                                        {% set minute = time_24.split(':')[1] %}
+                                        {% set ampm = 'AM' if hour < 12 else 'PM' %}
+                                        {% set hour_12 = hour if (hour > 0 and hour <= 12) else (hour - 12 if hour > 12 else 12) %}
+                                        {% set time_12 = "%02d:%s %s" | format(hour_12, minute, ampm) %}
+
+                                        <input type="radio" class="slot-radio" name="selected_slot" 
+                                               value="{{ day_str }}_{{ time_24 }}" id="slot-{{ day_str }}-{{ time_24 }}">
+                                        <label class="time-slot-btn" for="slot-{{ day_str }}-{{ time_24 }}">
+                                            {{ time_12 }}
+                                        </label>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted small">No slots</span>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             
-            <p class="text-muted small">
-                Tip: Select your preferred slot and click Book Appointment.
-            </p>
             <div class="text-end mt-4">
-                {{ form.submit(class="btn btn-success btn-lg", value="Book Appointment") }}
+                <button type="submit" class="btn btn-success btn-lg">
+                    Confirm Booking
+                </button>
+                <a href="{{ url_for('patient.dashboard') }}" class="btn btn-outline-secondary btn-lg ms-2">Dashboard</a>
             </div>
         </form>
     </div>
 </div>
-
-
 {% endblock content %}

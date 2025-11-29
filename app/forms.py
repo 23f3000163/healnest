@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateF
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange, Optional
 from app.models import User, Department
 
-# --- Keep your existing forms ---
+
 
 class RegistrationForm(FlaskForm):
     email = StringField('Email',
@@ -25,17 +25,13 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
-# --- Add the new BookingForm class at the bottom ---
+
 
 class BookingForm(FlaskForm):
-    """
-    A simple form for the patient booking page. (Part of Step 1)
-    We only use this for the CSRF token and the submit button.
-    The date and time are handled by our custom JavaScript.
-    """
+  
     submit = SubmitField('Confirm Appointment')
 
-# --- Add the new UpdateProfileForm below ---
+
 
 class UpdateProfileForm(FlaskForm):
     full_name = StringField('Full Name', 
@@ -82,6 +78,7 @@ class AddDoctorForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     # We use coerce=int to make sure the form submission is an integer
+    contact_number = StringField('Contact Number', validators=[DataRequired(), Length(min=10, max=15)])
     department_id = SelectField('Department', coerce=int, validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     submit = SubmitField('Add Doctor')
@@ -95,6 +92,7 @@ class AddDoctorForm(FlaskForm):
 class EditDoctorForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
+    contact_number = StringField('Contact Number', validators=[DataRequired(), Length(min=10, max=15)])
     department_id = SelectField('Department', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Update Doctor Profile')        
 
@@ -134,6 +132,7 @@ class ResetPasswordForm(FlaskForm):
 class DoctorUpdateProfileForm(FlaskForm):
     full_name = StringField('Full Name', validators=[DataRequired(), Length(min=2, max=100)])
     qualifications = StringField('Qualifications', validators=[Optional(), Length(max=100)], render_kw={"placeholder": "e.g., MBBS, MD - Medical Oncology"})
+    contact_number = StringField('Contact Number', validators=[DataRequired(), Length(min=10, max=15)])
     experience_years = StringField('Experience (Years)', validators=[Optional()], render_kw={"placeholder": "e.g., 10"})
     bio = TextAreaField('Professional Bio', validators=[Optional()], render_kw={"rows": 4, "placeholder": "Describe your experience and specialization..."})
     submit = SubmitField('Update Profile')

@@ -15,14 +15,8 @@
     --shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.10);
 }
 
-/* ==============================================
-   HEALNEST UI DESIGN SYSTEM
-   Clean Healthcare + Premium SaaS Aesthetic
-   ============================================== */
 
-/* -----------------------------
-   STEP 1: DESIGN TOKENS
------------------------------- */
+
 :root {
     /* Brand Colors */
     --brand-primary: #00897B;

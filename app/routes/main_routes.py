@@ -144,9 +144,7 @@ def reset_request():
         user = User.query.filter_by(email=form.email.data).first()
         token = user.get_reset_token()
         
-        # --- SIMULATE SENDING EMAIL ---
-        # In a real app, you would email this link to the user.
-        # For this project, we will just print it to the console.
+    
         reset_link = url_for('main.reset_token', token=token, _external=True)
         print("--- PASSWORD RESET LINK (COPY AND PASTE THIS INTO YOUR BROWSER) ---")
         print(reset_link)

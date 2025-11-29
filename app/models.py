@@ -10,7 +10,6 @@ from app import app
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# ## CORE MODELS ##
 
 class User(db.Model, UserMixin):
     """ Central table for all users: Admins, Doctors, and Patients. """
@@ -84,6 +83,7 @@ class DoctorProfile(db.Model):
     full_name = db.Column(db.String(100), nullable=False)
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=False)
     qualifications = db.Column(db.String(200))
+    contact_number = db.Column(db.String(20))
     experience_years = db.Column(db.Integer, default=0)
     bio = db.Column(db.Text)
    
@@ -122,16 +122,16 @@ class Treatment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False, unique=True)
     
-    # NEW FIELDS
+    
     visit_type = db.Column(db.String(100))
     tests_done = db.Column(db.String(300))
     
     diagnosis = db.Column(db.Text, nullable=False)
     prescription = db.Column(db.Text, nullable=False)
-    notes = db.Column(db.Text) # We can keep this for any extra doctor notes
+    notes = db.Column(db.Text) 
 
 
-# ## ADDITIONAL FEATURE MODELS ##
+
 
 class PatientProfile(db.Model):
     """ Stores patient-specific information, linked to a User. """

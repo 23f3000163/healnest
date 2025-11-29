@@ -2,7 +2,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Manage Doctors</h2>
-    <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-primary me-2">
+    <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-outline-primary me-2">
         <i class="fas fa-plus me-2"></i>Add New Doctor
     </a>
 </div>
@@ -35,24 +35,24 @@
                         </td>
                         <td>
                             <a href="{{ url_for('admin.edit_doctor', user_id=doctor.id) }}"
-                                class="btn btn-sm btn-warning">Edit</a>
+                                class="btn btn-sm btn-outline-warning">Edit</a>
 
                             <form action="{{ url_for('admin.delete_doctor', user_id=doctor.id) }}" method="POST"
                                 class="d-inline"
                                 onsubmit="return confirm('DELETE: Are you sure you want to PERMANENTLY DELETE this doctor?');">
-                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                             </form>
 
                             {% if doctor.is_active %}
                             <form action="{{ url_for('admin.blacklist_user', user_id=doctor.id) }}" method="POST"
                                 class="d-inline"
                                 onsubmit="return confirm('BLACKLIST: Are you sure you want to suspend Dr. {{ doctor.doctor_profile.full_name }}? They will not be able to log in.');">
-                                <button type="submit" class="btn btn-sm btn-dark">Blacklist</button>
+                                <button type="submit" class="btn btn-sm btn-outline-dark">Blacklist</button>
                             </form>
                             {% else %}
                             <form action="{{ url_for('admin.activate_user', user_id=doctor.id) }}" method="POST"
                                 class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                                <button type="submit" class="btn btn-sm btn-outline-success">Activate</button>
                             </form>
                             {% endif %}
                         </td>

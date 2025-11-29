@@ -24,7 +24,7 @@ def dashboard():
     upcoming_appointments = Appointment.query.filter(
         Appointment.doctor_id == current_user.id,
         Appointment.status == 'Booked',
-        Appointment.appointment_datetime >= datetime.now() # Get all future appointments
+        Appointment.appointment_datetime >= datetime.now() 
     ).order_by(Appointment.appointment_datetime.asc()).all()
 
     # --- 2. Get All Assigned Patients ---
@@ -36,7 +36,7 @@ def dashboard():
     return render_template(
         'doctor/dashboard.html', 
         title='Doctor Dashboard', 
-        appointments=upcoming_appointments, # Pass the new list
+        appointments=upcoming_appointments, 
         patients=assigned_patients
     )
 
@@ -203,6 +203,7 @@ def profile():
 
     if form.validate_on_submit():
         profile.full_name = form.full_name.data
+        profile.contact_number = form.contact_number.data
         profile.qualifications = form.qualifications.data
         # Save new fields
         try:
@@ -217,3 +218,37 @@ def profile():
         return redirect(url_for('doctor.profile'))
 
     return render_template('doctor/profile.html', title='My Profile', form=form)
+
+@doctor_bp.route('/cancel_appointment/<int:appointment_id>', methods=['POST'])
+@login_required
+def cancel_appointment(appointment_id):
+    """
+    Allows a doctor to cancel an upcoming appointment.
+    """
+    if current_user.role != 'doctor':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('main.home'))
+
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    # Security Check: Ensure the appointment belongs to this doctor
+    if appointment.doctor_id != current_user.id:
+        flash('You cannot cancel an appointment that does not belong to you.', 'danger')
+        return redirect(url_for('doctor.dashboard'))
+
+    # Update Status
+    appointment.status = 'Cancelled'
+
+    # Professional Touch: Notify the patient
+    patient_msg = f"Dr. {current_user.doctor_profile.full_name} has cancelled your appointment scheduled for {appointment.appointment_datetime.strftime('%d %b at %I:%M %p')}."
+    notification = Notification(user_id=appointment.patient_id, message=patient_msg)
+    db.session.add(notification)
+
+    db.session.commit()
+    flash('Appointment cancelled successfully. The patient has been notified.', 'info')
+    
+    return redirect(url_for('doctor.dashboard'))
+
+
+
+
