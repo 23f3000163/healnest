@@ -1,46 +1,55 @@
 {% extends "layout.html" %}
 {% block content %}
-<h2 class="mb-4">Welcome, Dr. {{ current_user.doctor_profile.full_name }}!</h2>
 
+<h2 class="mb-4">
+    Welcome, Dr. {{ current_user.doctor_profile.full_name }}!
+</h2>
+
+<!-- ================= UPCOMING APPOINTMENTS ================= -->
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-white py-3">
         <h4 class="mb-0">Upcoming Appointments</h4>
     </div>
+
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 5%;">Sr No.</th>
+                        <th style="width: 5%;">#</th>
                         <th>Patient Name</th>
                         <th>Date & Time</th>
-                        <th>Patient History</th>
-                        <th style="width: 25%;">Actions</th>
+                        <th style="width: 30%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for appt in appointments %}
                     <tr>
-                        <td>{{ loop.index }}.</td>
+                        <td>{{ loop.index }}</td>
                         <td>{{ appt.patient.patient_profile.full_name }}</td>
                         <td>{{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
                         <td>
                             <a href="{{ url_for('doctor.treat_patient', appointment_id=appt.id) }}"
-                                class="btn btn-outline-primary px-3">update</a>
-                        </td>
-                        <td>
-                            <a href="{{ url_for('doctor.treat_patient', appointment_id=appt.id) }}"
-                                class="btn btn-outline-success px-3">mark as complete</a>
+                               class="btn btn-sm btn-outline-primary">
+                                Treat / Update
+                            </a>
+
                             <form action="{{ url_for('doctor.cancel_appointment', appointment_id=appt.id) }}"
-                                method="POST" class="d-inline"
-                                onsubmit="return confirm('Are you sure you want to cancel this appointment? The patient will be notified.');">
-                                <button type="submit" class="btn btn-outline-danger px-3">cancel</button>
+                                  method="POST"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to cancel this appointment? The patient will be notified.');">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger">
+                                    Cancel
+                                </button>
                             </form>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted p-4">You have no upcoming appointments.</td>
+                        <td colspan="4" class="text-center text-muted p-4">
+                            You have no upcoming appointments.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -49,20 +58,24 @@
     </div>
 </div>
 
+<!-- ================= ASSIGNED PATIENTS ================= -->
 <div class="card shadow-sm">
     <div class="card-header bg-white py-3">
         <h4 class="mb-0">Assigned Patients</h4>
     </div>
+
     <ul class="list-group list-group-flush">
         {% for patient in patients %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
             {{ patient.patient_profile.full_name }}
-            <a href="{{ url_for('doctor.view_patient_history', user_id=patient.id) }}"
-                class="btn btn-sm btn-outline-primary">View</a>
+            <span class="badge bg-secondary">History (Coming Soon)</span>
         </li>
         {% else %}
-        <li classs="list-group-item text-muted text-center p-3">You have no patients assigned to you yet.</li>
+        <li class="list-group-item text-muted text-center p-3">
+            You have no patients assigned yet.
+        </li>
         {% endfor %}
     </ul>
 </div>
+
 {% endblock content %}

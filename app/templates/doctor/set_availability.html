@@ -1,7 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
+
+{% set days = days or [] %}
+{% set saved_slots = saved_slots or [] %}
+
 <style>
-   
     .slot-label {
         display: block;
         padding: 0.75rem 1rem;
@@ -11,23 +14,21 @@
         color: #6c757d;
         text-align: center;
         cursor: pointer;
-        transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
     }
     .slot-label:hover {
         transform: translateY(-3px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .slot-checkbox:checked + .slot-label {
-        background-color: #d1e7dd; /* Light green */
+        background-color: #d1e7dd;
         border-color: #0f5132;
         color: #0f5132;
         font-weight: 500;
     }
-    .slot-checkbox:checked + .slot-label:hover {
-        transform: translateY(0);
-        box-shadow: none;
+    .slot-checkbox {
+        display: none;
     }
-    .slot-checkbox { display: none; } 
 </style>
 
 <div class="card shadow-sm">
@@ -35,14 +36,17 @@
         <h4 class="mb-0">Manage Your Weekly Availability</h4>
     </div>
     <div class="card-body">
-        <p class="card-text text-muted">Set your available time slots for the next 7 days. Patients will be able to book these slots.</p>
-        
-        <form method="POST" action="">
+        <p class="text-muted">
+            Set your availability for the next 7 days. Patients can book only during selected slots.
+        </p>
+
+        {% if days %}
+        <form method="POST">
             <div class="d-flex justify-content-end mb-3">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="apply-all-days">
                     <label class="form-check-label" for="apply-all-days">
-                        Apply to all days
+                        Apply first day’s selection to all
                     </label>
                 </div>
             </div>
@@ -51,8 +55,8 @@
                 <thead class="table-light">
                     <tr>
                         <th class="text-center">Date</th>
-                        <th class="text-center">Morning Slot (08:00 AM - 12:00 PM)</th>
-                        <th class="text-center">Evening Slot (04:00 PM - 09:00 PM)</th>
+                        <th class="text-center">Morning (08:00–12:00)</th>
+                        <th class="text-center">Evening (16:00–21:00)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -61,45 +65,70 @@
                         <td class="text-center fw-medium">
                             {{ day.strftime('%a, %d %b %Y') }}
                         </td>
+
                         <td>
-                            <input type="checkbox" class="slot-checkbox morning-slot" name="slots" 
-                                   value="{{ day.isoformat() }}_morning" id="slot-{{ day.isoformat() }}-morning"
-                                   {% if (day.isoformat() + '_morning') in saved_slots %}checked{% endif %}>
-                            <label class="slot-label" for="slot-{{ day.isoformat() }}-morning">
-                                08:00 AM - 12:00 PM
+                            {% set m_key = day.isoformat() ~ '_morning' %}
+                            <input type="checkbox"
+                                   class="slot-checkbox morning-slot"
+                                   name="slots"
+                                   id="slot-{{ m_key }}"
+                                   value="{{ m_key }}"
+                                   {% if m_key in saved_slots %}checked{% endif %}>
+                            <label class="slot-label" for="slot-{{ m_key }}">
+                                08:00 AM – 12:00 PM
                             </label>
                         </td>
+
                         <td>
-                            <input type="checkbox" class="slot-checkbox evening-slot" name="slots" 
-                                   value="{{ day.isoformat() }}_evening" id="slot-{{ day.isoformat() }}-evening"
-                                   {% if (day.isoformat() + '_evening') in saved_slots %}checked{% endif %}>
-                            <label class="slot-label" for="slot-{{ day.isoformat() }}-evening">
-                                04:00 PM - 09:00 PM
+                            {% set e_key = day.isoformat() ~ '_evening' %}
+                            <input type="checkbox"
+                                   class="slot-checkbox evening-slot"
+                                   name="slots"
+                                   id="slot-{{ e_key }}"
+                                   value="{{ e_key }}"
+                                   {% if e_key in saved_slots %}checked{% endif %}>
+                            <label class="slot-label" for="slot-{{ e_key }}">
+                                04:00 PM – 09:00 PM
                             </label>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            
+
             <div class="text-end mt-4">
-                <button type="submit" class="btn btn-success btn-lg">Save Availability</button>
+                <button type="submit" class="btn btn-success btn-lg">
+                    Save Availability
+                </button>
             </div>
         </form>
+        {% else %}
+            <p class="text-muted text-center mb-0">
+                Availability cannot be set at this time.
+            </p>
+        {% endif %}
     </div>
 </div>
 
 <script>
-    document.getElementById('apply-all-days').addEventListener('change', function() {
-        // Find the toggle state of the first row's slots
-        const firstMorning = document.querySelector('.morning-slot').checked;
-        const firstEvening = document.querySelector('.evening-slot').checked;
-        
-        if (this.checked) {
-            // Apply the first row's state to all other rows
-            document.querySelectorAll('.morning-slot').forEach(checkbox => checkbox.checked = firstMorning);
-            document.querySelectorAll('.evening-slot').forEach(checkbox => checkbox.checked = firstEvening);
-        }
+document.addEventListener('DOMContentLoaded', function () {
+    const applyAll = document.getElementById('apply-all-days');
+    const morningSlots = document.querySelectorAll('.morning-slot');
+    const eveningSlots = document.querySelectorAll('.evening-slot');
+
+    if (!applyAll || morningSlots.length === 0) return;
+
+    applyAll.addEventListener('change', function () {
+        if (!this.checked) return;
+
+        const firstMorning = morningSlots[0].checked;
+        const firstEvening = eveningSlots[0].checked;
+
+        morningSlots.forEach(cb => cb.checked = firstMorning);
+        eveningSlots.forEach(cb => cb.checked = firstEvening);
     });
+});
 </script>
+
 {% endblock content %}
+ 

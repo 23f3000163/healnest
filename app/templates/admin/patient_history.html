@@ -2,30 +2,21 @@
 {% block content %}
 
 <style>
-    /* ----------- Patient Summary ----------- */
     .patient-summary-label {
         font-size: 14px;
         font-weight: 700;
         text-transform: uppercase;
-        color: #212529;;
+        color: #212529;
     }
-
     .patient-summary-value {
         font-size: 16px;
         font-weight: 500;
-        /* Make bold */
         color: #212529;
-        /* Same dark color as table text */
     }
-
     .patient-summary-value.blood {
         color: #dc3545 !important;
-        /* Bootstrap danger red */
         font-weight: 700;
     }
-
-
-
     .avatar-circle {
         width: 60px;
         height: 60px;
@@ -37,299 +28,149 @@
         font-size: 1.4rem;
         font-weight: bold;
     }
-
-    /* Status Badges */
-    .badge-soft-success {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .badge-soft-danger {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-    .badge-soft-secondary {
-        background: #e2e3e5;
-        color: #41464b;
-    }
-
-    .badge-soft-dark {
-        background: #495057;
-        color: white;
-    }
-
-    /* ----------- Table Style ----------- */
+    .badge-soft-success { background:#d1e7dd; color:#0f5132; }
+    .badge-soft-danger { background:#f8d7da; color:#842029; }
+    .badge-soft-secondary { background:#e2e3e5; color:#41464b; }
+    .badge-soft-dark { background:#495057; color:white; }
     .history-table thead th {
-        background: #f8f9fa;
-        text-transform: uppercase;
-        font-size: .82rem;
-        border-bottom: 2px solid #dee2e6;
-        white-space: nowrap;
+        background:#f8f9fa;
+        text-transform:uppercase;
+        font-size:.82rem;
+        border-bottom:2px solid #dee2e6;
     }
-
     .history-table tbody td {
-        font-size: .92rem;
-        vertical-align: top;
-        padding: .85rem .75rem;
+        font-size:.92rem;
+        vertical-align:top;
+        padding:.85rem .75rem;
     }
-
-    /* Column Width Adjustments */
-    .col-diagnosis {
-        width: 26%;
-    }
-
-    /* reduced to give action column space */
-    .col-prescription {
-        width: 23%;
-    }
-
-    /* Prescription formatting */
     .prescription-item {
-        display: flex;
-        gap: 6px;
-        margin-bottom: 4px;
+        display:flex;
+        gap:6px;
+        margin-bottom:4px;
     }
-
-    .med-icon {
-        color: #0d6efd;
-        font-size: .9rem;
-    }
-
-    /* ----------- Action Buttons ----------- */
+    .med-icon { color:#0d6efd; font-size:.9rem; }
     .action-group {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
+        display:flex;
+        justify-content:center;
+        gap:10px;
     }
-
     .action-btn {
-        width: 34px;
-        height: 34px;
-        border-radius: 6px;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .action-btn i {
-        font-size: 16px;
-    }
-
-    /* Reduce unwanted whitespace */
-    .card {
-        margin-bottom: 15px !important;
+        width:34px;
+        height:34px;
+        border-radius:6px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
     }
 </style>
 
-<script>
-
-    /* ----------- Export Visit PDF ----------- */
-    function printVisitRecord(id, date, doctor, dept, type, diagnosis, prescription, name, age, gender, blood) {
-
-        const win = window.open("", "_blank", "width=850,height=900");
-        const formatRx = prescription.split("\n").map(l => l ? `<li>${l}</li>` : "").join("");
-
-        win.document.write(`
-        <html><head><title>Visit Record</title>
-        <style>
-            body{font-family:Arial;padding:30px;line-height:1.6;}
-            hr{margin:12px 0;} ul{margin-top:0;}
-        </style></head><body>
-        
-        <h2>Healnest - Visit Record</h2><hr>
-
-        <b>Patient:</b> ${name}<br>
-        <b>Date:</b> ${date}<br>
-        <b>Doctor:</b> ${doctor} (${dept})<br>
-        <b>Visit Type:</b> ${type}<br>
-        <b>Age:</b> ${age} | <b>Gender:</b> ${gender} | <b>Blood:</b> ${blood}<hr><br>
-
-        <b>Diagnosis:</b><br>${diagnosis}<br><br>
-        <b>Prescription:</b><ul>${formatRx}</ul><br>
-
-        <em>Generated: ${new Date().toLocaleString()}</em>
-        </body></html>
-    `);
-
-        win.document.close();
-        setTimeout(() => win.print(), 400);
-    }
-
-    /* ----------- Print Prescription ----------- */
-    function printPrescription(text, name, date, doctor) {
-
-        const win = window.open("", "_blank", "width=650,height=750");
-
-        win.document.write(`
-        <html><head><title>Prescription</title>
-        <style>
-            body{font-family:Arial;padding:20px;} pre{white-space:pre-wrap;}
-        </style></head><body>
-
-        <h2>Prescription</h2><hr>
-        <b>Patient:</b> ${name}<br>
-        <b>Date:</b> ${date}<br>
-        <b>Doctor:</b> ${doctor}<hr><br>
-        <pre>${text}</pre>
-    </body></html>`);
-
-        win.document.close();
-        win.print();
-    }
-
-</script>
-
-
-
-
-<!-- ----------- Header ----------- -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="fw-bold mb-0">Patient History</h2>
-
-    <a href="{{ back_url }}" class="btn btn-light border me-2">
-        <i class="fas fa-chevron-left me-1 small"></i> Back
+    <a href="{{ back_url }}" class="btn btn-light border">
+        <i class="fas fa-chevron-left me-1"></i> Back
     </a>
 </div>
 
-
-
-<!-- ----------- Patient Card ----------- -->
-<div class="card shadow-sm border-0">
-    <div class="card-body py-4 px-4">
+<!-- Patient Summary -->
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
         <div class="row align-items-center">
-
-            <div class="col-lg-3 d-flex align-items-center gap-3">
+            <div class="col-lg-3 d-flex gap-3">
                 <div class="avatar-circle">{{ patient.patient_profile.full_name[0] }}</div>
                 <div>
                     <h5 class="fw-bold">{{ patient.patient_profile.full_name }}</h5>
                     <span class="badge {{ 'badge-soft-success' if patient.is_active else 'badge-soft-dark' }}">
                         {{ 'Active' if patient.is_active else 'Blacklisted' }}
                     </span>
-                    <div class="small text-muted mt-1"><i class="fas fa-envelope me-1"></i>{{ patient.email }}</div>
+                    <div class="small text-muted">{{ patient.email }}</div>
                 </div>
             </div>
 
-            <div class="col-lg-6 border-start border-end px-4 d-flex justify-content-between">
+            <div class="col-lg-6 d-flex justify-content-between border-start border-end px-4">
+                <div><div class="patient-summary-label">Age</div>{{ patient_age }}</div>
+                <div><div class="patient-summary-label">Gender</div>{{ patient.patient_profile.gender }}</div>
                 <div>
-                    <div class="patient-summary-label">Age</div>{{ patient_age }}
-                </div>
-                <div>
-                    <div class="patient-summary-label">Gender</div>{{ patient.patient_profile.gender }}
-                </div>
-                <div>
-                    <div class="patient-summary-label">Blood group</div>
+                    <div class="patient-summary-label">Blood</div>
                     <div class="patient-summary-value blood">{{ patient.patient_profile.blood_group }}</div>
                 </div>
-                <div>
-                    <div class="patient-summary-label">Contact no.</div>{{ patient.patient_profile.contact_number }}
-                </div>
-
-                {% if current_user.role == 'doctor' %}
-                <div class="ms-4">
-                    <div class="patient-summary-label">Attending Doctor</div>
-                    <div class="patient-summary-value text-primary">Dr. {{ current_user.doctor_profile.full_name }}</div>
-                </div>
-                {% endif %}
+                <div><div class="patient-summary-label">Contact</div>{{ patient.patient_profile.contact_number }}</div>
             </div>
 
             <div class="col-lg-3 text-end">
                 <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-print me-1"></i> Print Summary
+                    <i class="fas fa-print me-1"></i> Print
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-
-
-
-<!-- ----------- Medical Records Table ----------- -->
+<!-- Medical Records -->
 <div class="card shadow-sm border-0">
-    <div class="card-header bg-white py-3">
-        <h5 class="fw-bold mb-0"><i class="fas fa-file-medical-alt text-primary me-2"></i>Medical Records</h5>
-    </div>
-
     <div class="table-responsive">
-        <table class="table table-hover mb-0 history-table">
+        <table class="table table-hover history-table mb-0">
             <thead>
                 <tr>
-                    <th><i class="fas fa-list-ol me-2"></i>Visit No.</th>
-                    <th><i class="far fa-calendar me-2"></i>Date</th>
-                    <th><i class="fas fa-user-md me-2"></i>Doctor</th>
-                    <th><i class="fas fa-stethoscope me-2"></i>Type</th>
-                    <th><i class="fas fa-check-circle me-2"></i>Status</th>
-                    <th class="col-diagnosis"><i class="fas fa-notes-medical me-2"></i>Diagnosis</th>
-                    <th class="col-prescription"><i class="fas fa-prescription-bottle-alt me-2"></i>Prescription</th>
-                    <th class="text-center"><i class="fas fa-tools me-2"></i>Actions</th>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Doctor</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Diagnosis</th>
+                    <th>Prescription</th>
+                    <th class="text-center">Actions</th>
                 </tr>
             </thead>
-
             <tbody>
                 {% for appt in history %}
                 <tr>
-                    <td class="fw-bold text-muted">{{ loop.index }}</td>
-                    <td>{{ appt.appointment_datetime.strftime("%d %b %Y") }}</td>
-
-                    <td><b>Dr. {{ appt.doctor.doctor_profile.full_name }}</b><br><small>{{
-                            appt.doctor.doctor_profile.department.name }}</small></td>
-
-                    {% if appt.status == "Completed" and appt.treatment %}
-                    <td>{{ appt.treatment.visit_type }}</td>
-                    <td><span class="badge badge-soft-success">Completed</span></td>
-
-                    <td>{{ appt.treatment.diagnosis }}</td>
-
+                    <td>{{ loop.index }}</td>
+                    <td>{{ appt.appointment_datetime.strftime('%d %b %Y') }}</td>
                     <td>
-                        {% for line in appt.treatment.prescription.split("\n") %}
-                        {% if line.strip() %}
-                        <div class="prescription-item">
-                            <i class="fas fa-pills med-icon"></i>{{ line }}
-                        </div>
-                        {% endif %}
-                        {% endfor %}
+                        <b>Dr. {{ appt.doctor.doctor_profile.full_name }}</b><br>
+                        <small>{{ appt.doctor.doctor_profile.department.name }}</small>
                     </td>
 
-                    <td class="text-center">
-                        <div class="action-group">
-
-                            <button class="btn btn-outline-primary action-btn" title="Print Prescription" onclick="printPrescription(
-                                        `{{ appt.treatment.prescription | replace('\r\n','\\n') | replace('\n','\\n') }}`,
-                                        `{{ patient.patient_profile.full_name }}`,
-                                        `{{ appt.appointment_datetime.strftime('%d %b %Y') }}`,
-                                        `Dr. {{ appt.doctor.doctor_profile.full_name }}`
-                                    )">
+                    {% if appt.status == 'COMPLETED' and appt.treatment %}
+                        <td>{{ appt.treatment.visit_type }}</td>
+                        <td><span class="badge badge-soft-success">Completed</span></td>
+                        <td>{{ appt.treatment.diagnosis }}</td>
+                        <td>
+                            {% for line in appt.treatment.prescription.split('\n') if line.strip() %}
+                                <div class="prescription-item">
+                                    <i class="fas fa-pills med-icon"></i>{{ line }}
+                                </div>
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-outline-primary action-btn"
+                                onclick="printPrescription(
+                                    `{{ appt.treatment.prescription | replace('\n','\\n') }}`,
+                                    `{{ patient.patient_profile.full_name }}`,
+                                    `{{ appt.appointment_datetime.strftime('%d %b %Y') }}`,
+                                    `Dr. {{ appt.doctor.doctor_profile.full_name }}`
+                                )">
                                 <i class="fas fa-print"></i>
                             </button>
-
-                            <button class="btn btn-outline-danger action-btn" title="Export Visit as PDF" onclick="printVisitRecord(
-                                        '{{ appt.id }}',
-                                        '{{ appt.appointment_datetime.strftime('%d %b %Y') }}',
-                                        'Dr. {{ appt.doctor.doctor_profile.full_name }}',
-                                        '{{ appt.doctor.doctor_profile.department.name }}',
-                                        '{{ appt.treatment.visit_type }}',
-                                        `{{ appt.treatment.diagnosis | replace('\r\n','\\n') | replace('\n','\\n') }}`,
-                                        `{{ appt.treatment.prescription | replace('\r\n','\\n') | replace('\n','\\n') }}`,
-                                        `{{ patient.patient_profile.full_name }}`,
-                                        `{{ patient_age }}`,
-                                        `{{ patient.patient_profile.gender }}`,
-                                        `{{ patient.patient_profile.blood_group }}`
-                                    )">
-                                <i class="fas fa-file-pdf"></i>
-                            </button>
-
-                        </div>
-                    </td>
-
+                        </td>
                     {% else %}
-                    <td>N/A</td>
-                    <td><span class="badge badge-soft-secondary">{{ appt.status }}</span></td>
-                    <td colspan="4" class="text-muted fst-italic">No treatment details found.</td>
-                    <td></td>
+                        <td>N/A</td>
+                        <td>
+                            <span class="badge badge-soft-secondary">
+                                {{ appt.status | lower }}
+                            </span>
+                        </td>
+                        <td colspan="3" class="text-muted fst-italic">
+                            No treatment details available.
+                        </td>
+                        <td></td>
                     {% endif %}
-
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        No medical history found.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

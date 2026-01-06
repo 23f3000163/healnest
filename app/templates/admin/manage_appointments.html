@@ -1,65 +1,75 @@
 {% extends "layout.html" %}
 {% block content %}
-   
-    <style>
-        .table-badge {
-            font-size: 0.85rem; 
-            padding: 0.4em 0.8em;
-            border-radius: 50rem; 
-            font-weight: 600; 
-            text-transform: capitalize; 
-            display: inline-block;
-            line-height: 1;
-            vertical-align: middle;
-        }
-    </style>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>All System Appointments</h2>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary me-2">Back to Dashboard</a>
-    </div>
+<style>
+    .table-badge {
+        font-size: 0.85rem;
+        padding: 0.4em 0.8em;
+        border-radius: 50rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        display: inline-block;
+        line-height: 1;
+        vertical-align: middle;
+    }
+</style>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Patient Name</th>
-                            <th>Doctor Name</th>
-                            <th>Department</th>
-                            <th>Date & Time</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for appt in appointments %}
-                        <tr>
-                            <td>{{ appt.patient.patient_profile.full_name }}</td>
-                            <td>Dr. {{ appt.doctor.doctor_profile.full_name }}</td>
-                            <td>{{ appt.doctor.doctor_profile.department.name }}</td>
-                            <td>{{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
-                            <td>
-                                <!-- Using the new .table-badge class for consistency -->
-                                {% if appt.status == 'Booked' %}
-                                    <span class="badge bg-primary table-badge">Booked</span>
-                                {% elif appt.status == 'Completed' %}
-                                    <span class="badge bg-success table-badge">Completed</span>
-                                {% elif appt.status == 'Cancelled' %}
-                                    <span class="badge bg-danger table-badge">Cancelled</span>
-                                {% else %}
-                                    <span class="badge bg-secondary table-badge">{{ appt.status }}</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">No appointments found in the system.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>All System Appointments</h2>
+    <a href="{{ url_for('admin.dashboard') }}"
+       class="btn btn-outline-secondary">
+        Back to Dashboard
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Doctor Name</th>
+                        <th>Department</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in appointments %}
+                    <tr>
+                        <td>{{ appt.patient.patient_profile.full_name }}</td>
+                        <td>Dr. {{ appt.doctor.doctor_profile.full_name }}</td>
+                        <td>{{ appt.doctor.doctor_profile.department.name }}</td>
+                        <td>
+                            {{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}
+                        </td>
+                        <td>
+                            {% if appt.status == 'BOOKED' %}
+                                <span class="badge bg-primary table-badge">Booked</span>
+                            {% elif appt.status == 'COMPLETED' %}
+                                <span class="badge bg-success table-badge">Completed</span>
+                            {% elif appt.status == 'CANCELLED' %}
+                                <span class="badge bg-danger table-badge">Cancelled</span>
+                            {% else %}
+                                <span class="badge bg-secondary table-badge">
+                                    {{ appt.status | lower }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5"
+                            class="text-center text-muted py-4">
+                            No appointments found in the system.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
+
 {% endblock content %}

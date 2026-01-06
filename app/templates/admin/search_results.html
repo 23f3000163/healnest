@@ -1,46 +1,76 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h2 class="mb-4">Search Results for: <span class="text-primary">"{{ query }}"</span></h2>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Matching Doctors ({{ doctors|length }})</h5>
-        </div>
-        {% if doctors %}
-            <ul class="list-group list-group-flush">
-                {% for profile in doctors %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>Dr. {{ profile.full_name }}</strong>
-                        <small class="text-muted ms-2">{{ profile.department.name }}</small>
-                    </div>
-                    <a href="{{ url_for('admin.edit_doctor', user_id=profile.user_id) }}" class="btn btn-sm btn-outline-secondary">View/Edit Profile</a>
-                </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <div class="card-body text-muted">No doctors found matching your query.</div>
-        {% endif %}
+<div class="mb-4">
+    <h2>
+        Search Results for:
+        <span class="text-primary">"{{ query }}"</span>
+    </h2>
+</div>
+
+<!-- ===================== DOCTORS ===================== -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            Matching Doctors ({{ doctors|length }})
+        </h5>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header">
-            <h5 class="mb-0">Matching Patients ({{ patients|length }})</h5>
+    {% if doctors %}
+        <ul class="list-group list-group-flush">
+            {% for profile in doctors %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Dr. {{ profile.full_name }}</strong><br>
+                    <small class="text-muted">
+                        {{ profile.department.name if profile.department else 'No department assigned' }}
+                    </small>
+                </div>
+
+                <a href="{{ url_for('admin.edit_doctor', user_id=profile.user_id) }}"
+                   class="btn btn-sm btn-outline-secondary">
+                    View / Edit
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="card-body text-muted text-center">
+            No doctors found matching your query.
         </div>
-        {% if patients %}
-            <ul class="list-group list-group-flush">
-                {% for profile in patients %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>{{ profile.full_name }}</strong>
-                        <small class="text-muted ms-2">{{ profile.user.email }}</small>
-                    </div>
-                    <a href="#" class="btn btn-sm btn-outline-secondary disabled">View Profile</a>
-                </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <div class="card-body text-muted">No patients found matching your query.</div>
-        {% endif %}
+    {% endif %}
+</div>
+
+<!-- ===================== PATIENTS ===================== -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            Matching Patients ({{ patients|length }})
+        </h5>
     </div>
+
+    {% if patients %}
+        <ul class="list-group list-group-flush">
+            {% for profile in patients %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ profile.full_name }}</strong><br>
+                    <small class="text-muted">
+                        {{ profile.user.email if profile.user else 'No email available' }}
+                    </small>
+                </div>
+
+                <button class="btn btn-sm btn-outline-secondary" disabled>
+                    View Profile
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="card-body text-muted text-center">
+            No patients found matching your query.
+        </div>
+    {% endif %}
+</div>
+
 {% endblock content %}

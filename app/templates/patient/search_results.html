@@ -1,23 +1,46 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h2 class="mb-4">Search Results for: <span class="text-primary">"{{ query }}"</span></h2>
 
-    <div class="card shadow-sm">
-        <div class="card-header">
-            <h5 class="mb-0">Matching Doctors ({{ doctors|length }})</h5>
-        </div>
-        <ul class="list-group list-group-flush">
-            {% for profile in doctors %}
+<h2 class="mb-4">
+    Search Results
+    {% if query %}
+        for: <span class="text-primary">"{{ query }}"</span>
+    {% endif %}
+</h2>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0">
+            Matching Doctors ({{ doctors|length }})
+        </h5>
+    </div>
+
+    <ul class="list-group list-group-flush">
+        {% for profile in doctors %}
+            {% if profile.user.is_active %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
                     <strong>Dr. {{ profile.full_name }}</strong><br>
-                    <small class="text-muted">{{ profile.department.name }} - {{ profile.qualifications }}</small>
+                    <small class="text-muted">
+                        {{ profile.department.name }}
+                        {% if profile.qualifications %}
+                            – {{ profile.qualifications }}
+                        {% endif %}
+                    </small>
                 </div>
-                <a href="{{ url_for('patient.book_appointment', doctor_id=profile.id) }}" class="btn btn-sm btn-primary">Book Now</a>
+
+                <a href="{{ url_for('patient.book_appointment', doctor_profile_id=profile.id) }}"
+                   class="btn btn-sm btn-primary">
+                    Book Now
+                </a>
             </li>
-            {% else %}
-            <li class="list-group-item text-center text-muted">No doctors found matching your query.</li>
-            {% endfor %}
-        </ul>
-    </div>
+            {% endif %}
+        {% else %}
+            <li class="list-group-item text-center text-muted py-4">
+                No doctors found matching your search.
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
 {% endblock content %}

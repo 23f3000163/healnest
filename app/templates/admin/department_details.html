@@ -3,44 +3,61 @@
 
 <div class="container mt-4">
 
-    <div class="d-flex justify-content-between mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>{{ department.name }}</h3>
-        <a href="{{ url_for('admin.manage_departments') }}" class="btn btn-outline-secondary">
+        <a href="{{ url_for('admin.manage_departments') }}"
+           class="btn btn-outline-secondary">
             ← Back to All Departments
         </a>
     </div>
 
-    <div class="card p-3 mb-4">
-        <h5>Department Details</h5>
-        <p>{{ department.description }}</p>
+    <!-- ================= DEPARTMENT DETAILS ================= -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="mb-2">Department Details</h5>
+            <p class="text-muted mb-0">
+                {{ department.description or 'No description available for this department.' }}
+            </p>
+        </div>
     </div>
 
-    <div class="card p-3">
-        <h5>Assigned Doctors ({{ doctors|length }})</h5>
+    <!-- ================= ASSIGNED DOCTORS ================= -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="mb-3">
+                Assigned Doctors
+                <span class="badge bg-success ms-2">{{ doctors | length }}</span>
+            </h5>
 
-        {% if doctors %}
-        <table class="table mt-2">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for doctor in doctors %}
-                <tr>
-                    <td>Dr. {{ doctor.doctor_profile.full_name }}</td>
-                    <td>{{ doctor.email }}</td>
-                    <td>{{ doctor.doctor_profile.contact_number or '—' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p class="text-muted">No doctors assigned yet.</p>
-        {% endif %}
+            {% if doctors %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Contact Number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doctor in doctors %}
+                        <tr>
+                            <td>Dr. {{ doctor.doctor_profile.full_name }}</td>
+                            <td>{{ doctor.email }}</td>
+                            <td>{{ doctor.doctor_profile.contact_number or '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">
+                No doctors are currently assigned to this department.
+            </p>
+            {% endif %}
+        </div>
     </div>
+
 </div>
 
 {% endblock %}

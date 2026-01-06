@@ -1,137 +1,136 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <style>
-   
-    .time-slot-btn {
-        font-size: 0.9rem;
-        padding: 8px 12px;
-        margin: 4px;
-        border-radius: 6px;
-        border: 1px solid #28a745; 
-        background-color: #f8fff9;
-        color: #28a745;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        display: inline-block;
-        font-weight: 500;
-        text-align: center;
-        min-width: 100px;
-    }
-
-    .time-slot-btn:hover {
-        background-color: #28a745;
-        color: #fff;
-        transform: translateY(-1px);
-    }
-
-    .slot-radio:checked + .time-slot-btn {
-        background-color: #198754; /* Darker green */
-        color: #fff;
-        border-color: #198754;
-        box-shadow: 0 4px 6px rgba(25, 135, 84, 0.3); /* Glow effect */
-        font-weight: bold;
-    }
-
-  
-    .slot-radio {
-        display: none;
-    }
-    
-    .slot-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
+.time-slot-btn {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    margin: 4px;
+    border-radius: 6px;
+    border: 1px solid #28a745;
+    background-color: #f8fff9;
+    color: #28a745;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: inline-block;
+    font-weight: 500;
+    min-width: 100px;
+    text-align: center;
+}
+.time-slot-btn:hover {
+    background-color: #28a745;
+    color: #fff;
+}
+.slot-radio:checked + .time-slot-btn {
+    background-color: #198754;
+    color: #fff;
+    border-color: #198754;
+    font-weight: bold;
+}
+.slot-radio { display: none; }
+.slot-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
 </style>
 
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
         <h4 class="mb-0">Book Appointment with Dr. {{ doctor.full_name }}</h4>
     </div>
+
     <div class="card-body">
-        <p class="card-text text-muted">Select an available time slot below to schedule your visit.</p>
-        
-        <form method="POST" action="">
+        <p class="text-muted">
+            Select an available time slot below to schedule your visit.
+        </p>
+
+        <form method="POST">
             {{ form.hidden_tag() }}
-            
+
+            <!-- Hidden field required by route -->
+            <input type="hidden" name="appointment_datetime" id="appointment_datetime">
+
             <table class="table table-bordered align-middle">
                 <thead class="table-light">
                     <tr>
                         <th class="text-center" style="width: 20%;">Date</th>
-                        <th class="text-center">Morning Slot (08:00 AM - 12:00 PM)</th>
-                        <th class="text-center">Evening Slot (04:00 PM - 09:00 PM)</th>
+                        <th class="text-center">Morning (08:00 – 12:00)</th>
+                        <th class="text-center">Evening (16:00 – 21:00)</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    {% for day in days %}
+                {% for day in days %}
                     {% set day_str = day.isoformat() %}
+                    {% set slots = generated_slots.get(day_str, {}) %}
                     <tr>
-                        <!-- Date Column -->
                         <td class="text-center fw-medium bg-light">
                             {{ day.strftime('%a, %d %b') }}
                         </td>
-                        
-                        <!-- Morning Slots Column -->
-                        <td>
-                            <div class="slot-container justify-content-center">
-                                {% if generated_slots[day_str]['morning'] %}
-                                    {% for time_24 in generated_slots[day_str]['morning'] %}
-                                        
-                                        
-                                        {% set hour = time_24.split(':')[0] | int %}
-                                        {% set minute = time_24.split(':')[1] %}
-                                        {% set ampm = 'AM' if hour < 12 else 'PM' %}
-                                        {% set hour_12 = hour if (hour > 0 and hour <= 12) else (hour - 12 if hour > 12 else 12) %}
-                                        {% set time_12 = "%02d:%s %s" | format(hour_12, minute, ampm) %}
 
-                                        <input type="radio" class="slot-radio" name="selected_slot" 
-                                               value="{{ day_str }}_{{ time_24 }}" id="slot-{{ day_str }}-{{ time_24 }}">
-                                        
-                                        <label class="time-slot-btn" for="slot-{{ day_str }}-{{ time_24 }}">
-                                            {{ time_12 }}
-                                        </label>
-                                    {% endfor %}
-                                {% else %}
-                                    <span class="text-muted small">No slots</span>
-                                {% endif %}
+                        <!-- Morning -->
+                        <td>
+                            <div class="slot-container">
+                            {% for time_24 in slots.get('morning', []) %}
+                                <input type="radio"
+                                       class="slot-radio"
+                                       name="slot_radio"
+                                       data-datetime="{{ day_str }} {{ time_24 }}"
+                                       id="m-{{ day_str }}-{{ time_24 }}">
+                                <label class="time-slot-btn"
+                                       for="m-{{ day_str }}-{{ time_24 }}">
+                                    {{ time_24 }}
+                                </label>
+                            {% else %}
+                                <span class="text-muted small">No slots</span>
+                            {% endfor %}
                             </div>
                         </td>
-                        
-                        <!-- Evening Slots Column -->
-                        <td>
-                            <div class="slot-container justify-content-center">
-                                {% if generated_slots[day_str]['evening'] %}
-                                    {% for time_24 in generated_slots[day_str]['evening'] %}
-                                      
-                                        {% set hour = time_24.split(':')[0] | int %}
-                                        {% set minute = time_24.split(':')[1] %}
-                                        {% set ampm = 'AM' if hour < 12 else 'PM' %}
-                                        {% set hour_12 = hour if (hour > 0 and hour <= 12) else (hour - 12 if hour > 12 else 12) %}
-                                        {% set time_12 = "%02d:%s %s" | format(hour_12, minute, ampm) %}
 
-                                        <input type="radio" class="slot-radio" name="selected_slot" 
-                                               value="{{ day_str }}_{{ time_24 }}" id="slot-{{ day_str }}-{{ time_24 }}">
-                                        <label class="time-slot-btn" for="slot-{{ day_str }}-{{ time_24 }}">
-                                            {{ time_12 }}
-                                        </label>
-                                    {% endfor %}
-                                {% else %}
-                                    <span class="text-muted small">No slots</span>
-                                {% endif %}
+                        <!-- Evening -->
+                        <td>
+                            <div class="slot-container">
+                            {% for time_24 in slots.get('evening', []) %}
+                                <input type="radio"
+                                       class="slot-radio"
+                                       name="slot_radio"
+                                       data-datetime="{{ day_str }} {{ time_24 }}"
+                                       id="e-{{ day_str }}-{{ time_24 }}">
+                                <label class="time-slot-btn"
+                                       for="e-{{ day_str }}-{{ time_24 }}">
+                                    {{ time_24 }}
+                                </label>
+                            {% else %}
+                                <span class="text-muted small">No slots</span>
+                            {% endfor %}
                             </div>
                         </td>
                     </tr>
-                    {% endfor %}
+                {% endfor %}
                 </tbody>
             </table>
-            
+
             <div class="text-end mt-4">
                 <button type="submit" class="btn btn-success btn-lg">
                     Confirm Booking
                 </button>
-                <a href="{{ url_for('patient.dashboard') }}" class="btn btn-outline-secondary btn-lg ms-2">Dashboard</a>
+                <a href="{{ url_for('patient.dashboard') }}"
+                   class="btn btn-outline-secondary btn-lg ms-2">
+                    Dashboard
+                </a>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+document.querySelectorAll('.slot-radio').forEach(radio => {
+    radio.addEventListener('change', function () {
+        document.getElementById('appointment_datetime').value =
+            this.dataset.datetime;
+    });
+});
+</script>
+
 {% endblock content %}
