@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 from datetime import datetime, date, timedelta
 
-from app import db, bcrypt, models
+from app import db, models
 from . import admin_bp
 
 from app.forms import (
@@ -14,9 +14,9 @@ from app.forms import (
 )
 
 
-# ---------------------------
+# -------------------------------------------------
 # Admin Dashboard
-# ---------------------------
+# -------------------------------------------------
 @admin_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -28,13 +28,28 @@ def dashboard():
     patient_count = models.User.query.filter_by(role='patient').count()
     appointment_count = models.Appointment.query.count()
 
-    doctors = models.User.query.filter_by(role='doctor').limit(5).all()
-    patients = models.User.query.filter_by(role='patient').limit(5).all()
+    doctors = (
+        models.User.query
+        .filter_by(role='doctor')
+        .join(models.DoctorProfile)
+        .order_by(models.DoctorProfile.full_name)
+        .limit(5)
+        .all()
+    )
+
+    patients = (
+        models.User.query
+        .filter_by(role='patient')
+        .join(models.PatientProfile)
+        .order_by(models.PatientProfile.full_name)
+        .limit(5)
+        .all()
+    )
 
     upcoming_appointments = (
         models.Appointment.query
         .filter(
-            models.Appointment.current_status == 'BOOKED',
+            models.Appointment.status == 'BOOKED',
             models.Appointment.appointment_datetime >= datetime.now()
         )
         .order_by(models.Appointment.appointment_datetime.asc())
@@ -54,14 +69,14 @@ def dashboard():
     )
 
 
-# ---------------------------
-# Dashboard Stats API
-# ---------------------------
+# -------------------------------------------------
+# Dashboard Analytics API
+# -------------------------------------------------
 @admin_bp.route('/api/dashboard-stats')
 @login_required
 def dashboard_stats():
     if current_user.role != 'admin':
-        return jsonify(error="Unauthorized"), 403
+        return jsonify(error='Unauthorized'), 403
 
     time_range = request.args.get('range', '7')
     today = date.today()
@@ -82,6 +97,7 @@ def dashboard_stats():
     doctor_count = models.User.query.filter_by(role='doctor').count()
     patient_count = models.User.query.filter_by(role='patient').count()
 
+    # Appointments by Department
     appt_by_dept = (
         db.session.query(
             models.Department.name,
@@ -98,7 +114,8 @@ def dashboard_stats():
     dept_labels = [row[0] for row in appt_by_dept]
     dept_values = [row[1] for row in appt_by_dept]
 
-    new_patient_data = (
+    # New patient trend
+    new_patients = (
         db.session.query(
             func.date(models.User.created_at),
             func.count(models.User.id)
@@ -111,13 +128,13 @@ def dashboard_stats():
         .all()
     )
 
-    db_data_map = {str(day): count for day, count in new_patient_data}
+    patient_map = {str(day): count for day, count in new_patients}
 
     labels, values = [], []
     for i in range(days_count):
-        current_day = start_date + timedelta(days=i)
-        labels.append(current_day.strftime("%b %d"))
-        values.append(db_data_map.get(str(current_day), 0))
+        day = start_date + timedelta(days=i)
+        labels.append(day.strftime('%b %d'))
+        values.append(patient_map.get(str(day), 0))
 
     return jsonify(
         total_counts={
@@ -135,19 +152,20 @@ def dashboard_stats():
     )
 
 
-# ---------------------------
+# -------------------------------------------------
 # Doctor Management
-# ---------------------------
+# -------------------------------------------------
 @admin_bp.route('/add_doctor', methods=['GET', 'POST'])
 @login_required
 def add_doctor():
     if current_user.role != 'admin':
-        flash('Unauthorized', 'danger')
+        flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
 
     form = AddDoctorForm()
     form.department_id.choices = [
-        (d.id, d.name) for d in models.Department.query.order_by('name').all()
+        (d.id, d.name)
+        for d in models.Department.query.order_by(models.Department.name).all()
     ]
 
     if form.validate_on_submit():
@@ -170,17 +188,21 @@ def add_doctor():
         db.session.add(profile)
         db.session.commit()
 
-        flash(f'Doctor account for Dr. {profile.full_name} created.', 'success')
-        return redirect(url_for('admin.dashboard'))
+        flash(f'Doctor account for Dr. {profile.full_name} created successfully.', 'success')
+        return redirect(url_for('admin.manage_doctors'))
 
-    return render_template('admin/add_doctor.html', form=form)
+    return render_template(
+        'admin/add_doctor.html',
+        title='Add Doctor',
+        form=form
+    )
 
 
 @admin_bp.route('/doctors')
 @login_required
 def manage_doctors():
     if current_user.role != 'admin':
-        flash('Unauthorized', 'danger')
+        flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
 
     doctors = (
@@ -191,17 +213,21 @@ def manage_doctors():
         .all()
     )
 
-    return render_template('admin/manage_doctors.html', doctors=doctors)
+    return render_template(
+        'admin/manage_doctors.html',
+        title='Manage Doctors',
+        doctors=doctors
+    )
 
 
-# ---------------------------
+# -------------------------------------------------
 # Patient Management
-# ---------------------------
+# -------------------------------------------------
 @admin_bp.route('/patients')
 @login_required
 def manage_patients():
     if current_user.role != 'admin':
-        flash('Unauthorized', 'danger')
+        flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
 
     patients = (
@@ -212,4 +238,8 @@ def manage_patients():
         .all()
     )
 
-    return render_template('admin/manage_patients.html', patients=patients)
+    return render_template(
+        'admin/manage_patients.html',
+        title='Manage Patients',
+        patients=patients
+    )
