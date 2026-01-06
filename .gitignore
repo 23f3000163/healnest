@@ -89,3 +89,17 @@ macOS / Windows specific
 
 .DS_Store
 Thumbs.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# Flask instance folder
+instance/
+
+# OS files
+.DS_Store
+Thumbs.db
