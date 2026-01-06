@@ -6,12 +6,7 @@ from datetime import datetime, date, timedelta
 from app import db, models
 from . import admin_bp
 
-from app.forms import (
-    AddDoctorForm,
-    EditDoctorForm,
-    DepartmentForm,
-    EditPatientForm
-)
+from app.forms import AddDoctorForm
 
 
 # -------------------------------------------------
@@ -21,7 +16,7 @@ from app.forms import (
 @login_required
 def dashboard():
     if current_user.role != 'admin':
-        flash('You are not authorized to access this page.', 'danger')
+        flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
 
     doctor_count = models.User.query.filter_by(role='doctor').count()
@@ -59,7 +54,6 @@ def dashboard():
 
     return render_template(
         'admin/dashboard.html',
-        title='Admin Dashboard',
         doctor_count=doctor_count,
         patient_count=patient_count,
         appointment_count=appointment_count,
@@ -97,24 +91,6 @@ def dashboard_stats():
     doctor_count = models.User.query.filter_by(role='doctor').count()
     patient_count = models.User.query.filter_by(role='patient').count()
 
-    # Appointments by Department
-    appt_by_dept = (
-        db.session.query(
-            models.Department.name,
-            func.count(models.Appointment.id)
-        )
-        .join(models.DoctorProfile, models.Department.id == models.DoctorProfile.department_id)
-        .join(models.User, models.DoctorProfile.user_id == models.User.id)
-        .join(models.Appointment, models.User.id == models.Appointment.doctor_id)
-        .group_by(models.Department.name)
-        .order_by(func.count(models.Appointment.id).desc())
-        .all()
-    )
-
-    dept_labels = [row[0] for row in appt_by_dept]
-    dept_values = [row[1] for row in appt_by_dept]
-
-    # New patient trend
     new_patients = (
         db.session.query(
             func.date(models.User.created_at),
@@ -140,10 +116,6 @@ def dashboard_stats():
         total_counts={
             'labels': ['Doctors', 'Patients'],
             'values': [doctor_count, patient_count]
-        },
-        appointments_by_department={
-            'labels': dept_labels,
-            'values': dept_values
         },
         new_patient_trend={
             'labels': labels,
@@ -188,14 +160,10 @@ def add_doctor():
         db.session.add(profile)
         db.session.commit()
 
-        flash(f'Doctor account for Dr. {profile.full_name} created successfully.', 'success')
+        flash('Doctor added successfully.', 'success')
         return redirect(url_for('admin.manage_doctors'))
 
-    return render_template(
-        'admin/add_doctor.html',
-        title='Add Doctor',
-        form=form
-    )
+    return render_template('admin/add_doctor.html', form=form)
 
 
 @admin_bp.route('/doctors')
@@ -213,11 +181,7 @@ def manage_doctors():
         .all()
     )
 
-    return render_template(
-        'admin/manage_doctors.html',
-        title='Manage Doctors',
-        doctors=doctors
-    )
+    return render_template('admin/manage_doctors.html', doctors=doctors)
 
 
 # -------------------------------------------------
@@ -238,8 +202,63 @@ def manage_patients():
         .all()
     )
 
-    return render_template(
-        'admin/manage_patients.html',
-        title='Manage Patients',
-        patients=patients
-    )
+    return render_template('admin/manage_patients.html', patients=patients)
+
+
+# -------------------------------------------------
+# 🔒 PHASE-1 STUB ACTION ROUTES (NO EXTRA FEATURES)
+# -------------------------------------------------
+@admin_bp.route('/delete-doctor/<int:user_id>', methods=['POST'])
+@login_required
+def delete_doctor(user_id):
+    if current_user.role != 'admin':
+        return redirect(url_for('main.home'))
+
+    user = models.User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+
+    flash('Doctor deleted.', 'info')
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/delete-patient/<int:user_id>', methods=['POST'])
+@login_required
+def delete_patient(user_id):
+    if current_user.role != 'admin':
+        return redirect(url_for('main.home'))
+
+    user = models.User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+
+    flash('Patient deleted.', 'info')
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/blacklist/<int:user_id>', methods=['POST'])
+@login_required
+def blacklist_user(user_id):
+    if current_user.role != 'admin':
+        return redirect(url_for('main.home'))
+
+    user = models.User.query.get_or_404(user_id)
+    user.is_active = False
+    db.session.commit()
+
+    flash('User blacklisted.', 'warning')
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/activate/<int:user_id>', methods=['POST'])
+@login_required
+def activate_user(user_id):
+    if current_user.role != 'admin':
+        return redirect(url_for('main.home'))
+
+    user = models.User.query.get_or_404(user_id)
+    user.is_active = True
+    db.session.commit()
+
+    flash('User activated.', 'success')
+    return redirect(url_for('admin.dashboard'))

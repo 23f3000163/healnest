@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, abort
 from flask_login import login_required, current_user
 from datetime import datetime, date
 
@@ -60,9 +60,10 @@ def my_history():
         .all()
     )
 
+    profile = current_user.patient_profile or abort(404)
+
     patient_age = None
-    profile = current_user.patient_profile
-    if profile and profile.date_of_birth:
+    if profile.date_of_birth:
         today = date.today()
         patient_age = today.year - profile.date_of_birth.year - (
             (today.month, today.day) <
@@ -70,7 +71,7 @@ def my_history():
         )
 
     return render_template(
-        'admin/patient_history.html',
+        'patient/patient_history.html',
         title='My Appointment History',
         patient=current_user,
         history=history,
@@ -88,7 +89,7 @@ def profile():
     if current_user.role != 'patient':
         return redirect(url_for('main.home'))
 
-    profile = current_user.patient_profile
+    profile = current_user.patient_profile or abort(404)
     form = UpdateProfileForm(obj=profile)
 
     if form.validate_on_submit():
@@ -136,7 +137,7 @@ def doctor_details(doctor_profile_id):
 
 
 # -------------------------------------------------
-# Book Appointment (Availability-Aware)
+# Book Appointment (STABLE VERSION)
 # -------------------------------------------------
 @patient_bp.route('/book/<int:doctor_profile_id>', methods=['GET', 'POST'])
 @login_required
@@ -151,27 +152,10 @@ def book_appointment(doctor_profile_id):
     if form.validate_on_submit():
         appointment_datetime = form.appointment_datetime.data
 
-        # Prevent past bookings
         if appointment_datetime < datetime.now():
             flash('You cannot book an appointment in the past.', 'warning')
             return redirect(request.url)
 
-        appointment_date = appointment_datetime.date()
-        appointment_time = appointment_datetime.time()
-
-        # Check doctor availability
-        availability = models.Availability.query.filter(
-            models.Availability.doctor_profile_id == doctor_profile.id,
-            models.Availability.available_date == appointment_date,
-            models.Availability.start_time <= appointment_time,
-            models.Availability.end_time > appointment_time
-        ).first()
-
-        if not availability:
-            flash('Doctor is not available at this time.', 'warning')
-            return redirect(request.url)
-
-        # Prevent double booking
         conflict = models.Appointment.query.filter(
             models.Appointment.doctor_id == doctor_profile.user_id,
             models.Appointment.appointment_datetime == appointment_datetime,
@@ -182,16 +166,14 @@ def book_appointment(doctor_profile_id):
             flash('This time slot is already booked.', 'warning')
             return redirect(request.url)
 
-        # Create appointment
         appointment = models.Appointment(
             patient_id=current_user.id,
             doctor_id=doctor_profile.user_id,
             appointment_datetime=appointment_datetime,
-            current_status='BOOKED'
+            status='BOOKED'
         )
         db.session.add(appointment)
 
-        # Status history
         db.session.add(
             models.AppointmentStatusHistory(
                 appointment=appointment,
@@ -200,13 +182,11 @@ def book_appointment(doctor_profile_id):
             )
         )
 
-        # Notify doctor
         db.session.add(
             models.Notification(
                 user_id=doctor_profile.user_id,
                 type='NEW_APPOINTMENT',
-                message=f"New appointment booked by "
-                        f"{current_user.patient_profile.full_name}"
+                message=f"New appointment booked by {current_user.patient_profile.full_name}"
             )
         )
 

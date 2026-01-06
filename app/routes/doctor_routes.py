@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, abort
 from flask_login import login_required, current_user
 from datetime import datetime
 
@@ -30,10 +30,7 @@ def dashboard():
 
     assigned_patients = (
         db.session.query(models.User)
-        .join(
-            models.Appointment,
-            models.User.id == models.Appointment.patient_id
-        )
+        .join(models.Appointment, models.User.id == models.Appointment.patient_id)
         .filter(models.Appointment.doctor_id == current_user.id)
         .distinct()
         .all()
@@ -80,16 +77,16 @@ def treat_patient(appointment_id):
     form = TreatmentForm()
 
     if form.validate_on_submit():
-        treatment = models.Treatment(
-            appointment_id=appointment.id,
-            visit_type=form.visit_type.data,
-            tests_done=form.tests_done.data,
-            diagnosis=form.diagnosis.data,
-            prescription=form.prescription.data
+        db.session.add(
+            models.Treatment(
+                appointment_id=appointment.id,
+                visit_type=form.visit_type.data,
+                tests_done=form.tests_done.data,
+                diagnosis=form.diagnosis.data,
+                prescription=form.prescription.data
+            )
         )
-        db.session.add(treatment)
 
-        # ---- STATUS CHANGE + HISTORY ----
         old_status = appointment.status
         appointment.status = 'COMPLETED'
 
@@ -101,15 +98,11 @@ def treat_patient(appointment_id):
             )
         )
 
-        # Notify patient
         db.session.add(
             models.Notification(
                 user_id=appointment.patient_id,
                 type='APPOINTMENT_COMPLETED',
-                message=(
-                    f"Dr. {current_user.doctor_profile.full_name} "
-                    f"has completed your appointment."
-                )
+                message=f"Dr. {current_user.doctor_profile.full_name} has completed your appointment."
             )
         )
 
@@ -135,7 +128,7 @@ def profile():
     if current_user.role != 'doctor':
         return redirect(url_for('main.home'))
 
-    profile = current_user.doctor_profile
+    profile = current_user.doctor_profile or abort(404)
     form = DoctorUpdateProfileForm(obj=profile)
 
     if form.validate_on_submit():
