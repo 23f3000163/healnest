@@ -17,46 +17,47 @@
                     <th>Name</th>
                     <th>Description</th>
                     <th>Doctors</th>
-                    <th style="width: 20%;">Actions</th>
+                    <th style="width: 22%;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for department in departments %}
                 <tr>
                     <td>{{ department.name }}</td>
+
                     <td>
                         {{ department.description[:60] ~ '…' if department.description else '—' }}
                     </td>
+
                     <td>
                         <span class="badge bg-success">
                             {{ department.doctors | length }}
                         </span>
                     </td>
+
                     <td>
-                        <!-- View Department -->
-                        <a href="{{ url_for('admin.view_department', department_id=department.id) }}"
+                        <!-- View -->
+                        <a href="{{ url_for('admin.department_details', dept_id=department.id) }}"
                            class="btn btn-outline-info btn-sm">
                             View
                         </a>
 
-                        <!-- Edit Department -->
-                        <button
-                            class="btn btn-outline-warning btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editDeptModal"
-                            data-id="{{ department.id }}"
-                            data-name="{{ department.name }}"
-                            data-description="{{ department.description }}">
+                        <!-- Edit -->
+                        <button class="btn btn-outline-warning btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editDeptModal"
+                                data-id="{{ department.id }}"
+                                data-name="{{ department.name }}"
+                                data-description="{{ department.description }}">
                             Edit
                         </button>
 
-                        <!-- Delete Department -->
-                        <form
-                            action="{{ url_for('admin.delete_department', department_id=department.id) }}"
-                            method="POST"
-                            class="d-inline"
-                            onsubmit="return confirm('Are you sure? This action cannot be undone.');">
-                            <button class="btn btn-outline-danger btn-sm">
+                        <!-- Delete -->
+                        <form action="{{ url_for('admin.delete_department', dept_id=department.id) }}"
+                              method="POST"
+                              class="d-inline"
+                              onsubmit="return confirm('Are you sure? This action cannot be undone.');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
                                 Delete
                             </button>
                         </form>
@@ -92,6 +93,7 @@
                         {{ form.name.label(class="form-label") }}
                         {{ form.name(class="form-control", required=True) }}
                     </div>
+
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
                         {{ form.description(class="form-control") }}
@@ -118,7 +120,7 @@
         <div class="modal-content">
 
             <form method="POST" action="{{ url_for('admin.edit_department') }}">
-                <input type="hidden" name="department_id" id="editDeptId">
+                <input type="hidden" name="dept_id" id="editDeptId">
 
                 <div class="modal-header">
                     <h5 class="modal-title">Edit Department</h5>
@@ -128,8 +130,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Department Name</label>
-                        <input type="text" name="name" id="editDeptName"
-                               class="form-control" required>
+                        <input type="text" name="name" id="editDeptName" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
@@ -155,13 +156,14 @@
 
 <!-- ================= MODAL SCRIPT ================= -->
 <script>
-document.getElementById('editDeptModal').addEventListener('show.bs.modal', function (event) {
-    const button = event.relatedTarget;
+    document.getElementById('editDeptModal').addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
 
-    document.getElementById('editDeptId').value = button.getAttribute('data-id');
-    document.getElementById('editDeptName').value = button.getAttribute('data-name');
-    document.getElementById('editDeptDesc').value = button.getAttribute('data-description') || '';
-});
+        document.getElementById('editDeptId').value = button.getAttribute('data-id');
+        document.getElementById('editDeptName').value = button.getAttribute('data-name');
+        document.getElementById('editDeptDesc').value =
+            button.getAttribute('data-description') || '';
+    });
 </script>
 
 {% endblock %}

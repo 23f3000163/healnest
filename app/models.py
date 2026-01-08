@@ -3,7 +3,7 @@ from flask import current_app
 from flask_login import UserMixin
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from sqlalchemy.orm import relationship
 from app import db, login_manager
 
 
@@ -238,6 +238,17 @@ class Appointment(db.Model):
         order_by="AppointmentStatusHistory.changed_at"
     )
 
+    patient = relationship(
+        'User',
+        foreign_keys=[patient_id],
+        backref='patient_appointments'
+    )
+
+    doctor = relationship(
+        'User',
+        foreign_keys=[doctor_id],
+        backref='doctor_appointments'
+    )
 
 # -----------------------------
 # Appointment Status History

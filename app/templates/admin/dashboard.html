@@ -53,9 +53,13 @@
             Manage Patients
         </a>
 
-        <button class="btn btn-outline-secondary" disabled>
-            Departments (Coming Soon)
-        </button>
+        <a href="{{ url_for('admin.manage_departments') }}" class="btn btn-outline-secondary">
+            Manage Departments
+        </a>
+
+        <a href="{{ url_for('admin.manage_appointments') }}" class="btn btn-outline-secondary">
+            View All Appointments
+        </a>
     </div>
 </div>
 

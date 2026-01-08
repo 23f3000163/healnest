@@ -2,11 +2,31 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from datetime import datetime, date, timedelta
-
+from functools import wraps
 from app import db, models
 from . import admin_bp
+from sqlalchemy.orm import aliased
 
-from app.forms import AddDoctorForm
+
+from app.forms import (
+    AddDoctorForm,
+    EditDoctorForm,
+    EditPatientForm,
+    DepartmentForm
+)
+
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('main.login'))
+
+        if current_user.role != 'admin':
+            flash('Admin access required.', 'danger')
+            return redirect(url_for('main.home'))
+
+        return func(*args, **kwargs)
+    return wrapper
 
 
 # -------------------------------------------------
@@ -262,3 +282,151 @@ def activate_user(user_id):
 
     flash('User activated.', 'success')
     return redirect(url_for('admin.dashboard'))
+
+# -------------------------------------------------
+# Department Management
+# -------------------------------------------------
+
+@admin_bp.route('/departments', methods=['GET', 'POST'])
+@login_required
+def manage_departments():
+    if current_user.role != 'admin':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('main.home'))
+
+    form = DepartmentForm()
+
+    # CREATE department
+    if form.validate_on_submit():
+        existing = models.Department.query.filter_by(name=form.name.data.strip()).first()
+        if existing:
+            flash('Department with this name already exists.', 'warning')
+        else:
+            department = models.Department(
+                name=form.name.data.strip(),
+                description=form.description.data.strip()
+            )
+            db.session.add(department)
+            db.session.commit()
+            flash('Department created successfully.', 'success')
+
+        return redirect(url_for('admin.manage_departments'))
+
+    departments = models.Department.query.order_by(models.Department.name).all()
+
+    return render_template(
+        'admin/manage_departments.html',
+        title='Manage Departments',
+        departments=departments,
+        form=form
+    )
+
+
+@admin_bp.route('/departments/<int:dept_id>')
+@login_required
+def department_details(dept_id):
+    if current_user.role != 'admin':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('main.home'))
+
+    department = models.Department.query.get_or_404(dept_id)
+
+    doctors = (
+        models.User.query
+        .filter_by(role='doctor')
+        .join(models.DoctorProfile)
+        .filter(models.DoctorProfile.department_id == department.id)
+        .order_by(models.DoctorProfile.full_name)
+        .all()
+    )
+
+    return render_template(
+        'admin/department_details.html',
+        title=department.name,
+        department=department,
+        doctors=doctors
+    )
+
+
+@admin_bp.route('/departments/edit', methods=['POST'])
+@login_required
+def edit_department():
+    if current_user.role != 'admin':
+        flash('Unauthorized action.', 'danger')
+        return redirect(url_for('main.home'))
+
+    dept_id = request.form.get('dept_id')
+    department = models.Department.query.get_or_404(dept_id)
+
+    name = request.form.get('name', '').strip()
+    description = request.form.get('description', '').strip()
+
+    if not name:
+        flash('Department name cannot be empty.', 'warning')
+        return redirect(url_for('admin.manage_departments'))
+
+    # Prevent duplicate names
+    duplicate = models.Department.query.filter(
+        models.Department.name == name,
+        models.Department.id != department.id
+    ).first()
+
+    if duplicate:
+        flash('Another department with this name already exists.', 'warning')
+        return redirect(url_for('admin.manage_departments'))
+
+    department.name = name
+    department.description = description
+    db.session.commit()
+
+    flash('Department updated successfully.', 'success')
+    return redirect(url_for('admin.manage_departments'))
+
+
+@admin_bp.route('/departments/delete/<int:dept_id>', methods=['POST'])
+@login_required
+def delete_department(dept_id):
+    if current_user.role != 'admin':
+        flash('Unauthorized action.', 'danger')
+        return redirect(url_for('main.home'))
+
+    department = models.Department.query.get_or_404(dept_id)
+
+    # SAFETY CHECK: prevent deletion if doctors exist
+    doctor_count = models.DoctorProfile.query.filter_by(department_id=department.id).count()
+    if doctor_count > 0:
+        flash('Cannot delete department with assigned doctors.', 'danger')
+        return redirect(url_for('admin.manage_departments'))
+
+    db.session.delete(department)
+    db.session.commit()
+
+    flash('Department deleted successfully.', 'success')
+    return redirect(url_for('admin.manage_departments'))
+
+@admin_bp.route("/appointments")
+@login_required
+@admin_required
+def manage_appointments():
+    """
+    Admin read-only view of all system appointments.
+    No mutations allowed here.
+    """
+
+    Patient = aliased(models.User)
+    Doctor = aliased(models.User)
+
+    appointments = (
+    models.Appointment.query
+    .join(Patient, Patient.id == models.Appointment.patient_id)
+    .join(Doctor, Doctor.id == models.Appointment.doctor_id)
+    .order_by(models.Appointment.appointment_datetime.desc())
+    .all()
+)
+
+
+
+    return render_template(
+        "admin/manage_appointments.html",
+        appointments=appointments
+    )
