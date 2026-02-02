@@ -1,136 +1,119 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<style>
-.time-slot-btn {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-    margin: 4px;
-    border-radius: 6px;
-    border: 1px solid #28a745;
-    background-color: #f8fff9;
-    color: #28a745;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    display: inline-block;
-    font-weight: 500;
-    min-width: 100px;
-    text-align: center;
-}
-.time-slot-btn:hover {
-    background-color: #28a745;
-    color: #fff;
-}
-.slot-radio:checked + .time-slot-btn {
-    background-color: #198754;
-    color: #fff;
-    border-color: #198754;
-    font-weight: bold;
-}
-.slot-radio { display: none; }
-.slot-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-</style>
+<h3 class="mb-3">
+    Book Appointment with Dr. {{ doctor.full_name }}
+</h3>
 
-<div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Book Appointment with Dr. {{ doctor.full_name }}</h4>
+<form method="POST">
+    {{ form.hidden_tag() }}
+
+    <!-- Date picker -->
+    <div class="mb-3">
+        <label class="form-label fw-bold">Select Date</label>
+        <input
+            type="date"
+            id="appointment-date"
+            class="form-control"
+            min="{{ min_date }}"
+            max="{{ max_date }}"
+            required
+        >
     </div>
 
-    <div class="card-body">
-        <p class="text-muted">
-            Select an available time slot below to schedule your visit.
+    <!-- Slots container -->
+    <div class="mb-3">
+        <label class="form-label fw-bold">Available Slots</label>
+
+        <div
+            id="slots-container"
+            class="d-flex flex-wrap gap-2 border rounded p-3 bg-light"
+        >
+            <span class="text-muted">
+                Select a date to view available slots
+            </span>
+        </div>
+
+        <p
+            id="no-slots-msg"
+            class="text-danger mt-2"
+            style="display: none;"
+        >
+            No slots available for the selected date.
         </p>
-
-        <form method="POST">
-            {{ form.hidden_tag() }}
-
-            <!-- Hidden field required by route -->
-            <input type="hidden" name="appointment_datetime" id="appointment_datetime">
-
-            <table class="table table-bordered align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center" style="width: 20%;">Date</th>
-                        <th class="text-center">Morning (08:00 – 12:00)</th>
-                        <th class="text-center">Evening (16:00 – 21:00)</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                {% for day in days %}
-                    {% set day_str = day.isoformat() %}
-                    {% set slots = generated_slots.get(day_str, {}) %}
-                    <tr>
-                        <td class="text-center fw-medium bg-light">
-                            {{ day.strftime('%a, %d %b') }}
-                        </td>
-
-                        <!-- Morning -->
-                        <td>
-                            <div class="slot-container">
-                            {% for time_24 in slots.get('morning', []) %}
-                                <input type="radio"
-                                       class="slot-radio"
-                                       name="slot_radio"
-                                       data-datetime="{{ day_str }} {{ time_24 }}"
-                                       id="m-{{ day_str }}-{{ time_24 }}">
-                                <label class="time-slot-btn"
-                                       for="m-{{ day_str }}-{{ time_24 }}">
-                                    {{ time_24 }}
-                                </label>
-                            {% else %}
-                                <span class="text-muted small">No slots</span>
-                            {% endfor %}
-                            </div>
-                        </td>
-
-                        <!-- Evening -->
-                        <td>
-                            <div class="slot-container">
-                            {% for time_24 in slots.get('evening', []) %}
-                                <input type="radio"
-                                       class="slot-radio"
-                                       name="slot_radio"
-                                       data-datetime="{{ day_str }} {{ time_24 }}"
-                                       id="e-{{ day_str }}-{{ time_24 }}">
-                                <label class="time-slot-btn"
-                                       for="e-{{ day_str }}-{{ time_24 }}">
-                                    {{ time_24 }}
-                                </label>
-                            {% else %}
-                                <span class="text-muted small">No slots</span>
-                            {% endfor %}
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-
-            <div class="text-end mt-4">
-                <button type="submit" class="btn btn-success btn-lg">
-                    Confirm Booking
-                </button>
-                <a href="{{ url_for('patient.dashboard') }}"
-                   class="btn btn-outline-secondary btn-lg ms-2">
-                    Dashboard
-                </a>
-            </div>
-        </form>
     </div>
-</div>
+
+    <!-- Hidden field that backend reads -->
+    <input type="hidden" name="selected_slot" id="selected-slot">
+
+    <button
+        type="submit"
+        class="btn btn-success"
+        disabled
+        id="book-btn"
+    >
+        Confirm Booking
+    </button>
+
+    <a href="{{ url_for('patient.dashboard') }}" class="btn btn-outline-secondary ms-2">
+        Cancel
+    </a>
+</form>
 
 <script>
-document.querySelectorAll('.slot-radio').forEach(radio => {
-    radio.addEventListener('change', function () {
-        document.getElementById('appointment_datetime').value =
-            this.dataset.datetime;
+const dateInput = document.getElementById("appointment-date");
+const slotsContainer = document.getElementById("slots-container");
+const selectedSlotInput = document.getElementById("selected-slot");
+const bookBtn = document.getElementById("book-btn");
+const noSlotsMsg = document.getElementById("no-slots-msg");
+
+dateInput.addEventListener("change", async () => {
+    const date = dateInput.value;
+
+    // Reset UI
+    slotsContainer.innerHTML = "<span class='text-muted'>Loading slots...</span>";
+    selectedSlotInput.value = "";
+    bookBtn.disabled = true;
+    noSlotsMsg.style.display = "none";
+
+    const res = await fetch(
+        `/patient/doctor/{{ doctor.id }}/slots?date=${date}`
+    );
+
+    const data = await res.json();
+    slotsContainer.innerHTML = "";
+
+    if (data.slots.length === 0) {
+        noSlotsMsg.style.display = "block";
+        slotsContainer.innerHTML =
+            "<span class='text-muted'>No slots available</span>";
+        return;
+    }
+
+    data.slots.forEach(slot => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-outline-primary";
+        btn.textContent = slot.label;
+
+        btn.addEventListener("click", () => {
+            document
+                .querySelectorAll("#slots-container button")
+                .forEach(b => {
+                    b.classList.remove("btn-primary");
+                    b.classList.add("btn-outline-primary");
+                });
+
+            btn.classList.remove("btn-outline-primary");
+            btn.classList.add("btn-primary");
+
+            selectedSlotInput.value = slot.value;
+            bookBtn.disabled = false;
+        });
+
+        slotsContainer.appendChild(btn);
     });
 });
 </script>
 
-{% endblock content %}
+{% endblock %}
