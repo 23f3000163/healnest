@@ -5,77 +5,90 @@
     Welcome, Dr. {{ current_user.doctor_profile.full_name }}!
 </h2>
 
-<!-- ================= UPCOMING APPOINTMENTS ================= -->
+<!-- ================= TODAY ================= -->
 <div class="card shadow-sm mb-4">
-    <div class="card-header bg-white py-3">
-        <h4 class="mb-0">Upcoming Appointments</h4>
+    <div class="card-header bg-white">
+        <h4 class="mb-0">Today</h4>
     </div>
-
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 5%;">#</th>
-                        <th>Patient Name</th>
-                        <th>Date & Time</th>
-                        <th style="width: 30%;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for appt in appointments %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ appt.patient.patient_profile.full_name }}</td>
-                        <td>{{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
-                        <td>
-                            <a href="{{ url_for('doctor.treat_patient', appointment_id=appt.id) }}"
-                               class="btn btn-sm btn-outline-primary">
-                                Treat / Update
-                            </a>
+        {% if today_appointments %}
+            <ul class="list-group">
+                {% for appt in today_appointments %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                        {{ appt.appointment_datetime.strftime('%I:%M %p') }}
+                        — {{ appt.patient.patient_profile.full_name }}
+                    </span>
+                    <div>
+                        <form
+                            action="{{ url_for('doctor.complete_appointment', appointment_id=appt.id) }}"
+                            method="POST"
+                            class="d-inline"
+                        >
+                            <button class="btn btn-sm btn-success">Complete</button>
+                        </form>
 
-                            <form action="{{ url_for('doctor.cancel_appointment', appointment_id=appt.id) }}"
-                                  method="POST"
-                                  class="d-inline"
-                                  onsubmit="return confirm('Are you sure you want to cancel this appointment? The patient will be notified.');">
-                                <button type="submit"
-                                        class="btn btn-sm btn-outline-danger">
-                                    Cancel
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="4" class="text-center text-muted p-4">
-                            You have no upcoming appointments.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- ================= ASSIGNED PATIENTS ================= -->
-<div class="card shadow-sm">
-    <div class="card-header bg-white py-3">
-        <h4 class="mb-0">Assigned Patients</h4>
-    </div>
-
-    <ul class="list-group list-group-flush">
-        {% for patient in patients %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ patient.patient_profile.full_name }}
-            <span class="badge bg-secondary">History (Coming Soon)</span>
-        </li>
+                        <form
+                            action="{{ url_for('doctor.cancel_appointment', appointment_id=appt.id) }}"
+                            method="POST"
+                            class="d-inline"
+                            onsubmit="return confirm('Cancel this appointment?');"
+                        >
+                            <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
         {% else %}
-        <li class="list-group-item text-muted text-center p-3">
-            You have no patients assigned yet.
-        </li>
-        {% endfor %}
-    </ul>
+            <p class="text-muted mb-0">No appointments today.</p>
+        {% endif %}
+    </div>
 </div>
 
-{% endblock content %}
+<!-- ================= TOMORROW ================= -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h4 class="mb-0">Tomorrow</h4>
+    </div>
+    <div class="card-body">
+        {% if tomorrow_appointments %}
+            <ul class="list-group">
+                {% for appt in tomorrow_appointments %}
+                <li class="list-group-item">
+                    {{ appt.appointment_datetime.strftime('%I:%M %p') }}
+                    — {{ appt.patient.patient_profile.full_name }}
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted mb-0">No appointments tomorrow.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ================= UPCOMING ================= -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h4 class="mb-0">Upcoming</h4>
+    </div>
+    <div class="card-body">
+        {% if future_appointments %}
+            {% for day, appts in future_appointments.items() %}
+                <h6 class="mt-3">{{ day.strftime('%d %b %Y') }}</h6>
+                <ul class="list-group mb-2">
+                    {% for appt in appts %}
+                    <li class="list-group-item">
+                        {{ appt.appointment_datetime.strftime('%I:%M %p') }}
+                        — {{ appt.patient.patient_profile.full_name }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted mb-0">No upcoming appointments.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

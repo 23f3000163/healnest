@@ -2,9 +2,8 @@ from datetime import datetime, time
 from flask import current_app
 from flask_login import UserMixin
 from itsdangerous import URLSafeTimedSerializer as Serializer
-from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
-from app import db, login_manager
+from app import db, login_manager, bcrypt
 
 
 # -----------------------------
@@ -46,6 +45,9 @@ class User(db.Model, UserMixin):
         onupdate=datetime.utcnow
     )
 
+    is_temp_password = db.Column(db.Boolean, default=True)
+
+
     __table_args__ = (
         db.CheckConstraint(
             "role IN ('admin', 'doctor', 'patient')",
@@ -73,17 +75,18 @@ class User(db.Model, UserMixin):
         cascade="all, delete-orphan"
     )
 
-    # -------- Password handling --------
-    @property
-    def password(self):
-        raise AttributeError("Password is write-only.")
+   # ---------- Password handling (bcrypt only) ----------
 
-    @password.setter
-    def password(self, raw_password):
-        self.password_hash = generate_password_hash(raw_password)
+    def set_password(self, raw_password):
+        self.password_hash = bcrypt.generate_password_hash(
+        raw_password
+    ).decode("utf-8")
 
     def verify_password(self, raw_password):
-        return check_password_hash(self.password_hash, raw_password)
+        return bcrypt.check_password_hash(
+        self.password_hash,
+        raw_password
+    )
 
     # -------- Reset token --------
     def get_reset_token(self, expires_sec=1800):
@@ -202,11 +205,19 @@ class Availability(db.Model):
     end_time = db.Column(db.Time, nullable=False)
 
     __table_args__ = (
-        db.CheckConstraint(
-            "start_time < end_time",
-            name="check_valid_time_range"
-        ),
+    db.CheckConstraint(
+        "start_time < end_time",
+        name="check_valid_time_range"
+    ),
+    db.UniqueConstraint(
+        "doctor_profile_id",
+        "available_date",
+        "start_time",
+        "end_time",
+        name="uq_doctor_date_time"
+    ),
     )
+
 
 
 # -----------------------------
@@ -294,3 +305,44 @@ class Notification(db.Model):
     is_read = db.Column(db.Boolean, default=False)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class DoctorAvailability(db.Model):
+    __tablename__ = 'doctor_availability'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    doctor_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id', ondelete='CASCADE'),
+        nullable=False
+    )
+
+    # 0 = Monday, 6 = Sunday
+    day_of_week = db.Column(db.Integer, nullable=False)
+
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+
+    slot_duration = db.Column(db.Integer, nullable=False, default=30)  
+    # duration in minutes
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now()
+    )
+
+    doctor = db.relationship(
+        'User',
+        backref=db.backref(
+            'availability_rules',
+            cascade='all, delete-orphan'
+        )
+    )
+
+    def __repr__(self):
+        return (
+            f"<DoctorAvailability doctor={self.doctor_id} "
+            f"day={self.day_of_week} "
+            f"{self.start_time}-{self.end_time}>"
+        )

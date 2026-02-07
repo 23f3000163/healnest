@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
@@ -58,3 +58,16 @@ def inject_notifications():
 
 from app import models
 from app.routes import main_routes, admin_routes, doctor_routes, patient_routes
+
+@app.before_request
+def force_password_change():
+    if (
+        current_user.is_authenticated
+        and current_user.is_temp_password
+        and request.endpoint not in [
+            "main.change_password",
+            "main.logout",
+            "static"
+        ]
+    ):
+        return redirect(url_for("main.change_password"))

@@ -85,17 +85,19 @@ def login():
     if form.validate_on_submit():
         user = models.User.query.filter_by(email=form.email.data).first()
 
-        if user and bcrypt.check_password_hash(
-            user.password_hash, form.password.data
-        ):
+        if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
+
             if not user.is_active:
-                flash(
-                    "Your account has been suspended. Please contact an administrator.",
-                    "danger",
-                )
+                flash("Your account is inactive.", "danger")
                 return redirect(url_for("main.login"))
 
             login_user(user, remember=form.remember.data)
+
+            # 🔒 FORCE password change ONLY for doctors
+            if user.role == "doctor" and user.is_temp_password:
+                flash("Please change your temporary password.", "warning")
+                return redirect(url_for("doctor.change_password"))
+
             next_page = request.args.get("next")
 
             if user.role == "admin":
@@ -274,3 +276,28 @@ def reset_token(token):
         title="Reset Password",
         form=form,
     )
+
+@main_bp.route("/change-password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    if request.method == "POST":
+        new_password = request.form.get("password")
+
+        if not new_password or len(new_password) < 6:
+            flash("Password must be at least 6 characters", "danger")
+            return redirect(url_for("main.change_password"))
+
+        current_user.set_password(new_password)
+        current_user.is_temp_password = False
+
+        db.session.commit()
+
+        flash("Password updated successfully", "success")
+
+        # Redirect based on role
+        if current_user.role == "doctor":
+            return redirect(url_for("doctor.dashboard"))
+        elif current_user.role == "admin":
+            return redirect(url_for("admin.dashboard"))
+
+    return render_template("auth/change_password.html")

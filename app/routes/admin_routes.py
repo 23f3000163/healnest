@@ -6,6 +6,7 @@ from functools import wraps
 from app import db, models
 from . import admin_bp
 from sqlalchemy.orm import aliased
+from app.models import User, DoctorProfile
 
 
 from app.forms import (
@@ -161,14 +162,19 @@ def add_doctor():
     ]
 
     if form.validate_on_submit():
-        user = models.User(
-            email=form.email.data,
-            role='doctor'
+        temp_password = "Doctor@123"  # fixed temp password for now
+
+        user = User(
+        email=form.email.data,
+            role="doctor",
+            is_active=True,
+            is_temp_password=True
         )
-        user.password = form.password.data
+        user.set_password(temp_password)    
 
         db.session.add(user)
         db.session.commit()
+
 
         profile = models.DoctorProfile(
             user_id=user.id,

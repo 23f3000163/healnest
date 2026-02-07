@@ -136,3 +136,27 @@ class DoctorUpdateProfileForm(FlaskForm):
     experience_years = StringField('Experience (Years)', validators=[Optional()], render_kw={"placeholder": "e.g., 10"})
     bio = TextAreaField('Professional Bio', validators=[Optional()], render_kw={"rows": 4, "placeholder": "Describe your experience and specialization..."})
     submit = SubmitField('Update Profile')
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField(
+        "Current Password",
+        validators=[DataRequired()]
+    )
+
+    new_password = PasswordField(
+        "New Password",
+        validators=[
+            DataRequired(),
+            Length(min=8, message="Password must be at least 8 characters")
+        ]
+    )
+
+    confirm_password = PasswordField(
+        "Confirm New Password",
+        validators=[
+            DataRequired(),
+            EqualTo("new_password", message="Passwords do not match")
+        ]
+    )
+
+    submit = SubmitField("Update Password")    
