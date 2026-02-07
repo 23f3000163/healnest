@@ -10,34 +10,44 @@ from . import patient_bp
 # -------------------------------------------------
 # Patient Dashboard
 # -------------------------------------------------
-@patient_bp.route('/dashboard')
+@patient_bp.route("/dashboard")
 @login_required
 def dashboard():
-    if current_user.role != 'patient':
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('main.home'))
+    if current_user.role != "patient":
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for("main.home"))
 
-    departments = models.Department.query.order_by(
-        models.Department.name
-    ).all()
+    now = datetime.now()
 
+    # Upcoming appointments
     upcoming_appointments = (
         models.Appointment.query
         .filter(
             models.Appointment.patient_id == current_user.id,
-            models.Appointment.status == 'BOOKED',
-            models.Appointment.appointment_datetime >= datetime.now()
+            models.Appointment.appointment_datetime >= now
         )
         .order_by(models.Appointment.appointment_datetime.asc())
         .all()
     )
 
-    return render_template(
-        'patient/dashboard.html',
-        title='My Dashboard',
-        departments=departments,
-        appointments=upcoming_appointments
+    # Past appointments
+    past_appointments = (
+        models.Appointment.query
+        .filter(
+            models.Appointment.patient_id == current_user.id,
+            models.Appointment.appointment_datetime < now
+        )
+        .order_by(models.Appointment.appointment_datetime.desc())
+        .all()
     )
+
+    return render_template(
+        "patient/dashboard.html",
+        title="Patient Dashboard",
+        upcoming_appointments=upcoming_appointments,
+        past_appointments=past_appointments
+    )
+
 
 
 # -------------------------------------------------
@@ -239,39 +249,50 @@ def get_doctor_slots(doctor_id):
 # -------------------------------------------------
 # Cancel Appointment
 # -------------------------------------------------
-@patient_bp.route('/cancel/<int:appointment_id>', methods=['POST'])
+@patient_bp.route("/appointment/<int:appointment_id>/cancel", methods=["POST"])
 @login_required
 def cancel_appointment(appointment_id):
+    if current_user.role != "patient":
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for("main.home"))
+
     appointment = models.Appointment.query.get_or_404(appointment_id)
 
+    # Ownership check
     if appointment.patient_id != current_user.id:
-        flash('Unauthorized action.', 'danger')
-        return redirect(url_for('patient.dashboard'))
+        abort(403)
 
-    if appointment.status != 'BOOKED':
-        flash('This appointment cannot be cancelled.', 'warning')
-        return redirect(url_for('patient.dashboard'))
+    # Time check — cannot cancel past appointments
+    if appointment.appointment_datetime < datetime.now():
+        flash("You cannot cancel a past appointment.", "warning")
+        return redirect(url_for("patient.dashboard"))
 
-    old_status = appointment.status
-    appointment.status = 'CANCELLED'
+    if appointment.status != "BOOKED":
+        flash("This appointment cannot be cancelled.", "warning")
+        return redirect(url_for("patient.dashboard"))
 
+    # Status update
+    appointment.status = "CANCELLED"
+
+    # Status history
     db.session.add(
         models.AppointmentStatusHistory(
-            appointment_id=appointment.id,
-            old_status=old_status,
-            new_status='CANCELLED'
+            appointment=appointment,
+            old_status="BOOKED",
+            new_status="CANCELLED"
         )
     )
 
+    # Notify doctor
     db.session.add(
         models.Notification(
             user_id=appointment.doctor_id,
-            type='APPOINTMENT_CANCELLED',
-            message='An appointment was cancelled by the patient.'
+            type="APPOINTMENT_CANCELLED",
+            message=f"Appointment cancelled by {current_user.patient_profile.full_name}"
         )
     )
 
     db.session.commit()
-    flash('Appointment cancelled successfully.', 'info')
-    return redirect(url_for('patient.dashboard'))
 
+    flash("Appointment cancelled successfully.", "success")
+    return redirect(url_for("patient.dashboard"))

@@ -1,106 +1,137 @@
 {% extends "layout.html" %}
 {% block content %}
 
-{% set patient_name = current_user.patient_profile.full_name if current_user.patient_profile else 'Patient' %}
-{% set departments = departments or [] %}
-{% set appointments = appointments or [] %}
+<h2 class="mb-4">
+    Welcome, {{ current_user.patient_profile.full_name }} 👋
+</h2>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Welcome, {{ patient_name }}!</h2>
-    <a href="{{ url_for('patient.my_history') }}"
-       class="btn btn-outline-secondary">
-        View Full History
-    </a>
-</div>
-
-<!-- ================= Departments ================= -->
+<!-- ================= UPCOMING APPOINTMENTS ================= -->
 <div class="card shadow-sm mb-4">
-    <div class="card-header bg-white py-3">
-        <h4 class="mb-0">Find a Doctor by Department</h4>
-    </div>
-
-    <ul class="list-group list-group-flush">
-        {% for dept in departments %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ dept.name }}
-                <a href="{{ url_for('patient.department_details', department_id=dept.id) }}"
-                   class="btn btn-sm btn-outline-primary">
-                    View Details
-                </a>
-            </li>
-        {% else %}
-            <li class="list-group-item text-muted text-center">
-                No departments available at the moment.
-            </li>
-        {% endfor %}
-    </ul>
-</div>
-
-<!-- ================= Upcoming Appointments ================= -->
-<div class="card shadow-sm">
-    <div class="card-header bg-white py-3">
-        <h4 class="mb-0">Your Upcoming Appointments</h4>
+    <div class="card-header bg-white">
+        <h4 class="mb-0">Upcoming Appointments</h4>
     </div>
 
     <div class="card-body">
+        {% if upcoming_appointments %}
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
+                        <th>#</th>
                         <th>Doctor</th>
-                        <th>Department</th>
                         <th>Date & Time</th>
+                        <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for appt in appointments %}
-                        <tr>
-                            <td>
-                                Dr.
-                                {{ appt.doctor.doctor_profile.full_name
-                                   if appt.doctor and appt.doctor.doctor_profile
-                                   else '—' }}
-                            </td>
+                    {% for appt in upcoming_appointments %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
 
-                            <td>
-                                {{ appt.doctor.doctor_profile.department.name
-                                   if appt.doctor
-                                   and appt.doctor.doctor_profile
-                                   and appt.doctor.doctor_profile.department
-                                   else '—' }}
-                            </td>
+                        <td>
+                            Dr. {{ appt.doctor.doctor_profile.full_name }}
+                        </td>
 
-                            <td>
-                                {{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}
-                            </td>
+                        <td>
+                            {{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}
+                        </td>
 
-                            <td>
-                                {% if appt.status == 'BOOKED' %}
-                                    <form method="POST"
-                                          action="{{ url_for('patient.cancel_appointment', appointment_id=appt.id) }}"
-                                          onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-danger">
-                                            Cancel
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <span class="text-muted small">Not cancellable</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted">
-                                You have no upcoming appointments.
-                            </td>
-                        </tr>
+                        <td>
+                            <span class="badge bg-primary">
+                                BOOKED
+                            </span>
+                        </td>
+
+                        <td>
+                            <form
+                                action="{{ url_for('patient.cancel_appointment', appointment_id=appt.id) }}"
+                                method="POST"
+                                class="d-inline"
+                                onsubmit="return confirm('Are you sure you want to cancel this appointment?');"
+                            >
+                                <button class="btn btn-sm btn-outline-danger">
+                                    Cancel
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        {% else %}
+            <p class="text-muted mb-0">No upcoming appointments.</p>
+        {% endif %}
     </div>
 </div>
 
-{% endblock content %}
+<!-- ================= PAST APPOINTMENTS ================= -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h4 class="mb-0">Past Appointments</h4>
+    </div>
+
+    <div class="card-body">
+        {% if past_appointments %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Doctor</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in past_appointments %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+
+                        <td>
+                            Dr. {{ appt.doctor.doctor_profile.full_name }}
+                        </td>
+
+                        <td>
+                            {{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}
+                        </td>
+
+                        <td>
+                            {% if appt.status == "COMPLETED" %}
+                                <span class="badge bg-success">
+                                    COMPLETED
+                                </span>
+
+                            {% elif appt.status == "CANCELLED" %}
+                                <span class="badge bg-danger">
+                                    CANCELLED
+                                </span>
+
+                            {% elif appt.status == "BOOKED" %}
+                                <!-- Past + still BOOKED = MISSED -->
+                                <span
+                                    class="badge bg-warning text-dark"
+                                    title="You did not attend this appointment"
+                                >
+                                    MISSED
+                                </span>
+
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    {{ appt.status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="text-muted mb-0">No past appointments.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
