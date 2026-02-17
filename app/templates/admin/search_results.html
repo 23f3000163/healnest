@@ -1,76 +1,282 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="mb-4">
-    <h2>
-        Search Results for:
-        <span class="text-primary">"{{ query }}"</span>
-    </h2>
-</div>
+<div class="page-container">
 
-<!-- ===================== DOCTORS ===================== -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">
-            Matching Doctors ({{ doctors|length }})
-        </h5>
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>Search Results</h1>
+            <p class="page-subtitle">
+                Showing results for:
+                <span class="fw-semibold text-primary">"{{ query }}"</span>
+            </p>
+        </div>
     </div>
 
-    {% if doctors %}
-        <ul class="list-group list-group-flush">
-            {% for profile in doctors %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>Dr. {{ profile.full_name }}</strong><br>
-                    <small class="text-muted">
-                        {{ profile.department.name if profile.department else 'No department assigned' }}
-                    </small>
-                </div>
 
-                <a href="{{ url_for('admin.edit_doctor', user_id=profile.user_id) }}"
-                   class="btn btn-sm btn-outline-secondary">
-                    View / Edit
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <div class="card-body text-muted text-center">
-            No doctors found matching your query.
+    <!-- ===================================================== -->
+    <!-- ================= MATCHING DOCTORS ================== -->
+    <!-- ===================================================== -->
+
+    <div class="app-card table-card mb-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-semibold">
+                Matching Doctors
+            </h5>
+
+            <span class="dept-pill">
+                {{ doctors|length }}
+                {{ "Doctor" if doctors|length == 1 else "Doctors" }}
+            </span>
         </div>
-    {% endif %}
-</div>
 
-<!-- ===================== PATIENTS ===================== -->
-<div class="card shadow-sm">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">
-            Matching Patients ({{ patients|length }})
-        </h5>
+        {% if doctors %}
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle data-table">
+
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Doctor</th>
+                        <th style="width: 25%;">Email</th>
+                        <th style="width: 20%;">Department</th>
+                        <th style="width: 10%;">Status</th>
+                        <th style="width: 15%;" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for profile in doctors %}
+                    <tr>
+
+                        <!-- DOCTOR -->
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle">
+                                    {{ profile.full_name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">
+                                        Dr. {{ profile.full_name }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        ID: {{ profile.user_id }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- EMAIL -->
+                        <td>{{ profile.user.email }}</td>
+
+                        <!-- DEPARTMENT -->
+                        <td>
+                            <span class="dept-pill">
+                                {{ profile.department.name if profile.department else "—" }}
+                            </span>
+                        </td>
+
+                        <!-- STATUS -->
+                        <td>
+                            {% if profile.user.is_active %}
+                                <span class="status-pill status-active">
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="status-pill status-blacklisted">
+                                    Blacklisted
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- ACTIONS -->
+                        <td class="text-end">
+                            <div class="row-actions">
+
+                                <!-- EDIT -->
+                                <a href="{{ url_for('admin.edit_doctor', user_id=profile.user_id) }}"
+                                   class="action-btn action-edit">
+                                    <i class="fas fa-pen"></i> Edit
+                                </a>
+
+                                <!-- DELETE -->
+                                <form action="{{ url_for('admin.delete_doctor', user_id=profile.user_id) }}"
+                                      method="POST"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Delete this doctor?');">
+                                    <button type="submit"
+                                            class="action-btn action-delete">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+
+                                {% if profile.user.is_active %}
+                                <form action="{{ url_for('admin.blacklist_user', user_id=profile.user_id) }}"
+                                      method="POST"
+                                      class="d-inline">
+                                    <button type="submit"
+                                            class="action-btn action-blacklist">
+                                        <i class="fas fa-ban"></i> Blacklist
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form action="{{ url_for('admin.activate_user', user_id=profile.user_id) }}"
+                                      method="POST"
+                                      class="d-inline">
+                                    <button type="submit"
+                                            class="action-btn action-activate">
+                                        <i class="fas fa-check"></i> Activate
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            No doctors found.
+        </div>
+        {% endif %}
+
     </div>
 
-    {% if patients %}
-        <ul class="list-group list-group-flush">
-            {% for profile in patients %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ profile.full_name }}</strong><br>
-                    <small class="text-muted">
-                        {{ profile.user.email if profile.user else 'No email available' }}
-                    </small>
-                </div>
 
-                <button class="btn btn-sm btn-outline-secondary" disabled>
-                    View Profile
-                </button>
-            </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <div class="card-body text-muted text-center">
-            No patients found matching your query.
+
+    <!-- ===================================================== -->
+    <!-- ================= MATCHING PATIENTS ================= -->
+    <!-- ===================================================== -->
+
+    <div class="app-card table-card">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-semibold">
+                Matching Patients
+            </h5>
+
+            <span class="dept-pill">
+                {{ patients|length }}
+                {{ "Patient" if patients|length == 1 else "Patients" }}
+            </span>
         </div>
-    {% endif %}
+
+        {% if patients %}
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle data-table">
+
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Patient</th>
+                        <th style="width: 30%;">Email</th>
+                        <th style="width: 15%;">Status</th>
+                        <th style="width: 20%;" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for profile in patients %}
+                    <tr>
+
+                        <!-- PATIENT -->
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle">
+                                    {{ profile.full_name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">
+                                        {{ profile.full_name }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        ID: {{ profile.user_id }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- EMAIL -->
+                        <td>{{ profile.user.email }}</td>
+
+                        <!-- STATUS -->
+                        <td>
+                            {% if profile.user.is_active %}
+                                <span class="status-pill status-active">
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="status-pill status-blacklisted">
+                                    Blacklisted
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- ACTIONS -->
+                        <td class="text-end">
+                            <div class="row-actions">
+
+                                <a href="{{ url_for('admin.edit_patient', user_id=profile.user_id) }}"
+                                   class="action-btn action-edit">
+                                    <i class="fas fa-pen"></i> Edit
+                                </a>
+
+                                <form action="{{ url_for('admin.delete_patient', user_id=profile.user_id) }}"
+                                      method="POST"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Delete this patient?');">
+                                    <button type="submit"
+                                            class="action-btn action-delete">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+
+                                {% if profile.user.is_active %}
+                                <form action="{{ url_for('admin.blacklist_user', user_id=profile.user_id) }}"
+                                      method="POST"
+                                      class="d-inline">
+                                    <button type="submit"
+                                            class="action-btn action-blacklist">
+                                        <i class="fas fa-ban"></i> Blacklist
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form action="{{ url_for('admin.activate_user', user_id=profile.user_id) }}"
+                                      method="POST"
+                                      class="d-inline">
+                                    <button type="submit"
+                                            class="action-btn action-activate">
+                                        <i class="fas fa-check"></i> Activate
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            No patients found.
+        </div>
+        {% endif %}
+
+    </div>
+
 </div>
 
-{% endblock content %}
+{% endblock %}

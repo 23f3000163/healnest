@@ -33,6 +33,7 @@ def admin_required(func):
 # -------------------------------------------------
 # Admin Dashboard
 # -------------------------------------------------
+
 @admin_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -40,36 +41,44 @@ def dashboard():
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
 
-    doctor_count = models.User.query.filter_by(role='doctor').count()
-    patient_count = models.User.query.filter_by(role='patient').count()
+    # ================= BASIC COUNTS =================
+
+    doctor_count = models.User.query.filter_by(
+        role='doctor',
+        is_deleted=False
+    ).count()
+
+    patient_count = models.User.query.filter_by(
+        role='patient',
+        is_deleted=False
+    ).count()
+
     appointment_count = models.Appointment.query.count()
+
+      # ================= RECENT DOCTORS =================
 
     doctors = (
         models.User.query
-        .filter_by(role='doctor')
-        .join(models.DoctorProfile)
-        .order_by(models.DoctorProfile.full_name)
-        .limit(5)
+        .filter_by(role='doctor', is_deleted=False)
+        .order_by(models.User.created_at.desc())
+        .limit(7)
         .all()
     )
+
+    # ================= RECENT PATIENTS =================
 
     patients = (
         models.User.query
-        .filter_by(role='patient')
-        .join(models.PatientProfile)
-        .order_by(models.PatientProfile.full_name)
-        .limit(5)
+        .filter_by(role='patient', is_deleted=False)
+        .order_by(models.User.created_at.desc())
+        .limit(7)
         .all()
     )
-
     upcoming_appointments = (
         models.Appointment.query
-        .filter(
-            models.Appointment.status == 'BOOKED',
-            models.Appointment.appointment_datetime >= datetime.now()
-        )
-        .order_by(models.Appointment.appointment_datetime.asc())
-        .limit(5)
+        .filter(models.Appointment.created_at >= datetime.utcnow())
+        .order_by(models.Appointment.created_at.asc())
+        .limit(7)
         .all()
     )
 
@@ -84,66 +93,64 @@ def dashboard():
     )
 
 
-# -------------------------------------------------
-# Dashboard Analytics API
-# -------------------------------------------------
-@admin_bp.route('/api/dashboard-stats')
+@admin_bp.route('/dashboard/analytics')
 @login_required
-def dashboard_stats():
+def dashboard_analytics():
     if current_user.role != 'admin':
-        return jsonify(error='Unauthorized'), 403
+        return jsonify({"error": "Unauthorized"}), 403
 
-    time_range = request.args.get('range', '7')
-    today = date.today()
+    today = datetime.utcnow().date()
 
-    if time_range == '30':
-        start_date = today - timedelta(days=29)
-        days_count = 30
-    elif time_range == '90':
-        start_date = today - timedelta(days=89)
-        days_count = 90
-    elif time_range == 'year':
-        start_date = date(today.year, 1, 1)
-        days_count = (today - start_date).days + 1
-    else:
-        start_date = today - timedelta(days=6)
-        days_count = 7
+    # ================= WEEKLY (LAST 7 DAYS) =================
+    last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
 
-    doctor_count = models.User.query.filter_by(role='doctor').count()
-    patient_count = models.User.query.filter_by(role='patient').count()
+    weekly_data = []
+    for day in last_7_days:
+        count = models.Appointment.query.filter(
+            func.date(models.Appointment.created_at) == day
+        ).count()
+        weekly_data.append(count)
 
-    new_patients = (
+    highest_week_value = max(weekly_data) if weekly_data else 0
+
+    # ================= MONTHLY (LAST 30 DAYS) =================
+    last_30_days = today - timedelta(days=30)
+
+    monthly_raw = (
         db.session.query(
-            func.date(models.User.created_at),
-            func.count(models.User.id)
+            func.date(models.Appointment.created_at),
+            func.count(models.Appointment.id)
         )
-        .filter(
-            models.User.role == 'patient',
-            func.date(models.User.created_at) >= start_date
-        )
-        .group_by(func.date(models.User.created_at))
+        .filter(models.Appointment.created_at >= last_30_days)
+        .group_by(func.date(models.Appointment.created_at))
         .all()
     )
 
-    patient_map = {str(day): count for day, count in new_patients}
+    monthly_map = {str(date): count for date, count in monthly_raw}
 
-    labels, values = [], []
-    for i in range(days_count):
-        day = start_date + timedelta(days=i)
-        labels.append(day.strftime('%b %d'))
-        values.append(patient_map.get(str(day), 0))
+    monthly_data = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        monthly_data.append(monthly_map.get(str(day), 0))
 
-    return jsonify(
-        total_counts={
-            'labels': ['Doctors', 'Patients'],
-            'values': [doctor_count, patient_count]
-        },
-        new_patient_trend={
-            'labels': labels,
-            'values': values
-        }
-    )
+    highest_month_value = max(monthly_data) if monthly_data else 0
 
+    # ================= USER DISTRIBUTION =================
+    doctor_count = models.User.query.filter_by(role='doctor').count()
+    patient_count = models.User.query.filter_by(role='patient').count()
+
+    user_distribution = {
+        "patients": patient_count,
+        "doctors": doctor_count
+    }
+
+    return jsonify({
+        "weekly_chart": weekly_data,
+        "monthly_chart": monthly_data,
+        "highest_week_value": highest_week_value,
+        "highest_month_value": highest_month_value,
+        "user_distribution": user_distribution
+    })
 
 # -------------------------------------------------
 # Doctor Management
@@ -156,26 +163,44 @@ def add_doctor():
         return redirect(url_for('main.home'))
 
     form = AddDoctorForm()
+
+    # Populate department dropdown
     form.department_id.choices = [
         (d.id, d.name)
         for d in models.Department.query.order_by(models.Department.name).all()
     ]
 
     if form.validate_on_submit():
-        temp_password = "Doctor@123"  # fixed temp password for now
 
+        # 🔒 Check email uniqueness
+        existing = models.User.query.filter_by(email=form.email.data).first()
+        if existing:
+            flash("Email already exists.", "danger")
+            return redirect(url_for("admin.add_doctor"))
+
+        # 🔒 Validate department
+        department = models.Department.query.get(form.department_id.data)
+        if not department:
+            flash("Invalid department selected.", "danger")
+            return redirect(url_for("admin.add_doctor"))
+
+
+        temp_password = "Doctor@123"  # Temporary password
+
+        # Create doctor user
         user = User(
-        email=form.email.data,
+            email=form.email.data,
             role="doctor",
             is_active=True,
-            is_temp_password=True
+            is_temp_password=True   # 🔐 Force password change on first login
         )
-        user.set_password(temp_password)    
+
+        user.set_password(temp_password)
 
         db.session.add(user)
-        db.session.commit()
+        db.session.flush()  # get user.id before commit
 
-
+        # Create doctor profile
         profile = models.DoctorProfile(
             user_id=user.id,
             full_name=form.full_name.data,
@@ -186,7 +211,7 @@ def add_doctor():
         db.session.add(profile)
         db.session.commit()
 
-        flash('Doctor added successfully.', 'success')
+        flash('Doctor added successfully. Temporary password is set.', 'success')
         return redirect(url_for('admin.manage_doctors'))
 
     return render_template('admin/add_doctor.html', form=form)
@@ -199,20 +224,161 @@ def manage_doctors():
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
 
-    doctors = (
+    page = request.args.get('page', 1, type=int)
+    sort = request.args.get('sort', 'created_at')
+    order = request.args.get('order', 'desc')
+
+    query = (
         models.User.query
-        .filter_by(role='doctor')
+        .filter_by(role='doctor', is_deleted=False)   # ✅ hide deleted doctors
         .join(models.DoctorProfile)
-        .order_by(models.DoctorProfile.full_name)
-        .all()
     )
 
-    return render_template('admin/manage_doctors.html', doctors=doctors)
+    # ===== SORTING =====
+    if sort == 'name':
+        column = models.DoctorProfile.full_name
+    elif sort == 'email':
+        column = models.User.email
+    elif sort == 'status':
+        column = models.User.is_active
+    else:
+        column = models.User.created_at  # default
+
+    if order == 'asc':
+        query = query.order_by(column.asc())
+    else:
+        query = query.order_by(column.desc())
+
+    doctors = query.paginate(
+        page=page,
+        per_page=10,
+        error_out=False
+    )
+
+    return render_template(
+        'admin/manage_doctors.html',
+        doctors=doctors,
+        sort=sort,
+        order=order
+    )
+
+
+
+
+@admin_bp.route('/doctor/edit/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def edit_doctor(user_id):
+
+    # 1️⃣ Role security check
+    if current_user.role != 'admin':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('main.home'))
+
+    # 2️⃣ Get user safely
+    doctor_user = models.User.query.get_or_404(user_id)
+
+    # 3️⃣ Ensure correct role
+    if doctor_user.role != 'doctor':
+        flash('Invalid doctor account.', 'danger')
+        return redirect(url_for('admin.manage_doctors'))
+
+    # 4️⃣ Ensure profile exists
+    profile = doctor_user.doctor_profile
+    if not profile:
+        flash('Doctor profile is missing.', 'danger')
+        return redirect(url_for('admin.manage_doctors'))
+
+    # 5️⃣ Bind form to profile
+    form = EditDoctorForm(obj=profile)
+
+    # 6️⃣ Populate department dropdown
+    form.department_id.choices = [
+        (d.id, d.name)
+        for d in models.Department.query.order_by(models.Department.name).all()
+    ]
+
+    if form.validate_on_submit():
+
+        # Update profile fields
+        profile.full_name = form.full_name.data
+        profile.department_id = form.department_id.data
+        profile.contact_number = form.contact_number.data
+
+        # Update user email
+        doctor_user.email = form.email.data
+
+        db.session.commit()
+
+        flash('Doctor profile updated successfully.', 'success')
+        return redirect(url_for('admin.manage_doctors'))
+
+    # Pre-fill email on GET
+    if request.method == 'GET':
+        form.email.data = doctor_user.email
+
+    return render_template(
+        'admin/edit_doctor.html',
+        title='Edit Doctor',
+        form=form
+    )
 
 
 # -------------------------------------------------
 # Patient Management
 # -------------------------------------------------
+@admin_bp.route('/patient/edit/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def edit_patient(user_id):
+
+    # 1️⃣ Role security check
+    if current_user.role != 'admin':
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('main.home'))
+
+    # 2️⃣ Get user safely
+    patient_user = models.User.query.get_or_404(user_id)
+
+    # 3️⃣ Ensure correct role
+    if patient_user.role != 'patient':
+        flash('Invalid patient account.', 'danger')
+        return redirect(url_for('admin.manage_patients'))
+
+    # 4️⃣ Ensure profile exists
+    profile = patient_user.patient_profile
+    if not profile:
+        flash('Patient profile is missing.', 'danger')
+        return redirect(url_for('admin.manage_patients'))
+
+    # 5️⃣ Bind form
+    form = EditPatientForm(obj=profile)
+
+    if form.validate_on_submit():
+
+        # Update profile
+        profile.full_name = form.full_name.data
+        profile.contact_number = form.contact_number.data
+
+        # Update email
+        patient_user.email = form.email.data
+
+        db.session.commit()
+
+        flash('Patient profile updated successfully.', 'success')
+        return redirect(url_for('admin.manage_patients'))
+
+    # Pre-fill email on GET
+    if request.method == 'GET':
+        form.email.data = patient_user.email
+
+    return render_template(
+        'admin/edit_patient.html',
+        title='Edit Patient',
+        form=form
+    )
+
+
+
+
 @admin_bp.route('/patients')
 @login_required
 def manage_patients():
@@ -220,74 +386,159 @@ def manage_patients():
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
 
-    patients = (
+    page = request.args.get('page', 1, type=int)
+    sort = request.args.get('sort', 'created_at')
+    order = request.args.get('order', 'desc')
+
+    query = (
         models.User.query
-        .filter_by(role='patient')
+        .filter_by(role='patient', is_deleted=False)   # ✅ hide deleted patients
         .join(models.PatientProfile)
-        .order_by(models.PatientProfile.full_name)
-        .all()
     )
 
-    return render_template('admin/manage_patients.html', patients=patients)
+    # ===== SORTING =====
+    if sort == 'name':
+        column = models.PatientProfile.full_name
+    elif sort == 'email':
+        column = models.User.email
+    elif sort == 'status':
+        column = models.User.is_active
+    else:
+        column = models.User.created_at
+
+    if order == 'asc':
+        query = query.order_by(column.asc())
+    else:
+        query = query.order_by(column.desc())
+
+    patients = query.paginate(
+        page=page,
+        per_page=10,
+        error_out=False
+    )
+
+    return render_template(
+        'admin/manage_patients.html',
+        patients=patients,
+        sort=sort,
+        order=order
+    )
+
+
 
 
 # -------------------------------------------------
 # 🔒 PHASE-1 STUB ACTION ROUTES (NO EXTRA FEATURES)
 # -------------------------------------------------
-@admin_bp.route('/delete-doctor/<int:user_id>', methods=['POST'])
+@admin_bp.route('/doctor/delete/<int:user_id>', methods=['POST'])
 @login_required
 def delete_doctor(user_id):
+
     if current_user.role != 'admin':
+        flash("Unauthorized action.", "danger")
         return redirect(url_for('main.home'))
 
     user = models.User.query.get_or_404(user_id)
-    db.session.delete(user)
+
+    if user.role != "doctor":
+        flash("Invalid doctor.", "danger")
+        return redirect(url_for('admin.manage_doctors'))
+
+    # ✅ SOFT DELETE
+    user.is_deleted = True
+    user.is_active = False
+
     db.session.commit()
 
-    flash('Doctor deleted.', 'info')
-    return redirect(url_for('admin.dashboard'))
+    flash("Doctor deleted successfully.", "warning")
+    return redirect(url_for('admin.manage_doctors'))
 
 
-@admin_bp.route('/delete-patient/<int:user_id>', methods=['POST'])
+
+@admin_bp.route('/patient/delete/<int:user_id>', methods=['POST'])
 @login_required
 def delete_patient(user_id):
+
     if current_user.role != 'admin':
+        flash("Unauthorized action.", "danger")
         return redirect(url_for('main.home'))
 
     user = models.User.query.get_or_404(user_id)
-    db.session.delete(user)
+
+    if user.role != "patient":
+        flash("Invalid patient.", "danger")
+        return redirect(url_for('admin.manage_patients'))
+
+    # ✅ SOFT DELETE
+    user.is_deleted = True
+    user.is_active = False
+
     db.session.commit()
 
-    flash('Patient deleted.', 'info')
-    return redirect(url_for('admin.dashboard'))
+    flash("Patient deleted successfully.", "warning")
+    return redirect(url_for('admin.manage_patients'))
 
 
-@admin_bp.route('/blacklist/<int:user_id>', methods=['POST'])
+
+
+@admin_bp.route('/user/blacklist/<int:user_id>', methods=['POST'])
 @login_required
 def blacklist_user(user_id):
     if current_user.role != 'admin':
+        flash('Unauthorized action.', 'danger')
         return redirect(url_for('main.home'))
 
     user = models.User.query.get_or_404(user_id)
+
+    # Prevent double blacklist
+    if not user.is_active:
+        flash('User is already blacklisted.', 'warning')
+        return redirect(request.referrer or url_for('admin.dashboard'))
+
     user.is_active = False
     db.session.commit()
 
-    flash('User blacklisted.', 'warning')
-    return redirect(url_for('admin.dashboard'))
+    # Determine display name
+    if user.role == 'doctor' and user.doctor_profile:
+        display_name = f"Dr. {user.doctor_profile.full_name}"
+    elif user.role == 'patient' and user.patient_profile:
+        display_name = user.patient_profile.full_name
+    else:
+        display_name = user.email
+
+    flash(f'{display_name} has been blacklisted.', 'warning')
+    return redirect(request.referrer or url_for('admin.dashboard'))
 
 
-@admin_bp.route('/activate/<int:user_id>', methods=['POST'])
+
+@admin_bp.route('/user/activate/<int:user_id>', methods=['POST'])
 @login_required
 def activate_user(user_id):
     if current_user.role != 'admin':
+        flash('Unauthorized action.', 'danger')
         return redirect(url_for('main.home'))
 
     user = models.User.query.get_or_404(user_id)
+
+    # Prevent double activation
+    if user.is_active:
+        flash('User is already active.', 'info')
+        return redirect(request.referrer or url_for('admin.dashboard'))
+
     user.is_active = True
     db.session.commit()
 
-    flash('User activated.', 'success')
-    return redirect(url_for('admin.dashboard'))
+    # Determine display name
+    if user.role == 'doctor' and user.doctor_profile:
+        display_name = f"Dr. {user.doctor_profile.full_name}"
+    elif user.role == 'patient' and user.patient_profile:
+        display_name = user.patient_profile.full_name
+    else:
+        display_name = user.email
+
+    flash(f'{display_name} has been re-activated.', 'success')
+    return redirect(request.referrer or url_for('admin.dashboard'))
+
 
 # -------------------------------------------------
 # Department Management
@@ -304,7 +555,10 @@ def manage_departments():
 
     # CREATE department
     if form.validate_on_submit():
-        existing = models.Department.query.filter_by(name=form.name.data.strip()).first()
+        existing = models.Department.query.filter_by(
+            name=form.name.data.strip()
+        ).first()
+
         if existing:
             flash('Department with this name already exists.', 'warning')
         else:
@@ -318,7 +572,14 @@ def manage_departments():
 
         return redirect(url_for('admin.manage_departments'))
 
-    departments = models.Department.query.order_by(models.Department.name).all()
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+
+    departments = (
+        models.Department.query
+        .order_by(models.Department.name.asc())
+        .paginate(page=page, per_page=10, error_out=False)
+    )
 
     return render_template(
         'admin/manage_departments.html',
@@ -326,6 +587,7 @@ def manage_departments():
         departments=departments,
         form=form
     )
+
 
 
 @admin_bp.route('/departments/<int:dept_id>')
@@ -392,47 +654,155 @@ def edit_department():
 @admin_bp.route('/departments/delete/<int:dept_id>', methods=['POST'])
 @login_required
 def delete_department(dept_id):
+
+    # 1️⃣ Role protection
     if current_user.role != 'admin':
         flash('Unauthorized action.', 'danger')
         return redirect(url_for('main.home'))
 
     department = models.Department.query.get_or_404(dept_id)
 
-    # SAFETY CHECK: prevent deletion if doctors exist
-    doctor_count = models.DoctorProfile.query.filter_by(department_id=department.id).count()
-    if doctor_count > 0:
-        flash('Cannot delete department with assigned doctors.', 'danger')
+    # 2️⃣ SAFETY CHECK — prevent delete if doctors exist
+    if department.doctors:
+        flash(
+            "Cannot delete department because doctors are assigned.",
+            "danger"
+        )
         return redirect(url_for('admin.manage_departments'))
 
+    # 3️⃣ Safe to delete
     db.session.delete(department)
     db.session.commit()
 
     flash('Department deleted successfully.', 'success')
     return redirect(url_for('admin.manage_departments'))
 
+
+# ---------------------------
+# View All Appointments (Admin)
+# ---------------------------
 @admin_bp.route("/appointments")
 @login_required
 @admin_required
 def manage_appointments():
-    """
-    Admin read-only view of all system appointments.
-    No mutations allowed here.
-    """
 
-    Patient = aliased(models.User)
-    Doctor = aliased(models.User)
+    page = request.args.get('page', 1, type=int)
+    sort = request.args.get('sort', 'date')
+    order = request.args.get('order', 'desc')
 
-    appointments = (
-    models.Appointment.query
-    .join(Patient, Patient.id == models.Appointment.patient_id)
-    .join(Doctor, Doctor.id == models.Appointment.doctor_id)
-    .order_by(models.Appointment.appointment_datetime.desc())
-    .all()
-)
+    doctor_id = request.args.get("doctor_id")
+    status = request.args.get("status")
+    date_str = request.args.get("date")
 
+    query = models.Appointment.query
 
+    # =========================
+    # FILTER: Doctor
+    # =========================
+    if doctor_id:
+        try:
+            query = query.filter(
+                models.Appointment.doctor_id == int(doctor_id)
+            )
+        except ValueError:
+            pass
+
+    # =========================
+    # FILTER: Status
+    # =========================
+    if status:
+        query = query.filter(
+            models.Appointment.status == status
+        )
+
+    # =========================
+    # FILTER: Date
+    # =========================
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            query = query.filter(
+                db.func.date(models.Appointment.appointment_datetime) == selected_date
+            )
+        except ValueError:
+            pass
+
+    # =========================
+    # SORTING
+    # =========================
+    if sort == "status":
+        column = models.Appointment.status
+    elif sort == "doctor":
+        column = models.Appointment.doctor_id
+    else:
+        column = models.Appointment.appointment_datetime  # default
+
+    if order == "asc":
+        query = query.order_by(column.asc())
+    else:
+        query = query.order_by(column.desc())
+
+    # =========================
+    # PAGINATION
+    # =========================
+    appointments = query.paginate(
+        page=page,
+        per_page=10,
+        error_out=False
+    )
+
+    doctors = (
+        models.User.query
+        .filter_by(role="doctor")
+        .join(models.DoctorProfile)
+        .order_by(models.DoctorProfile.full_name)
+        .all()
+    )
 
     return render_template(
         "admin/manage_appointments.html",
-        appointments=appointments
+        appointments=appointments,
+        doctors=doctors,
+        sort=sort,
+        order=order
+    )
+
+
+@admin_bp.route("/patient/<int:patient_id>/history")
+@login_required
+def view_patient_history(patient_id):
+
+    if current_user.role != "admin":
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for("main.home"))
+
+    patient = models.User.query.get_or_404(patient_id)
+
+    history = (
+        models.Appointment.query
+        .filter(
+            models.Appointment.patient_id == patient_id,
+            models.Appointment.status == "COMPLETED"
+        )
+        .order_by(models.Appointment.appointment_datetime.desc())
+        .all()
+    )
+
+    # Calculate age
+    profile = patient.patient_profile
+    patient_age = None
+
+    if profile and profile.date_of_birth:
+        today = date.today()
+        patient_age = today.year - profile.date_of_birth.year - (
+            (today.month, today.day) <
+            (profile.date_of_birth.month, profile.date_of_birth.day)
+        )
+
+    return render_template(
+        "shared/patient_history.html",
+        patient=patient,
+        history=history,
+        patient_age=patient_age,
+        back_url=url_for("admin.dashboard")
     )

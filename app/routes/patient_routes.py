@@ -1,10 +1,12 @@
-from flask import render_template, flash, redirect, url_for, request, abort
+from flask import jsonify, render_template, flash, redirect, url_for, request, abort
 from flask_login import login_required, current_user
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from app import db, models
+from app.models import DoctorProfile
 from app.forms import BookingForm, UpdateProfileForm
 from . import patient_bp
+from app.routes.doctor_routes import get_available_slots
 
 
 # -------------------------------------------------
@@ -13,29 +15,42 @@ from . import patient_bp
 @patient_bp.route("/dashboard")
 @login_required
 def dashboard():
+
     if current_user.role != "patient":
         flash("Unauthorized access.", "danger")
         return redirect(url_for("main.home"))
 
     now = datetime.now()
 
-    # Upcoming appointments
+    # =========================
+    # FETCH DEPARTMENTS
+    # =========================
+    departments = models.Department.query.order_by(
+        models.Department.name.asc()
+    ).all()
+
+    # =========================
+    # UPCOMING APPOINTMENTS
+    # =========================
     upcoming_appointments = (
         models.Appointment.query
         .filter(
             models.Appointment.patient_id == current_user.id,
+            models.Appointment.status == "BOOKED",
             models.Appointment.appointment_datetime >= now
         )
         .order_by(models.Appointment.appointment_datetime.asc())
         .all()
     )
 
-    # Past appointments
+    # =========================
+    # PAST APPOINTMENTS
+    # =========================
     past_appointments = (
         models.Appointment.query
         .filter(
             models.Appointment.patient_id == current_user.id,
-            models.Appointment.appointment_datetime < now
+            models.Appointment.status.in_(["COMPLETED", "CANCELLED"])
         )
         .order_by(models.Appointment.appointment_datetime.desc())
         .all()
@@ -43,10 +58,12 @@ def dashboard():
 
     return render_template(
         "patient/dashboard.html",
-        title="Patient Dashboard",
+        departments=departments,  # ✅ THIS WAS MISSING
         upcoming_appointments=upcoming_appointments,
-        past_appointments=past_appointments
+        past_appointments=past_appointments,
+        today=date.today()
     )
+
 
 
 
@@ -56,10 +73,13 @@ def dashboard():
 @patient_bp.route('/my_history')
 @login_required
 def my_history():
+
+    # Ensure only patients can access
     if current_user.role != 'patient':
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
 
+    # Get completed appointments only
     history = (
         models.Appointment.query
         .filter(
@@ -70,8 +90,12 @@ def my_history():
         .all()
     )
 
-    profile = current_user.patient_profile or abort(404)
+    # Ensure patient profile exists
+    profile = current_user.patient_profile
+    if not profile:
+        abort(404)
 
+    # Calculate age safely
     patient_age = None
     if profile.date_of_birth:
         today = date.today()
@@ -81,13 +105,14 @@ def my_history():
         )
 
     return render_template(
-        'patient/patient_history.html',
+        'shared/patient_history.html',
         title='My Appointment History',
-        patient=current_user,
-        history=history,
-        patient_age=patient_age,
+        patient=current_user,      # Used in template
+        history=history,           # Appointment list
+        patient_age=patient_age,   # Age display
         back_url=url_for('patient.dashboard')
     )
+
 
 
 # -------------------------------------------------
@@ -113,6 +138,7 @@ def profile():
         db.session.commit()
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('patient.profile'))
+
 
     return render_template(
         'patient/profile.html',
@@ -160,10 +186,11 @@ def book_appointment(doctor_profile_id):
     doctor_profile = models.DoctorProfile.query.get_or_404(doctor_profile_id)
 
     if request.method == "POST":
+
         slot_value = request.form.get("selected_slot")
 
         if not slot_value:
-            flash("Please select a time slot.", "warning")
+            flash("Please select a valid time slot.", "warning")
             return redirect(request.url)
 
         try:
@@ -176,7 +203,6 @@ def book_appointment(doctor_profile_id):
             flash("You cannot book a past time slot.", "warning")
             return redirect(request.url)
 
-        # 🔒 HARD conflict check (final safety)
         conflict = models.Appointment.query.filter_by(
             doctor_id=doctor_profile.user_id,
             appointment_datetime=appointment_datetime,
@@ -193,59 +219,52 @@ def book_appointment(doctor_profile_id):
             appointment_datetime=appointment_datetime,
             status="BOOKED"
         )
+
         db.session.add(appointment)
-
-        db.session.add(
-            models.AppointmentStatusHistory(
-                appointment=appointment,
-                old_status=None,
-                new_status="BOOKED"
-            )
-        )
-
-        db.session.add(
-            models.Notification(
-                user_id=doctor_profile.user_id,
-                type="NEW_APPOINTMENT",
-                message=f"New appointment booked by {current_user.patient_profile.full_name}"
-            )
-        )
-
         db.session.commit()
+
         flash("Appointment booked successfully!", "success")
         return redirect(url_for("patient.dashboard"))
 
     return render_template(
         "patient/book_appointment.html",
-        doctor=doctor_profile
+        doctor=doctor_profile,
+        min_date=date.today().isoformat(),
+        max_date=(date.today() + timedelta(days=30)).isoformat()
     )
+
+
 
 # -------------------------------------------------
 # Slot API
 # -------------------------------------------------
-
 @patient_bp.route("/doctor/<int:doctor_id>/slots")
 @login_required
 def get_doctor_slots(doctor_id):
+
     date_str = request.args.get("date")
     if not date_str:
         abort(400)
 
-    selected_date = date.fromisoformat(date_str)
+    try:
+        selected_date = date.fromisoformat(date_str)
+    except ValueError:
+        abort(400)
 
     doctor = DoctorProfile.query.get_or_404(doctor_id)
+
     slots = get_available_slots(doctor, selected_date)
 
-    return {
+    return jsonify({
         "slots": [
             {
-                "value": slot.isoformat(),
-                "label": slot.strftime("%I:%M %p")
+                "value": slot["value"],
+                "label": slot["label"],
+                "booked": slot["booked"]
             }
             for slot in slots
         ]
-    }
-
+    })
 # -------------------------------------------------
 # Cancel Appointment
 # -------------------------------------------------

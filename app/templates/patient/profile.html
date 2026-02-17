@@ -1,24 +1,45 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<div class="page-container app-page">
+
 {% if not form %}
     <div class="alert alert-danger">
         Profile form is not available. Please try again later.
     </div>
 {% else %}
 
-<div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">My Profile</h4>
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>My Profile</h1>
+            <p class="page-subtitle">
+                Update your personal and medical information
+            </p>
+        </div>
+
+        <div class="page-actions">
+            <a href="{{ url_for('patient.dashboard') }}"
+               class="btn-app btn-app-outline">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
     </div>
 
-    <div class="card-body">
-        <form method="POST" action="">
+
+    <!-- ================= PROFILE CARD ================= -->
+    <div class="app-card">
+
+        <form method="POST">
             {{ form.hidden_tag() }}
 
-            <!-- Full Name -->
-            <div class="mb-3">
-                {{ form.full_name.label(class="form-label") }}
+            <!-- FULL NAME -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">
+                    {{ form.full_name.label.text }}
+                </label>
+
                 {% if form.full_name.errors %}
                     {{ form.full_name(class="form-control is-invalid", required=True) }}
                     <div class="invalid-feedback">
@@ -31,10 +52,14 @@
                 {% endif %}
             </div>
 
-            <!-- DOB + Gender -->
+
+            <!-- DOB + GENDER -->
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.date_of_birth.label(class="form-label") }}
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-semibold">
+                        {{ form.date_of_birth.label.text }}
+                    </label>
+
                     {% if form.date_of_birth.errors %}
                         {{ form.date_of_birth(class="form-control is-invalid") }}
                         <div class="invalid-feedback">
@@ -47,16 +72,22 @@
                     {% endif %}
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    {{ form.gender.label(class="form-label") }}
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-semibold">
+                        {{ form.gender.label.text }}
+                    </label>
                     {{ form.gender(class="form-select") }}
                 </div>
             </div>
 
-            <!-- Contact + Blood Group -->
+
+            <!-- CONTACT + BLOOD GROUP -->
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.contact_number.label(class="form-label") }}
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-semibold">
+                        {{ form.contact_number.label.text }}
+                    </label>
+
                     {% if form.contact_number.errors %}
                         {{ form.contact_number(class="form-control is-invalid") }}
                         <div class="invalid-feedback">
@@ -69,33 +100,39 @@
                     {% endif %}
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    {{ form.blood_group.label(class="form-label") }}
+                <div class="col-md-6 mb-4">
+                    <label class="form-label fw-semibold">
+                        {{ form.blood_group.label.text }}
+                    </label>
                     {{ form.blood_group(class="form-control") }}
                 </div>
             </div>
 
-            <!-- Allergies -->
-            <div class="mb-3">
-                {{ form.allergies.label(class="form-label") }}
+
+            <!-- ALLERGIES -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">
+                    {{ form.allergies.label.text }}
+                </label>
+
                 {{ form.allergies(
                     class="form-control",
                     placeholder="e.g., Peanuts, Pollen"
                 ) }}
             </div>
 
-            <!-- Actions -->
-            <div class="d-flex justify-content-between">
-                <a href="{{ url_for('patient.dashboard') }}"
-                   class="btn btn-outline-secondary">
-                    Back to Dashboard
-                </a>
 
-                {{ form.submit(class="btn btn-primary") }}
+            <!-- ACTION BUTTON -->
+            <div class="text-end mt-4">
+                {{ form.submit(class="btn-app btn-app-primary") }}
             </div>
+
         </form>
+
     </div>
-</div>
 
 {% endif %}
-{% endblock content %}
+
+</div>
+
+{% endblock %}

@@ -1,67 +1,86 @@
 {% extends "layout.html" %}
 {% block content %}
 
-{% if not doctor %}
-    <div class="alert alert-danger">
-        Doctor information could not be loaded.
-    </div>
-{% else %}
+<div class="page-container app-page">
 
-<div class="card shadow-sm">
-    <div class="card-header bg-light py-3">
-        <h4 class="mb-0">Doctor Profile</h4>
-    </div>
+    {% if not doctor %}
+        <div class="alert alert-danger">
+            Doctor information could not be loaded.
+        </div>
+    {% else %}
 
-    <div class="card-body p-4">
-        <div class="row">
-            <div class="col-md-3 text-center">
-                <img
-                    src="https://placehold.co/150x150/eeeeee/333333?text=Dr."
-                    class="img-fluid rounded-circle mb-3"
-                    alt="Doctor Avatar">
-            </div>
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>Dr. {{ doctor.full_name }}</h1>
+            <p class="page-subtitle">
+                View doctor profile and book appointment
+            </p>
+        </div>
 
-            <div class="col-md-9">
-                <h3>Dr. {{ doctor.full_name }}</h3>
-
-                <p class="text-muted mb-1">
-                    <strong>
-                        {{ doctor.qualifications or 'Qualifications not provided' }}
-                    </strong>
-                </p>
-
-                <p class="text-muted">
-                    {{ doctor.department.name if doctor.department else 'Department not assigned' }}
-                </p>
-
-                <hr>
-
-                <p>
-                    {{ doctor.bio or
-                       'This doctor has not provided a detailed bio yet.' }}
-                </p>
-            </div>
+        <div class="page-actions">
+            <a href="{{ url_for('patient.department_details',
+                                department_id=doctor.department_id) }}"
+               class="btn-app btn-app-outline">
+                <i class="fas fa-arrow-left"></i>
+                Back to Department
+            </a>
         </div>
     </div>
 
-    <div class="card-footer bg-light text-end">
-        <a href="{{ url_for(
-                'patient.book_appointment',
-                doctor_profile_id=doctor.id
-            ) }}"
-           class="btn btn-primary">
-            Check Availability & Book
-        </a>
 
-        <a href="{{ url_for(
-                'patient.department_details',
-                department_id=doctor.department_id
-            ) }}"
-           class="btn btn-outline-secondary">
-            Go Back
-        </a>
+    <!-- ================= DOCTOR PROFILE CARD ================= -->
+    <div class="app-card">
+
+        <div class="row-user mb-4">
+            <div class="avatar-circle" style="width:70px;height:70px;font-size:22px;">
+                {{ doctor.full_name[:1]|upper }}
+            </div>
+
+            <div>
+                <h4 class="mb-1">
+                    Dr. {{ doctor.full_name }}
+                </h4>
+
+                <div class="text-muted">
+                    {{ doctor.department.name if doctor.department else 'Department not assigned' }}
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Qualifications -->
+        <div class="mb-4">
+            <h6 class="fw-semibold mb-2">Qualifications</h6>
+            <p class="text-muted mb-0">
+                {{ doctor.qualifications or 'Qualifications not provided.' }}
+            </p>
+        </div>
+
+        <!-- Bio -->
+        <div class="mb-4">
+            <h6 class="fw-semibold mb-2">About Doctor</h6>
+            <p class="text-muted mb-0">
+                {{ doctor.bio or 'This doctor has not provided a detailed bio yet.' }}
+            </p>
+        </div>
+
+        <!-- ================= ACTION BUTTONS ================= -->
+        <div class="row-actions justify-content-end mt-4">
+
+            <a href="{{ url_for('patient.book_appointment',
+                                doctor_profile_id=doctor.id) }}"
+               class="action-btn action-activate">
+                <i class="fas fa-calendar-check"></i>
+                Check Availability & Book
+            </a>
+
+        </div>
+
     </div>
+
+    {% endif %}
 </div>
 
-{% endif %}
-{% endblock content %}
+{% endblock %}

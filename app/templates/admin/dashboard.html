@@ -1,136 +1,658 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Admin Dashboard</h2>
-</div>
+<div class="dashboard-container">
 
-<!-- ================= COUNTERS ================= -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card shadow-sm text-center">
-            <div class="card-body">
-                <h6 class="text-muted">Total Doctors</h6>
-                <p class="fs-2 fw-bold">{{ doctor_count }}</p>
+    <!-- ================= HEADER ================= -->
+    <div class="dashboard-header">
+        <h1>Admin Dashboard</h1>
+        <p>Complete system overview & management</p>
+    </div>
+
+
+    <!-- ================= KPI SECTION ================= -->
+    <div class="dashboard-metrics">
+
+        <div class="metric-card metric-doctors">
+            <div class="metric-icon">
+                <i class="fa-solid fa-user-doctor"></i>
             </div>
+            <div class="metric-title">Registered Doctors</div>
+            <div class="metric-value">{{ doctors|length }}</div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm text-center">
-            <div class="card-body">
-                <h6 class="text-muted">Total Patients</h6>
-                <p class="fs-2 fw-bold">{{ patient_count }}</p>
+        <div class="metric-card metric-patients">
+            <div class="metric-icon">
+                <i class="fa-solid fa-users"></i>
             </div>
+            <div class="metric-title">Total Patients</div>
+            <div class="metric-value">{{ patients|length }}</div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm text-center">
-            <div class="card-body">
-                <h6 class="text-muted">Total Appointments</h6>
-                <p class="fs-2 fw-bold">{{ appointment_count }}</p>
+        <div class="metric-card metric-appointments">
+            <div class="metric-icon">
+                <i class="fa-solid fa-calendar-check"></i>
             </div>
+            <div class="metric-title">Upcoming Appointments</div>
+            <div class="metric-value">{{ appointments|length }}</div>
         </div>
-    </div>
-</div>
 
-<!-- ================= QUICK ACTIONS ================= -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Quick Actions</h5>
-    </div>
-    <div class="card-body">
-        <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-outline-primary">
-            Add Doctor
-        </a>
-
-        <a href="{{ url_for('admin.manage_doctors') }}" class="btn btn-outline-secondary">
-            Manage Doctors
-        </a>
-
-        <a href="{{ url_for('admin.manage_patients') }}" class="btn btn-outline-secondary">
-            Manage Patients
-        </a>
-
-        <a href="{{ url_for('admin.manage_departments') }}" class="btn btn-outline-secondary">
-            Manage Departments
-        </a>
-
-        <a href="{{ url_for('admin.manage_appointments') }}" class="btn btn-outline-secondary">
-            View All Appointments
-        </a>
-    </div>
-</div>
-
-<!-- ================= RECENT DOCTORS ================= -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Recently Added Doctors</h5>
     </div>
 
-    <ul class="list-group list-group-flush">
-        {% for doctor in doctors %}
-        <li class="list-group-item">
-            Dr. {{ doctor.doctor_profile.full_name }}
-        </li>
+
+    <!-- ================= QUICK ACTIONS ================= -->
+    <div class="quick-actions">
+        <a href="{{ url_for('admin.add_doctor') }}" class="btn-app btn-app-primary">
+            <i class="fa-solid fa-user-plus"></i> Add Doctor
+        </a>
+
+        <a href="{{ url_for('admin.manage_departments') }}" class="btn-app btn-app-outline">
+            <i class="fa-solid fa-building"></i> Departments
+        </a>
+
+        <a href="{{ url_for('admin.manage_doctors') }}" class="btn-app btn-app-outline">
+            <i class="fa-solid fa-user-gear"></i> Manage Doctors
+        </a>
+
+        <a href="{{ url_for('admin.manage_patients') }}" class="btn-app btn-app-outline">
+            <i class="fa-solid fa-user-injured"></i> Manage Patients
+        </a>
+    </div>
+
+    <!-- ================= ANALYTICS SECTION ================= -->
+    <div class="analytics-grid">
+
+        <!-- ================= APPOINTMENTS ANALYTICS ================= -->
+        <div class="analytics-card">
+
+            <div class="analytics-header">
+                <div class="analytics-title">
+                    <i class="fa-solid fa-chart-line text-primary"></i>
+                    <span>Appointments Analytics</span>
+                </div>
+
+                <div class="analytics-toggle">
+                    <button id="weeklyBtn" class="toggle-btn active">
+                        <i class="fa-solid fa-calendar-week"></i> Weekly
+                    </button>
+                    <button id="monthlyBtn" class="toggle-btn">
+                        <i class="fa-solid fa-calendar-days"></i> Monthly
+                    </button>
+                </div>
+            </div>
+
+            <div class="analytics-body">
+                <div class="d-flex justify-content-between px-4 pt-3">
+                    <div id="chartTotal" class="fw-bold fs-5"></div>
+                    <div id="chartGrowth" class="small text-muted"></div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="appointmentsChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= USER DISTRIBUTION ================= -->
+        <div class="analytics-card">
+
+            <div class="analytics-header">
+                <div class="analytics-title">
+                    <i class="fa-solid fa-users text-success"></i>
+                    <span>User Distribution</span>
+                </div>
+            </div>
+
+            <div class="analytics-body donut-body">
+                <div class="chart-container">
+                    <canvas id="userChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+
+    <!-- ================= DOCTORS ================= -->
+    <div class="app-card">
+        <div class="app-card-header d-flex justify-content-between align-items-center">
+
+            <!-- LEFT SIDE (icon + text) -->
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-doctor header-icon" style="color: var(--doctor);"></i>
+                <span>Registered Doctors</span>
+            </div>
+
+            <!-- RIGHT SIDE (button) -->
+            <a href="{{ url_for('admin.manage_doctors') }}" class="btn-app btn-app-primary">
+                <i class="fa-solid fa-user-gear"></i> View All
+            </a>
+
+        </div>
+
+
+        {% if doctors %}
+        <div class="table-wrapper doctor-table">
+
+            <div class="table-header">
+                <div>Doctor</div>
+                <div>Department</div>
+                <div>Email</div>
+                <div>Status</div>
+                <div style="text-align:right;">Actions</div>
+            </div>
+
+            {% for doctor in doctors %}
+            <div class="table-row">
+
+                <!-- Doctor -->
+                <div class="row-user">
+                    <div class="avatar">
+                        {{ doctor.doctor_profile.full_name[:1]|upper }}
+                    </div>
+                    <div class="row-user-info">
+                        <strong>Dr. {{ doctor.doctor_profile.full_name }}</strong>
+                    </div>
+                </div>
+
+                <!-- Department Color Pill -->
+                <div>
+                    {% set dept_slug = doctor.doctor_profile.department.name|lower|replace(' ', '-') %}
+                    <span class="dept-pill dept-{{ dept_slug }}">
+                        <i class="fas fa-circle me-1"></i>
+                        {{ doctor.doctor_profile.department.name }}
+                    </span>
+                </div>
+
+
+                <!-- Email -->
+                <div class="text-muted-soft">
+                    {{ doctor.email }}
+                </div>
+
+                <!-- Status -->
+                <div>
+                    {% if doctor.is_active %}
+                    <span class="status-pill status-active">
+                        <i class="fas fa-check-circle"></i> Active
+                    </span>
+                    {% else %}
+                    <span class="status-pill status-blacklisted">
+                        <i class="fas fa-ban"></i> Inactive
+                    </span>
+                    {% endif %}
+                </div>
+
+
+                <!-- Actions -->
+                <div class="row-actions">
+
+                    <!-- EDIT -->
+                    <a href="{{ url_for('admin.edit_doctor', user_id=doctor.id) }}" class="action-btn action-edit">
+                        <i class="fas fa-pen"></i>
+                        Edit
+                    </a>
+
+                    <!-- DELETE (Soft Delete) -->
+                    <form action="{{ url_for('admin.delete_doctor', user_id=doctor.id) }}" method="POST"
+                        class="d-inline" onsubmit="return confirm('Are you sure you want to delete this doctor?');">
+
+                        <button type="submit" class="action-btn action-delete">
+                            <i class="fas fa-trash"></i>
+                            Delete
+                        </button>
+                    </form>
+
+                    <!-- BLACKLIST / ACTIVATE -->
+                    {% if doctor.is_active %}
+                    <form action="{{ url_for('admin.blacklist_user', user_id=doctor.id) }}" method="POST"
+                        class="d-inline" onsubmit="return confirm('Blacklist this doctor?');">
+
+                        <button type="submit" class="action-btn action-blacklist">
+                            <i class="fas fa-ban"></i>
+                            Blacklist
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('admin.activate_user', user_id=doctor.id) }}" method="POST"
+                        class="d-inline">
+
+                        <button type="submit" class="action-btn action-activate">
+                            <i class="fas fa-check"></i>
+                            Activate
+                        </button>
+                    </form>
+                    {% endif %}
+
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
         {% else %}
-        <li class="list-group-item text-muted">No doctors found.</li>
-        {% endfor %}
-    </ul>
-</div>
-
-<!-- ================= RECENT PATIENTS ================= -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Recently Registered Patients</h5>
+        <div class="card-empty">No registered doctors.</div>
+        {% endif %}
     </div>
 
-    <ul class="list-group list-group-flush">
-        {% for patient in patients %}
-        <li class="list-group-item">
-            {{ patient.patient_profile.full_name }}
-        </li>
+
+
+    <!-- ================= PATIENTS ================= -->
+    <div class="app-card">
+        <div class="app-card-header d-flex justify-content-between align-items-center">
+            <!-- LEFT SIDE (icon + text) -->
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-users header-icon" style="color: var(--patient);"></i>
+                <span>Registered Patients</span>
+            </div>
+
+            <!-- RIGHT SIDE (button) -->
+            <a href="{{ url_for('admin.manage_patients') }}" class="btn-app btn-app-primary">
+                <i class="fa-solid fa-user-injured"></i> View All
+            </a>
+        </div>
+
+        {% if patients %}
+        <div class="table-wrapper patient-table">
+
+            <div class="table-header">
+                <div>Patient</div>
+                <div>Email</div>
+                <div>Status</div>
+                <div style="text-align:right;">Actions</div>
+            </div>
+
+            {% for patient in patients %}
+            <div class="table-row">
+
+                <!-- Patient -->
+                <div class="row-user">
+                    <div class="avatar">
+                        {{ patient.patient_profile.full_name[:1]|upper }}
+                    </div>
+                    <div class="row-user-info">
+                        <strong>{{ patient.patient_profile.full_name }}</strong>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="text-muted-soft">
+                    {{ patient.email }}
+                </div>
+
+                <!-- Status Dynamic -->
+                <div>
+                    {% if patient.is_active %}
+                    <span class="status-pill status-active">
+                        <i class="fas fa-check-circle"></i> Active
+                    </span>
+                    {% else %}
+                    <span class="status-pill status-blacklisted">
+                        <i class="fas fa-ban"></i> Blacklisted
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="row-actions">
+
+
+
+                    <!--  Edit -->
+                    <a href="{{ url_for('admin.edit_patient', user_id=patient.id) }}" class="action-btn action-edit">
+                        <i class="fas fa-pen"></i> Edit
+                    </a>
+
+                    <!--  Delete -->
+                    <form action="{{ url_for('admin.delete_patient', user_id=patient.id) }}" method="POST"
+                        class="d-inline"
+                        onsubmit="return confirm('DELETE: Are you sure you want to permanently delete this patient?');">
+                        <button type="submit" class="action-btn action-delete">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+
+                    {% if patient.is_active %}
+                    <!--  Blacklist -->
+                    <form action="{{ url_for('admin.blacklist_user', user_id=patient.id) }}" method="POST"
+                        class="d-inline"
+                        onsubmit="return confirm('BLACKLIST: Are you sure you want to blacklist this patient?');">
+                        <button type="submit" class="action-btn action-blacklist">
+                            <i class="fas fa-ban"></i> Blacklist
+                        </button>
+                    </form>
+                    {% else %}
+                    <!--  Activate -->
+                    <form action="{{ url_for('admin.activate_user', user_id=patient.id) }}" method="POST"
+                        class="d-inline">
+                        <button type="submit" class="action-btn action-activate">
+                            <i class="fas fa-check"></i> Activate
+                        </button>
+                    </form>
+                    {% endif %}
+
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
         {% else %}
-        <li class="list-group-item text-muted">No patients found.</li>
-        {% endfor %}
-    </ul>
-</div>
-
-<!-- ================= UPCOMING APPOINTMENTS ================= -->
-<div class="card shadow-sm">
-    <div class="card-header">
-        <h5 class="mb-0">Upcoming Appointments</h5>
+        <div class="card-empty">No registered patients.</div>
+        {% endif %}
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>Patient</th>
-                    <th>Doctor</th>
-                    <th>Date & Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for appt in appointments %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ appt.patient.patient_profile.full_name }}</td>
-                    <td>Dr. {{ appt.doctor.doctor_profile.full_name }}</td>
-                    <td>{{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted">
-                        No upcoming appointments.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
 
-{% endblock %}
+
+
+    <!-- ================= APPOINTMENTS ================= -->
+    <div class="app-card">
+        <div class="app-card-header d-flex justify-content-between align-items-center">
+            <!-- LEFT SIDE (icon + text) -->
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-calendar-check header-icon" style="color: var(--appointment);"></i>
+                <span>Upcoming Appointments</span>
+            </div>
+
+            <!-- RIGHT SIDE (button) -->
+            <a href="{{ url_for('admin.manage_appointments') }}" class="btn-app btn-app-primary">
+                <i class="fa-solid fa-calendar-plus"></i> View All
+            </a>
+        </div>
+
+        {% if appointments %}
+        <div class="table-wrapper appointment-table">
+
+            <div class="table-header">
+                <div>Patient</div>
+                <div>Doctor</div>
+                <div>Date & Time</div>
+                <div>Status</div>
+                <div style="text-align:right;">Actions</div>
+            </div>
+
+            {% for appt in appointments %}
+            <div class="table-row">
+
+                <!-- Patient -->
+                <div class="row-user">
+                    <div class="avatar">
+                        {{ appt.patient.patient_profile.full_name[:1]|upper }}
+                    </div>
+                    <div class="row-user-info">
+                        <strong>{{ appt.patient.patient_profile.full_name }}</strong>
+                    </div>
+                </div>
+
+                <!-- Doctor -->
+                <div class="row-user-info">
+                    <strong>Dr. {{ appt.doctor.doctor_profile.full_name }}</strong>
+                </div>
+
+                <!-- Date -->
+                <div>
+                    <div class="row-date">
+                        {{ appt.appointment_datetime.strftime('%d %b %Y') }}
+                    </div>
+                    <div class="row-time">
+                        {{ appt.appointment_datetime.strftime('%I:%M %p') }}
+                    </div>
+                </div>
+
+                <!-- Status Dynamic -->
+                <div>
+                    {% if appt.status == "Completed" %}
+                    <span class="status-pill status-completed">
+                        <i class="fas fa-check-circle"></i> Completed
+                    </span>
+                    {% elif appt.status == "Cancelled" %}
+                    <span class="status-pill status-cancelled">
+                        <i class="fas fa-times-circle"></i> Cancelled
+                    </span>
+                    {% else %}
+                    <span class="status-pill status-pending">
+                        <i class="fas fa-clock"></i> Pending
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="row-actions">
+
+                    <a href="{{ url_for('admin.view_patient_history', user_id=appt.patient.id) }}"
+                        class="action-btn action-view">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+
+
+
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-empty">No upcoming appointments.</div>
+        {% endif %}
+    </div>
+
+
+    <!-- ================= Script ================= -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            let appointmentsChart;
+            let userChart;
+
+            fetch("/admin/dashboard/analytics")
+                .then(res => res.json())
+                .then(data => {
+
+                    const weeklyData = data.weekly_chart;
+                    const monthlyData = data.monthly_chart;
+                    const highestWeek = data.highest_week_value;
+                    const highestMonth = data.highest_month_value;
+                    const userDistribution = data.user_distribution;
+
+                    const ctx = document.getElementById("appointmentsChart").getContext("2d");
+                    const userCtx = document.getElementById("userChart").getContext("2d");
+
+                    const weeklyLabels = data.weekly_labels || ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+                    const monthlyLabels = data.monthly_labels ||
+                        Array.from({ length: 30 }, (_, i) => i + 1);
+
+                    // ================= GRADIENT =================
+                    function getGradient() {
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                        gradient.addColorStop(0, "rgba(13,110,253,0.35)");
+                        gradient.addColorStop(1, "rgba(13,110,253,0.05)");
+                        return gradient;
+                    }
+
+                    // ================= CREATE CHART =================
+                    function createAppointmentsChart(initialLabels, initialValues, highestValue) {
+
+                        appointmentsChart = new Chart(ctx, {
+                            type: "line",
+                            data: {
+                                labels: initialLabels,
+                                datasets: [{
+                                    label: "Appointments",
+                                    data: initialValues,
+                                    tension: 0.4,
+                                    fill: true,
+                                    backgroundColor: getGradient(),
+                                    borderColor: "#0d6efd",
+                                    borderWidth: 3,
+                                    pointRadius: initialValues.map(v => v === highestValue ? 6 : 4),
+                                    pointBackgroundColor: initialValues.map(v => v === highestValue ? "#ff5733" : "#0d6efd")
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                animation: {
+                                    duration: 700,
+                                    easing: "easeInOutCubic"
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                                return context.parsed.y + " appointments";
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // ================= UPDATE CHART (SMOOTH) =================
+                    function updateAppointmentsChart(labels, values, highestValue) {
+
+                        appointmentsChart.data.labels = labels;
+                        appointmentsChart.data.datasets[0].data = values;
+
+                        appointmentsChart.data.datasets[0].pointRadius =
+                            values.map(v => v === highestValue ? 6 : 4);
+
+                        appointmentsChart.data.datasets[0].pointBackgroundColor =
+                            values.map(v => v === highestValue ? "#ff5733" : "#0d6efd");
+
+                        appointmentsChart.update('active'); // smooth transition mode
+                    }
+
+                    // ================= USER CHART =================
+                    function createUserChart() {
+
+                        if (userChart) {
+                            userChart.destroy();
+                        }
+
+                        userChart = new Chart(userCtx, {
+                            type: "doughnut",
+                            data: {
+                                labels: ["Patients", "Doctors"],
+                                datasets: [{
+                                    data: [
+                                        userDistribution.patients,
+                                        userDistribution.doctors
+                                    ],
+                                    backgroundColor: [
+                                        "rgba(91, 174, 125, 0.85)",
+                                        "rgba(209, 122, 74, 0.85)"
+                                    ],
+                                    hoverBackgroundColor: [
+                                        "#4C9E6E",
+                                        "#C46638"
+                                    ],
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                cutout: "68%",
+                                responsive: true,
+                                animation: {
+                                    duration: 1000,
+                                    easing: "easeOutQuart"
+                                },
+                                plugins: {
+                                    legend: {
+                                        position: "bottom",
+                                        labels: {
+                                            usePointStyle: true,
+                                            pointStyle: "circle",
+                                            padding: 20,
+                                            font: {
+                                                size: 13,
+                                                weight: "500"
+                                            }
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                                return context.label + ": " + context.raw;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+
+                    // ================= INITIALIZE =================
+                    createAppointmentsChart(weeklyLabels, weeklyData, highestWeek);
+                    createUserChart();
+
+                    // ================= TOGGLE BUTTONS =================
+                    // ================= TOGGLE BUTTONS =================
+
+                    const weeklyBtn = document.getElementById("weeklyBtn");
+                    const monthlyBtn = document.getElementById("monthlyBtn");
+
+                    weeklyBtn.addEventListener("click", function () {
+
+                        if (this.classList.contains("active")) return;
+
+                        // Toggle UI state
+                        weeklyBtn.classList.add("active");
+                        monthlyBtn.classList.remove("active");
+
+                        // Smooth chart update
+                        appointmentsChart.data.labels = weeklyLabels;
+                        appointmentsChart.data.datasets[0].data = weeklyData;
+
+                        appointmentsChart.data.datasets[0].pointRadius =
+                            weeklyData.map(v => v === highestWeek ? 6 : 4);
+
+                        appointmentsChart.data.datasets[0].pointBackgroundColor =
+                            weeklyData.map(v => v === highestWeek ? "#c46638" : "#3b82f6");
+
+                        appointmentsChart.update('active');  // smooth animation
+                    });
+
+
+                    monthlyBtn.addEventListener("click", function () {
+
+                        if (this.classList.contains("active")) return;
+
+                        // Toggle UI state
+                        monthlyBtn.classList.add("active");
+                        weeklyBtn.classList.remove("active");
+
+                        // Smooth chart update
+                        appointmentsChart.data.labels = monthlyLabels;
+                        appointmentsChart.data.datasets[0].data = monthlyData;
+
+                        appointmentsChart.data.datasets[0].pointRadius =
+                            monthlyData.map(v => v === highestMonth ? 6 : 4);
+
+                        appointmentsChart.data.datasets[0].pointBackgroundColor =
+                            monthlyData.map(v => v === highestMonth ? "#c46638" : "#3b82f6");
+
+                        appointmentsChart.update('active');  // smooth animation
+                    });
+
+
+                });
+        });
+    </script>
+
+
+
+
+    {% endblock %}

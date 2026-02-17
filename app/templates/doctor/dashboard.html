@@ -1,94 +1,200 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2 class="mb-4">
-    Welcome, Dr. {{ current_user.doctor_profile.full_name }}!
-</h2>
+<div class="dashboard-container">
 
-<!-- ================= TODAY ================= -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-white">
-        <h4 class="mb-0">Today</h4>
-    </div>
-    <div class="card-body">
-        {% if today_appointments %}
-            <ul class="list-group">
-                {% for appt in today_appointments %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>
-                        {{ appt.appointment_datetime.strftime('%I:%M %p') }}
-                        — {{ appt.patient.patient_profile.full_name }}
-                    </span>
-                    <div>
-                        <form
-                            action="{{ url_for('doctor.complete_appointment', appointment_id=appt.id) }}"
-                            method="POST"
-                            class="d-inline"
-                        >
-                            <button class="btn btn-sm btn-success">Complete</button>
-                        </form>
+    <!-- ================= UPCOMING APPOINTMENTS ================= -->
+    <div class="app-card mb-4">
+        <div class="app-card-header">
+            Upcoming Appointments
+        </div>
 
-                        <form
-                            action="{{ url_for('doctor.cancel_appointment', appointment_id=appt.id) }}"
-                            method="POST"
-                            class="d-inline"
-                            onsubmit="return confirm('Cancel this appointment?');"
-                        >
-                            <button class="btn btn-sm btn-outline-danger">Cancel</button>
-                        </form>
+        {% if upcoming_appointments %}
+        <div class="table-wrapper appointment-table" id="appointments-container">
+
+            <div class="table-header">
+                <div>Patient</div>
+                <div>Date</div>
+                <div>Time</div>
+                <div>Status</div>
+                <div class="text-end">Actions</div>
+            </div>
+
+            {% for appt in upcoming_appointments %}
+            {% set is_today = appt.appointment_datetime.date() == today %}
+
+            <div class="table-row {% if is_today %}today-highlight{% endif %}">
+
+                <!-- Patient -->
+                <div class="row-user">
+                    <div class="avatar">
+                        {{ appt.patient.patient_profile.full_name[:1]|upper }}
                     </div>
-                </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-muted mb-0">No appointments today.</p>
-        {% endif %}
-    </div>
-</div>
+                    <div class="row-user-info">
+                        <strong>
+                            {{ appt.patient.patient_profile.full_name }}
+                        </strong>
+                    </div>
+                </div>
 
-<!-- ================= TOMORROW ================= -->
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-white">
-        <h4 class="mb-0">Tomorrow</h4>
-    </div>
-    <div class="card-body">
-        {% if tomorrow_appointments %}
-            <ul class="list-group">
-                {% for appt in tomorrow_appointments %}
-                <li class="list-group-item">
+                <!-- Date -->
+                <div class="row-date">
+                    {{ appt.appointment_datetime.strftime('%d %b %Y') }}
+                    {% if is_today %}
+                        <span class="today-badge">Today</span>
+                    {% endif %}
+                </div>
+
+                <!-- Time -->
+                <div class="row-time">
                     {{ appt.appointment_datetime.strftime('%I:%M %p') }}
-                    — {{ appt.patient.patient_profile.full_name }}
-                </li>
-                {% endfor %}
-            </ul>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <span class="status-pill status-pending">
+                        Booked
+                    </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="row-actions">
+
+                    <a href="{{ url_for('doctor.view_patient_history', patient_id=appt.patient_id) }}"
+                       class="action-btn action-edit">
+                        <i class="fas fa-history"></i> History
+                    </a>
+
+                    <form action="{{ url_for('doctor.treat_patient', appointment_id=appt.id) }}" method="POST">
+                        <button class="action-btn action-activate">
+                            <i class="fas fa-check"></i> Complete
+                        </button>
+                    </form>
+
+                    <form action="{{ url_for('doctor.cancel_appointment', appointment_id=appt.id) }}"
+                          method="POST"
+                          onsubmit="return confirm('Cancel this appointment?');">
+                        <button class="action-btn action-delete">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
+            {% endfor %}
+        </div>
+
+        <!-- Infinite scroll trigger -->
+        {% if pagination.has_next %}
+        <div id="load-trigger"
+             data-next-page="{{ pagination.next_num }}"
+             style="height:40px;">
+        </div>
+        {% endif %}
+
         {% else %}
-            <p class="text-muted mb-0">No appointments tomorrow.</p>
+        <div class="card-empty">
+            No upcoming appointments.
+        </div>
         {% endif %}
     </div>
+
+
+    <!-- ================= ASSIGNED PATIENTS ================= -->
+    <div class="app-card">
+        <div class="app-card-header">
+            Assigned Patients
+        </div>
+
+        {% if patients %}
+        <div class="table-wrapper patient-table">
+
+            <div class="table-header">
+                <div>Patient</div>
+                <div>Email</div>
+                <div class="text-end">Actions</div>
+            </div>
+
+            {% for patient in patients %}
+            <div class="table-row">
+
+                <div class="row-user">
+                    <div class="avatar">
+                        {{ patient.patient_profile.full_name[:1]|upper }}
+                    </div>
+                    <div class="row-user-info">
+                        <strong>
+                            {{ patient.patient_profile.full_name }}
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="col-email">
+                    {{ patient.email }}
+                </div>
+
+                <div class="row-actions">
+                    <a href="{{ url_for('doctor.view_patient_history', patient_id=patient.id) }}"
+                       class="action-btn action-edit">
+                        <i class="fas fa-user"></i> View History
+                    </a>
+                </div>
+
+            </div>
+            {% endfor %}
+
+        </div>
+        {% else %}
+        <div class="card-empty">
+            You have no assigned patients yet.
+        </div>
+        {% endif %}
+    </div>
+
 </div>
 
-<!-- ================= UPCOMING ================= -->
-<div class="card shadow-sm">
-    <div class="card-header bg-white">
-        <h4 class="mb-0">Upcoming</h4>
-    </div>
-    <div class="card-body">
-        {% if future_appointments %}
-            {% for day, appts in future_appointments.items() %}
-                <h6 class="mt-3">{{ day.strftime('%d %b %Y') }}</h6>
-                <ul class="list-group mb-2">
-                    {% for appt in appts %}
-                    <li class="list-group-item">
-                        {{ appt.appointment_datetime.strftime('%I:%M %p') }}
-                        — {{ appt.patient.patient_profile.full_name }}
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% endfor %}
-        {% else %}
-            <p class="text-muted mb-0">No upcoming appointments.</p>
-        {% endif %}
-    </div>
-</div>
+
+<!-- ================= INFINITE SCROLL ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const trigger = document.getElementById("load-trigger");
+    if (!trigger) return;
+
+    const observer = new IntersectionObserver((entries) => {
+
+        if (entries[0].isIntersecting) {
+
+            const nextPage = trigger.dataset.nextPage;
+
+            fetch(`?page=${nextPage}`)
+                .then(res => res.text())
+                .then(html => {
+
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, "text/html");
+
+                    const newRows = doc.querySelectorAll("#appointments-container .table-row");
+                    const container = document.getElementById("appointments-container");
+
+                    newRows.forEach(row => container.appendChild(row));
+
+                    const newTrigger = doc.getElementById("load-trigger");
+
+                    if (newTrigger) {
+                        trigger.dataset.nextPage = newTrigger.dataset.nextPage;
+                    } else {
+                        observer.disconnect();
+                        trigger.remove();
+                    }
+                });
+        }
+
+    }, { threshold: 1.0 });
+
+    observer.observe(trigger);
+});
+</script>
 
 {% endblock %}

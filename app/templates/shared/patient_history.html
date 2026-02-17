@@ -1,0 +1,335 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="page-container app-page">
+
+    <!-- ================= HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>Patient History</h1>
+            <p class="page-subtitle">
+                Complete medical records and prescriptions
+            </p>
+        </div>
+
+        <a href="{{ back_url }}" class="btn-app btn-app-outline">
+            <i class="fas fa-arrow-left"></i>
+            Back
+        </a>
+    </div>
+
+
+    <!-- ================= PATIENT SUMMARY ================= -->
+    <div class="app-card mb-4">
+
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+
+            <!-- LEFT -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="avatar-circle" style="width:60px;height:60px;font-size:1.2rem;">
+                    {{ patient.patient_profile.full_name[0] }}
+                </div>
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        {{ patient.patient_profile.full_name }}
+                    </h5>
+
+                    <span class="status-pill {{ 'status-active' if patient.is_active else 'status-blacklisted' }}">
+                        {{ 'Active' if patient.is_active else 'Blacklisted' }}
+                    </span>
+
+                    <div class="small text-muted mt-1">
+                        {{ patient.email }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT INFO -->
+            <div class="d-flex flex-wrap gap-4 small">
+
+                <div>
+                    <div class="text-muted">Age</div>
+                    <div class="fw-semibold">{{ patient_age }}</div>
+                </div>
+
+                <div>
+                    <div class="text-muted">Gender</div>
+                    <div class="fw-semibold">
+                        {{ patient.patient_profile.gender or '—' }}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-muted">Blood Group</div>
+                    <div class="fw-semibold text-danger">
+                        {{ patient.patient_profile.blood_group or '—' }}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-muted">Contact</div>
+                    <div class="fw-semibold">
+                        {{ patient.patient_profile.contact_number or '—' }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ================= MEDICAL HISTORY TABLE ================= -->
+    <div class="app-card table-card">
+
+        <div class="app-card-header">
+            Medical Records
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+
+                <thead>
+                    <tr>
+                        <th>
+                            <i class="fas fa-list-ol me-1 text-muted"></i> Sr. No
+                        </th>
+                        <th>
+                            <i class="fas fa-calendar-day me-1 text-muted"></i> Date
+                        </th>
+                        <th>
+                            <i class="fas fa-user-md me-1 text-muted"></i> Doctor
+                        </th>
+                        <th>
+                            <i class="fas fa-stethoscope me-1 text-muted"></i> Visit Type
+                        </th>
+                        <th>
+                            <i class="fas fa-check-circle me-1 text-muted"></i> Status
+                        </th>
+                        <th>
+                            <i class="fas fa-notes-medical me-1 text-muted"></i> Diagnosis
+                        </th>
+                        <th>
+                            <i class="fas fa-pills me-1 text-muted"></i> Prescription
+                        </th>
+                        <th class="text-center">
+                            <i class="fas fa-cogs me-1 text-muted"></i> Actions
+                        </th>
+                    </tr>
+                </thead>
+
+
+                <tbody>
+                    {% for appt in history %}
+                    <tr>
+
+                        <td>{{ loop.index }}</td>
+
+                        <td>
+                            {{ appt.appointment_datetime.strftime('%d %b %Y') }}
+                        </td>
+
+                        <td>
+                            <strong>
+                                Dr. {{ appt.doctor.doctor_profile.full_name }}
+                            </strong>
+                            <div class="text-muted small">
+                                {{ appt.doctor.doctor_profile.department.name }}
+                            </div>
+                        </td>
+
+                        {% if appt.status == 'COMPLETED' and appt.treatment %}
+
+                        <td>{{ appt.treatment.visit_type or '—' }}</td>
+
+                        <td>
+                            <span class="status-pill status-completed">
+                                Completed
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ appt.treatment.diagnosis or '—' }}
+                        </td>
+
+                        <td>
+                            {% for line in appt.treatment.prescription.split('\n') if line.strip() %}
+                            <div class="small">
+                                • {{ line }}
+                            </div>
+                            {% endfor %}
+                        </td>
+
+                        <td class="text-center">
+
+                            <div class="d-flex justify-content-center gap-2">
+
+                                <!-- PRINT -->
+                                <button class="action-btn action-edit" onclick="printPrescription(
+                                        `{{ appt.treatment.prescription | replace('\n','\\n') }}`,
+                                        `{{ patient.patient_profile.full_name }}`,
+                                        `{{ appt.appointment_datetime.strftime('%d %b %Y') }}`,
+                                        `Dr. {{ appt.doctor.doctor_profile.full_name }}`
+                                    )">
+                                    <i class="fas fa-print"></i>
+                                </button>
+
+                                <!-- VIEW DETAILS -->
+                                <button class="action-btn action-activate" onclick="alert('Detailed view coming soon')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                        {% else %}
+
+                        <td>N/A</td>
+
+                        <td>
+                            <span class="status-pill status-pending">
+                                {{ appt.status }}
+                            </span>
+                        </td>
+
+                        <td colspan="2" class="text-muted fst-italic">
+                            No treatment details available.
+                        </td>
+
+                        <td></td>
+
+                        {% endif %}
+
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            No medical history found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ================= PREMIUM PRINT FUNCTION ================= -->
+<script>
+    function printPrescription(prescription, patientName, visitDate, doctorName) {
+
+        const printWindow = window.open('', '', 'width=900,height=700');
+
+        const formattedPrescription = prescription
+            .split("\\n")
+            .map(line => `<li>${line}</li>`)
+            .join("");
+
+        printWindow.document.write(`
+        <html>
+        <head>
+            <title>Prescription - HealNest</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 40px;
+                    color: #212529;
+                }
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    border-bottom: 2px solid #0d6efd;
+                    padding-bottom: 10px;
+                    margin-bottom: 25px;
+                }
+                .brand {
+                    font-size: 22px;
+                    font-weight: 700;
+                    color: #0d6efd;
+                }
+                .section { margin-bottom: 25px; }
+                .section h4 {
+                    margin-bottom: 10px;
+                    font-size: 15px;
+                    text-transform: uppercase;
+                }
+                .info-row { margin-bottom: 6px; font-size: 14px; }
+                .info-label { font-weight: 600; width: 110px; display: inline-block; }
+                ul { padding-left: 20px; }
+                li { margin-bottom: 6px; }
+                .signature {
+                    margin-top: 60px;
+                    text-align: right;
+                }
+                .signature-line {
+                    border-top: 1px solid #000;
+                    width: 200px;
+                    margin-left: auto;
+                    margin-top: 40px;
+                }
+                .footer {
+                    margin-top: 60px;
+                    font-size: 12px;
+                    color: #6c757d;
+                    border-top: 1px solid #dee2e6;
+                    padding-top: 10px;
+                }
+            </style>
+        </head>
+        <body>
+
+            <div class="header">
+                <div>
+                    <div class="brand">HealNest</div>
+                    <div style="font-size:13px;color:#6c757d;">
+                        Premium Healthcare System
+                    </div>
+                </div>
+                <div style="font-size:12px;">
+                    Printed: ${new Date().toLocaleDateString()}
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Patient Information</h4>
+                <div class="info-row">
+                    <span class="info-label">Patient:</span> ${patientName}
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Visit Date:</span> ${visitDate}
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Doctor:</span> ${doctorName}
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Prescription</h4>
+                <ul>${formattedPrescription}</ul>
+            </div>
+
+            <div class="signature">
+                <div class="signature-line"></div>
+                <div>${doctorName}</div>
+            </div>
+
+            <div class="footer">
+                This prescription is digitally generated by HealNest.
+            </div>
+
+        </body>
+        </html>
+    `);
+
+        printWindow.document.close();
+        printWindow.print();
+    }
+</script>
+
+{% endblock %}

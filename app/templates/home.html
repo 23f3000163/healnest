@@ -3,7 +3,7 @@
 
 <!-- HERO SECTION -->
 <section class="hero-section">
-    <div class="hero-overlay"></div>
+
 
     <div class="hero-content">
         <h1>Your Health is Our <span>Priority</span></h1>
@@ -98,17 +98,18 @@
             </ul>
 
             <div class="mt-4">
-                <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg me-2">Learn More About Us</a>
-                <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary btn-lg">Our Mission</a>
+                <a href="{{ url_for('main.login') }}" class="btn-app btn-app-primary">Learn More About Us</a>
+                <a href="{{ url_for('main.login') }}" class="btn-app btn-app-outline">Our Mission</a>
             </div>
         </div>
 
         <!-- IMAGE (RIGHT SIDE) -->
-        <div class="col-lg-6 order-lg-2 text-center">
-            <div class="about-image-wrapper">
+        <div class="col-lg-6 order-lg-2 d-flex align-items-center">
+            <div class="about-image-wrapper w-100">
                 <img src="{{ url_for('static', filename='images/staff.jpg') }}" class="about-image" alt="Medical Staff">
             </div>
         </div>
+
 
     </div>
 </div>
@@ -165,7 +166,7 @@
         <!-- Add more service cards here if needed -->
     </div>
     <div class="mt-5">
-        <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg">Explore All Services</a>
+        <a href="{{ url_for('main.login') }}" class="btn-app btn-app-primary">Explore All Services</a>
     </div>
 </div>
 
@@ -219,7 +220,7 @@
         <!-- Add more department cards here -->
     </div>
     <div class="mt-5">
-        <a href="{{ url_for('main.login') }}" class="btn btn-outline-primary">View All Departments</a>
+        <a href="{{ url_for('main.login') }}" class="btn-app btn-app-outline">View All Departments</a>
     </div>
 </div>
 
@@ -302,7 +303,7 @@
         <p class="lead text-muted col-lg-8 mx-auto mb-4">Schedule your visit with our expert medical professionals.
             Log
             in or sign up to easily choose your preferred date, time, and department online.</p>
-        <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg px-5 shadow">Book Your Appointment
+        <a href="{{ url_for('main.login') }}" class="btn-app btn-app-primary">Book Your Appointment
             Now</a>
     </div>
 </div>
@@ -313,18 +314,62 @@
     <h2 class="fw-bold mb-3">Get in Touch</h2>
     <p class="lead text-muted col-lg-8 mx-auto mb-4">Have questions? Need assistance? Contact us for appointments,
         inquiries, or emergency services. We're here to help 24/7.</p>
-    <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary btn-lg">Contact Us Information</a>
+    <a href="{{ url_for('main.login') }}" class="btn-app btn-app-outline">Contact Us Information</a>
 </div>
 
 <!-- Add simple soft background colors for icon circles -->
 <style>
-    /* FULL PAGE HERO */
-    /* === HERO SECTION STYLING === */
+    /* ============================= */
+    /* GLOBAL SMOOTHNESS */
+    /* ============================= */
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    section,
+    .container {
+        animation: fadeInSection 0.9s ease forwards;
+    }
+
+    @keyframes fadeInSection {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ============================= */
+    /* ULTRA PREMIUM HERO SECTION */
+    /* ============================= */
+
+    /* Remove default body spacing */
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* HERO SECTION — Full Width & No Gap */
     .hero-section {
         position: relative;
-        height: 100vh;
+        min-height: 100vh;
         width: 100%;
-        background: url("{{ url_for('static', filename='images/doctors.jpg') }}") no-repeat center center/cover;
+        margin-top: 0;
+        padding-top: 100px;
+        /* space for navbar height */
+        background: linear-gradient(90deg,
+            rgba(12, 35, 64, 0.85) 0%,
+            rgba(12, 35, 64, 0.75) 40%,
+            rgba(12, 35, 64, 0.4) 70%,
+            rgba(12, 35, 64, 0.1) 100%),
+        url("{{ url_for('static', filename='images/doctors.jpg') }}") no-repeat center center;
+
+        background-size: cover;
         display: flex;
         align-items: center;
         justify-content: flex-start;
@@ -332,151 +377,241 @@
         color: white;
     }
 
-    /* Blue Overlay */
+
+    /* Modern Gradient Overlay */
     .hero-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(13, 110, 253, 0.55);
-        backdrop-filter: blur(2px);
+        inset: 0;
+        background: linear-gradient(90deg,
+                rgba(15, 23, 42, 0.9) 0%,
+                rgba(15, 23, 42, 0.75) 40%,
+                rgba(15, 23, 42, 0.35) 100%);
+        backdrop-filter: blur(6px);
     }
 
-    /* Text Container */
+    /* Hero Content */
     .hero-content {
         position: relative;
         z-index: 2;
-        max-width: 600px;
+        max-width: 650px;
     }
 
-    /* Heading */
     .hero-content h1 {
-        font-size: 3.8rem;
-        font-weight: 700;
-        line-height: 1.2;
-        margin-bottom: 15px;
+        font-size: 4rem;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -1px;
+        margin-bottom: 20px;
+        opacity: 0;
+        animation: fadeUp 1s ease forwards;
     }
 
     .hero-content h1 span {
-        color: #ffc107;
+        background: linear-gradient(90deg, #3b82f6, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
-    /* Sub text */
     .hero-content p {
         font-size: 1.2rem;
+        opacity: 10;
         margin-bottom: 35px;
+        animation: fadeUp 1s ease 0.3s forwards;
     }
 
-    /* Button */
+    /* Premium CTA Button */
     .hero-btn {
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        background: #ffc107;
-        color: #000;
-        padding: 15px 30px;
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+        padding: 16px 36px;
         font-weight: 600;
-        font-size: 1.1rem;
-        border-radius: 50px;
+        font-size: 1.05rem;
+        border-radius: 60px;
         text-decoration: none;
-        transition: 0.3s;
+        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35);
+        transition: all 0.35s ease;
+        opacity: 0;
+        animation: fadeUp 1s ease 0.6s forwards;
     }
 
     .hero-btn:hover {
-        background: white;
-        transform: translateY(-3px);
+        transform: translateY(-6px) scale(1.05);
+        box-shadow: 0 18px 40px rgba(249, 115, 22, 0.45);
     }
 
-    /* Responsive Fix */
+    /* Floating Light Effect */
+    .hero-section::after {
+        content: "";
+        position: absolute;
+        top: -150px;
+        right: -150px;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.25), transparent 70%);
+        animation: floatGlow 8s ease-in-out infinite;
+    }
+
+    @keyframes floatGlow {
+
+        0%,
+        100% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(20px);
+        }
+    }
+
+    /* Fade Animation */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive Hero */
     @media (max-width: 768px) {
         .hero-section {
+            padding: 0 20px;
             justify-content: center;
             text-align: center;
-            padding-left: 0;
         }
 
         .hero-content h1 {
             font-size: 2.5rem;
         }
-
-        .hero-btn {
-            justify-content: center;
-        }
     }
 
-    /* ==== Fade In Animation ==== */
-    @keyframes fadeInUp {
-        0% {
-            opacity: 0;
-            transform: translateY(20px);
-        }
+    /* ============================= */
+    /* PREMIUM STATS SECTION */
+    /* ============================= */
 
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .card.shadow-sm {
+        border-radius: 20px;
+        backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.95);
+        transition: 0.3s ease;
     }
 
-    .hero-content h1,
-    .hero-content p,
-    .hero-btn {
-        opacity: 0;
-        animation: fadeInUp 1.2s ease forwards;
+    .card.shadow-sm:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
     }
 
-    /* Stagger the animation timing */
-    .hero-content h1 {
-        animation-delay: 0.2s;
+    /* ============================= */
+    /* SECTION TITLES ACCENT */
+    /* ============================= */
+
+    h2.fw-bold {
+        position: relative;
+        display: inline-block;
     }
 
-    .hero-content p {
-        animation-delay: 0.5s;
+    h2.fw-bold::after {
+        content: "";
+        display: block;
+        width: 70px;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #f97316);
+        margin: 12px auto 0;
+        border-radius: 10px;
     }
 
-    .hero-btn {
-        animation-delay: 0.9s;
+    /* ============================= */
+    /* PREMIUM CARDS */
+    /* ============================= */
+
+    .card {
+        border-radius: 18px !important;
+        transition: all 0.35s ease;
     }
 
-    .hero-btn:hover {
-        background: #ffca2c;
-        transform: translateY(-4px) scale(1.03);
-        box-shadow: 0px 8px 18px rgba(255, 193, 7, 0.3);
+    .hover-lift {
+        transition: all 0.35s ease;
     }
+
+    .hover-lift:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+    }
+
+    /* ============================= */
+    /* TESTIMONIAL ENHANCEMENT */
+    /* ============================= */
+
+    .card-body {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover .card-body {
+        transform: translateY(-4px);
+    }
+
+    /* ============================= */
+    /* CTA SECTION GLOW */
+    /* ============================= */
+
+    .bg-primary-soft {
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+    }
+
+    /* ============================= */
+    /* ICON CIRCLE POLISH */
+    /* ============================= */
+
+    .icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s ease;
+    }
+
+    .icon-circle:hover {
+        transform: scale(1.08);
+    }
+
+    /* ABOUT IMAGE — CLEAN PREMIUM FIX */
 
     .about-image-wrapper {
+        position: relative;
         width: 100%;
-        height: 350px;
-        border-radius: 20px;
+        max-height: 480px;
+        border-radius: 24px;
         overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeIn 1.4s ease-out forwards;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08);
+        transition: transform 0.5s ease;
     }
 
+    /* Make image responsive and proportional */
     .about-image {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: 0.5s ease;
+        display: block;
+        transition: transform 0.6s ease;
     }
 
+    /* Subtle hover zoom */
     .about-image-wrapper:hover .about-image {
         transform: scale(1.05);
-        transition: 0.5s ease-in-out;
     }
 
-    .about-image {
-        transition: 0.6s ease-in-out;
-    }
-
-
-    @keyframes fadeIn {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    /* Remove any grey spacing above */
+    #about {
+        padding-top: 80px;
     }
 </style>
 

@@ -1,0 +1,70 @@
+/* =========================================================
+   HealNest Auth Styles
+   (Login / Register pages only)
+   ========================================================= */
+
+/* ------------------------------
+   Auth Layout
+------------------------------ */
+
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8fafc, #eaf2f7);
+    padding: 2rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-soft);
+    padding: 2rem;
+}
+
+/* ------------------------------
+   Password Strength Bar
+------------------------------ */
+
+.password-strength {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 50px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+
+.password-strength #strengthBar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* ------------------------------
+   Reusable Small Utilities
+------------------------------ */
+
+.text-brand {
+    color: var(--brand-primary);
+}
+
+.hover-lift {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-soft);
+}
+
+/* ------------------------------
+   Home Page Hero Spacing
+------------------------------ */
+
+.hero-section {
+    margin-top: 60px;
+}

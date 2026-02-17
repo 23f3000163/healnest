@@ -4,103 +4,174 @@
 {% set patient = appointment.patient %}
 {% set profile = patient.patient_profile %}
 
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">
-            Treating:
-            {{ profile.full_name if profile else 'Unknown Patient' }}
-        </h4>
-    </div>
-    <div class="card-body">
-        <p>
-            <strong>Appointment Date:</strong>
-            {{ appointment.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}
-        </p>
-        <p>
-            <strong>Patient Email:</strong>
-            {{ patient.email }}
-        </p>
-    </div>
-</div>
+<div class="page-container app-page">
 
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">Patient Medical History</h5>
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>
+                Treating:
+                {{ profile.full_name if profile else 'Unknown Patient' }}
+            </h1>
+            <p class="page-subtitle">
+                {{ appointment.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}
+            </p>
+        </div>
+
+        <a href="{{ url_for('doctor.dashboard') }}"
+           class="btn-app btn-app-outline">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
     </div>
-    <div class="card-body">
+
+
+    <!-- ================= PATIENT INFO ================= -->
+    <div class="app-card mb-4">
+        <div class="row">
+
+            <div class="col-md-6">
+                <p class="mb-2">
+                    <strong>Email:</strong> {{ patient.email }}
+                </p>
+            </div>
+
+            <div class="col-md-6">
+                <p class="mb-2">
+                    <strong>Appointment ID:</strong> {{ appointment.id }}
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ================= MEDICAL HISTORY ================= -->
+    <div class="app-card mb-4">
+
+        <h5 class="fw-semibold mb-4">
+            Patient Medical History
+        </h5>
+
         {% if patient_history %}
+
             {% for past_appt in patient_history %}
                 {% set treatment = past_appt.treatment %}
-                <div class="mb-3 p-3 bg-light rounded border">
-                    <p class="mb-1">
-                        <strong>Date:</strong>
-                        {{ past_appt.appointment_datetime.strftime('%d %b %Y') }}
-                    </p>
-                    <p class="mb-1">
-                        <strong>Doctor:</strong>
-                        Dr. {{ past_appt.doctor.doctor_profile.full_name }}
-                    </p>
 
-                    <hr class="my-2">
+                <div class="border rounded-3 p-4 mb-4"
+                     style="background:#f8fafc; border-color:#e5e7eb;">
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="fw-semibold">
+                            {{ past_appt.appointment_datetime.strftime('%d %b %Y') }}
+                        </div>
+                        <div class="text-muted small">
+                            Dr. {{ past_appt.doctor.doctor_profile.full_name }}
+                        </div>
+                    </div>
 
                     {% if treatment %}
-                        <p class="mb-1"><strong>Visit Type:</strong> {{ treatment.visit_type or '—' }}</p>
-                        <p class="mb-1"><strong>Tests Done:</strong> {{ treatment.tests_done or '—' }}</p>
-                        <p class="mb-1" style="white-space: pre-line;">
-                            <strong>Diagnosis:</strong> {{ treatment.diagnosis or '—' }}
-                        </p>
-                        <p class="mb-0" style="white-space: pre-line;">
-                            <strong>Prescription:</strong> {{ treatment.prescription or '—' }}
-                        </p>
-                    {% else %}
-                        <p class="text-muted mb-0">No treatment data recorded.</p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        {% else %}
-            <p class="text-muted mb-0">No past medical history found.</p>
-        {% endif %}
-    </div>
-</div>
 
-<div class="card shadow-sm">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">Add Treatment (Complete Appointment)</h5>
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <strong>Visit Type:</strong>
+                                <div class="text-muted">
+                                    {{ treatment.visit_type or '—' }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <strong>Tests Done:</strong>
+                                <div class="text-muted">
+                                    {{ treatment.tests_done or '—' }}
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <strong>Diagnosis:</strong>
+                                <div class="text-muted" style="white-space: pre-line;">
+                                    {{ treatment.diagnosis or '—' }}
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <strong>Prescription:</strong>
+                                <div class="text-muted" style="white-space: pre-line;">
+                                    {{ treatment.prescription or '—' }}
+                                </div>
+                            </div>
+
+                        </div>
+
+                    {% else %}
+                        <p class="text-muted mb-0">
+                            No treatment data recorded.
+                        </p>
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+            <div class="text-muted">
+                No past medical history found.
+            </div>
+        {% endif %}
+
     </div>
-    <div class="card-body">
+
+
+    <!-- ================= ADD TREATMENT ================= -->
+    <div class="app-card">
+
+        <h5 class="fw-semibold mb-4">
+            Complete Appointment
+        </h5>
+
         <form method="POST">
             {{ form.hidden_tag() }}
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.visit_type.label(class="form-label") }}
+            <div class="row g-4">
+
+                <div class="col-md-6">
+                    {{ form.visit_type.label(class="form-label fw-semibold") }}
                     {{ form.visit_type(class="form-control", required=True) }}
                 </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.tests_done.label(class="form-label") }}
+
+                <div class="col-md-6">
+                    {{ form.tests_done.label(class="form-label fw-semibold") }}
                     {{ form.tests_done(class="form-control") }}
                 </div>
+
+                <div class="col-12">
+                    {{ form.diagnosis.label(class="form-label fw-semibold") }}
+                    {{ form.diagnosis(class="form-control", required=True, rows="3") }}
+                </div>
+
+                <div class="col-12">
+                    {{ form.prescription.label(class="form-label fw-semibold") }}
+                    {{ form.prescription(class="form-control", required=True, rows="3") }}
+                </div>
+
             </div>
 
-            <div class="mb-3">
-                {{ form.diagnosis.label(class="form-label") }}
-                {{ form.diagnosis(class="form-control", required=True) }}
-            </div>
+            <div class="d-flex justify-content-between mt-4">
 
-            <div class="mb-3">
-                {{ form.prescription.label(class="form-label") }}
-                {{ form.prescription(class="form-control", required=True) }}
-            </div>
-
-            <div class="d-flex justify-content-between">
                 <a href="{{ url_for('doctor.dashboard') }}"
-                   class="btn btn-outline-secondary">
-                    Back to Dashboard
+                   class="btn-app btn-app-outline">
+                    Cancel
                 </a>
-                {{ form.submit(class="btn btn-success") }}
+
+                {{ form.submit(class="btn-app btn-app-primary") }}
+
             </div>
+
         </form>
+
     </div>
+
 </div>
 
-{% endblock content %}
+{% endblock %}

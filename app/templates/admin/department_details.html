@@ -1,61 +1,112 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="container mt-4">
+<div class="page-container">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>{{ department.name }}</h3>
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>{{ department.name }}</h1>
+            <p class="page-subtitle">
+                Department overview and assigned doctors
+            </p>
+        </div>
+
         <a href="{{ url_for('admin.manage_departments') }}"
-           class="btn btn-outline-secondary">
-            ← Back to All Departments
+           class="btn-app btn-app-outline">
+            <i class="fas fa-arrow-left"></i>
+            Back to Departments
         </a>
     </div>
 
+
     <!-- ================= DEPARTMENT DETAILS ================= -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="mb-2">Department Details</h5>
-            <p class="text-muted mb-0">
-                {{ department.description or 'No description available for this department.' }}
-            </p>
-        </div>
+    <div class="app-card mb-4">
+
+        <h5 class="fw-semibold mb-3">Department Details</h5>
+
+        <p class="mb-0 text-muted" style="line-height: 1.6;">
+            {{ department.description or
+               'No description available for this department.' }}
+        </p>
+
     </div>
 
-    <!-- ================= ASSIGNED DOCTORS ================= -->
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h5 class="mb-3">
-                Assigned Doctors
-                <span class="badge bg-success ms-2">{{ doctors | length }}</span>
-            </h5>
 
-            {% if doctors %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Contact Number</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for doctor in doctors %}
-                        <tr>
-                            <td>Dr. {{ doctor.doctor_profile.full_name }}</td>
-                            <td>{{ doctor.email }}</td>
-                            <td>{{ doctor.doctor_profile.contact_number or '—' }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-muted mb-0">
-                No doctors are currently assigned to this department.
-            </p>
-            {% endif %}
+    <!-- ================= ASSIGNED DOCTORS ================= -->
+    <div class="app-card table-card">
+
+        <!-- Section Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0 fw-semibold">Assigned Doctors</h5>
+
+            <span class="dept-pill">
+                {{ doctors | length }} Doctor{{ 's' if doctors|length != 1 else '' }}
+            </span>
         </div>
+
+        {% if doctors %}
+
+        <div class="table-responsive">
+            <table class="table align-middle data-table">
+
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">Doctor</th>
+                        <th style="width: 35%;">Email</th>
+                        <th style="width: 20%;">Contact Number</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for doctor in doctors %}
+                    <tr>
+
+                        <!-- DOCTOR -->
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle">
+                                    {{ doctor.doctor_profile.full_name[:1]|upper }}
+                                </div>
+
+                                <div>
+                                    <div class="fw-semibold">
+                                        Dr. {{ doctor.doctor_profile.full_name }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        ID: {{ doctor.id }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- EMAIL -->
+                        <td>
+                            <span class="text-dark">
+                                {{ doctor.email }}
+                            </span>
+                        </td>
+
+                        <!-- CONTACT -->
+                        <td>
+                            {{ doctor.doctor_profile.contact_number or '—' }}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        {% else %}
+
+        <div class="py-4 text-center text-muted">
+            No doctors are currently assigned to this department.
+        </div>
+
+        {% endif %}
+
     </div>
 
 </div>

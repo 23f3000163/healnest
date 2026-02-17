@@ -1,75 +1,255 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<style>
-    .table-badge {
-        font-size: 0.85rem;
-        padding: 0.4em 0.8em;
-        border-radius: 50rem;
-        font-weight: 600;
-        text-transform: capitalize;
-        display: inline-block;
-        line-height: 1;
-        vertical-align: middle;
-    }
-</style>
+<div class="page-container app-page">
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>All System Appointments</h2>
-    <a href="{{ url_for('admin.dashboard') }}"
-       class="btn btn-outline-secondary">
-        Back to Dashboard
-    </a>
-</div>
+    <!-- PAGE HEADER -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>All System Appointments</h1>
+            <p class="page-subtitle">Monitor and manage all appointments in the system</p>
+        </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
+        <a href="{{ url_for('admin.dashboard') }}"
+           class="btn-app btn-app-primary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+
+    <!-- ================= FILTER CARD ================= -->
+    <div class="app-card mb-4">
+
+        <form method="GET">
+
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="order" value="{{ order }}">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">Doctor</label>
+                    <select name="doctor_id" class="form-select">
+                        <option value="">All Doctors</option>
+                        {% for doc in doctors %}
+                        <option value="{{ doc.id }}"
+                            {% if request.args.get('doctor_id') == doc.id|string %}selected{% endif %}>
+                            Dr. {{ doc.doctor_profile.full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="BOOKED" {% if request.args.get('status') == 'BOOKED' %}selected{% endif %}>Booked</option>
+                        <option value="COMPLETED" {% if request.args.get('status') == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                        <option value="CANCELLED" {% if request.args.get('status') == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Date</label>
+                    <input type="date"
+                           name="date"
+                           value="{{ request.args.get('date', '') }}"
+                           class="form-control">
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn-app btn-app-primary w-100">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+
+    <!-- ================= TABLE CARD ================= -->
+    <div class="app-card table-card">
+
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
+
+            <table class="table table-hover align-middle data-table">
+
+                <thead>
                     <tr>
-                        <th>Patient Name</th>
-                        <th>Doctor Name</th>
-                        <th>Department</th>
-                        <th>Date & Time</th>
-                        <th>Status</th>
+                        <th style="width:8%;">Sr. No</th>
+
+                        <th style="width:20%;">
+                            <a href="{{ url_for('admin.manage_appointments',
+                                sort='patient',
+                                order='desc' if sort == 'patient' and order == 'asc' else 'asc',
+                                doctor_id=request.args.get('doctor_id'),
+                                status=request.args.get('status'),
+                                date=request.args.get('date')
+                            ) }}">
+                                Patient
+                                {% if sort == 'patient' %}
+                                    {{ '▲' if order == 'asc' else '▼' }}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width:20%;">
+                            <a href="{{ url_for('admin.manage_appointments',
+                                sort='doctor',
+                                order='desc' if sort == 'doctor' and order == 'asc' else 'asc',
+                                doctor_id=request.args.get('doctor_id'),
+                                status=request.args.get('status'),
+                                date=request.args.get('date')
+                            ) }}">
+                                Doctor
+                                {% if sort == 'doctor' %}
+                                    {{ '▲' if order == 'asc' else '▼' }}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width:18%;">Department</th>
+
+                        <th style="width:20%;">
+                            <a href="{{ url_for('admin.manage_appointments',
+                                sort='date',
+                                order='desc' if sort == 'date' and order == 'asc' else 'asc',
+                                doctor_id=request.args.get('doctor_id'),
+                                status=request.args.get('status'),
+                                date=request.args.get('date')
+                            ) }}">
+                                Date & Time
+                                {% if sort == 'date' %}
+                                    {{ '▲' if order == 'asc' else '▼' }}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width:17%;">
+                            <a href="{{ url_for('admin.manage_appointments',
+                                sort='status',
+                                order='desc' if sort == 'status' and order == 'asc' else 'asc',
+                                doctor_id=request.args.get('doctor_id'),
+                                status=request.args.get('status'),
+                                date=request.args.get('date')
+                            ) }}">
+                                Status
+                                {% if sort == 'status' %}
+                                    {{ '▲' if order == 'asc' else '▼' }}
+                                {% endif %}
+                            </a>
+                        </th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    {% for appt in appointments %}
+                    {% for appt in appointments.items %}
                     <tr>
-                        <td>{{ appt.patient.patient_profile.full_name }}</td>
-                        <td>Dr. {{ appt.doctor.doctor_profile.full_name }}</td>
-                        <td>{{ appt.doctor.doctor_profile.department.name }}</td>
+
+                        <td>
+                            {{ (appointments.page - 1) * appointments.per_page + loop.index }}
+                        </td>
+
+                        <td>
+                            {{ appt.patient.patient_profile.full_name }}
+                        </td>
+
+                        <td>
+                            Dr. {{ appt.doctor.doctor_profile.full_name }}
+                        </td>
+
+                        <td>
+                            {{ appt.doctor.doctor_profile.department.name
+                               if appt.doctor.doctor_profile.department else "-" }}
+                        </td>
+
                         <td>
                             {{ appt.appointment_datetime.strftime('%d %b %Y, %I:%M %p') }}
                         </td>
+
                         <td>
                             {% if appt.status == 'BOOKED' %}
-                                <span class="badge bg-primary table-badge">Booked</span>
+                                <span class="status-pill" style="background:#e3f2fd;color:#1565c0;">
+                                    Booked
+                                </span>
                             {% elif appt.status == 'COMPLETED' %}
-                                <span class="badge bg-success table-badge">Completed</span>
+                                <span class="status-pill status-active">
+                                    Completed
+                                </span>
                             {% elif appt.status == 'CANCELLED' %}
-                                <span class="badge bg-danger table-badge">Cancelled</span>
+                                <span class="status-pill status-blacklisted">
+                                    Cancelled
+                                </span>
                             {% else %}
-                                <span class="badge bg-secondary table-badge">
-                                    {{ appt.status | lower }}
+                                <span class="status-pill">
+                                    {{ appt.status }}
                                 </span>
                             {% endif %}
                         </td>
+
                     </tr>
+
                     {% else %}
                     <tr>
-                        <td colspan="5"
-                            class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center py-4 text-muted">
                             No appointments found in the system.
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
+
             </table>
         </div>
+
+
+        <!-- PAGINATION -->
+        {% if appointments.pages > 1 %}
+        <div class="pagination-wrapper">
+
+            {% if appointments.has_prev %}
+            <a href="{{ url_for('admin.manage_appointments',
+                        page=appointments.prev_num,
+                        sort=sort,
+                        order=order,
+                        doctor_id=request.args.get('doctor_id'),
+                        status=request.args.get('status'),
+                        date=request.args.get('date')
+                    ) }}"
+               class="btn-app btn-app-outline btn-sm">
+                Previous
+            </a>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+            <div class="pagination-info">
+                Page {{ appointments.page }} of {{ appointments.pages }}
+            </div>
+
+            {% if appointments.has_next %}
+            <a href="{{ url_for('admin.manage_appointments',
+                        page=appointments.next_num,
+                        sort=sort,
+                        order=order,
+                        doctor_id=request.args.get('doctor_id'),
+                        status=request.args.get('status'),
+                        date=request.args.get('date')
+                    ) }}"
+               class="btn-app btn-app-outline btn-sm">
+                Next
+            </a>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+        </div>
+        {% endif %}
+
     </div>
+
 </div>
 
-{% endblock content %}
+{% endblock %}

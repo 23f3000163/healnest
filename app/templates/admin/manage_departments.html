@@ -1,86 +1,144 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="container mt-4">
+<div class="page-container app-page">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Manage Departments</h3>
-        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal">
-            + Create New Department
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Manage Departments</h1>
+            <p class="page-subtitle">Create, update and manage hospital departments</p>
+        </div>
+
+        <button class="btn-app btn-app-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal">
+            <i class="fas fa-plus"></i> Create Department
         </button>
     </div>
 
-    <div class="card shadow-sm">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Doctors</th>
-                    <th style="width: 22%;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for department in departments %}
-                <tr>
-                    <td>{{ department.name }}</td>
+    <!-- ================= TABLE CARD ================= -->
+    <div class="app-card table-card">
 
-                    <td>
-                        {{ department.description[:60] ~ '…' if department.description else '—' }}
-                    </td>
+        <div class="table-responsive">
 
-                    <td>
-                        <span class="badge bg-success">
-                            {{ department.doctors | length }}
-                        </span>
-                    </td>
+            <table class="table table-hover align-middle data-table">
 
-                    <td>
-                        <!-- View -->
-                        <a href="{{ url_for('admin.department_details', dept_id=department.id) }}"
-                           class="btn btn-outline-info btn-sm">
-                            View
-                        </a>
+                <thead>
+                    <tr>
+                        <th style="width:25%;">Name</th>
+                        <th style="width:35%;">Description</th>
+                        <th style="width:15%;">Doctors</th>
+                        <th style="width:25%;" class="text-end">Actions</th>
+                    </tr>
+                </thead>
 
-                        <!-- Edit -->
-                        <button class="btn btn-outline-warning btn-sm"
-                                data-bs-toggle="modal"
-                                data-bs-target="#editDeptModal"
-                                data-id="{{ department.id }}"
-                                data-name="{{ department.name }}"
-                                data-description="{{ department.description }}">
-                            Edit
-                        </button>
+                <tbody>
+                    {% for department in departments.items %}
+                    <tr>
 
-                        <!-- Delete -->
-                        <form action="{{ url_for('admin.delete_department', dept_id=department.id) }}"
-                              method="POST"
-                              class="d-inline"
-                              onsubmit="return confirm('Are you sure? This action cannot be undone.');">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                Delete
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-4">
-                        No departments found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        <!-- NAME -->
+                        <td class="fw-semibold">
+                            {{ department.name }}
+                        </td>
+
+                        <!-- DESCRIPTION -->
+                        <td class="text-muted">
+                            {{ department.description[:80] ~ '…'
+                            if department.description else '—' }}
+                        </td>
+
+                        <!-- DOCTOR COUNT -->
+                        <td>
+                            {% set doctor_count = department.doctors | length %}
+                            <span class="dept-pill">
+                                {{ doctor_count }} {{ "Doctor" if doctor_count == 1 else "Doctors" }}
+                            </span>
+
+                        </td>
+
+                        <!-- ACTIONS -->
+                        <td class="text-end">
+                            <div class="row-actions">
+
+                                <!-- VIEW -->
+                                <a href="{{ url_for('admin.department_details', dept_id=department.id) }}"
+                                    class="action-btn action-activate">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+
+                                <!-- EDIT -->
+                                <button class="action-btn action-edit" data-bs-toggle="modal"
+                                    data-bs-target="#editDeptModal" data-id="{{ department.id }}"
+                                    data-name="{{ department.name }}" data-description="{{ department.description }}">
+                                    <i class="fas fa-pen"></i> Edit
+                                </button>
+
+                                <!-- DELETE -->
+                                <form action="{{ url_for('admin.delete_department', dept_id=department.id) }}"
+                                    method="POST" class="d-inline"
+                                    onsubmit="return confirm('Are you sure? This cannot be undone.');">
+                                    <button type="submit" class="action-btn action-delete">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            No departments found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        <!-- ================= PAGINATION ================= -->
+        {% if departments.pages > 1 %}
+        <div class="pagination-wrapper">
+
+            {% if departments.has_prev %}
+            <a href="{{ url_for('admin.manage_departments',
+                        page=departments.prev_num) }}" class="btn-app btn-app-outline btn-sm">
+                Previous
+            </a>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+            <div class="pagination-info">
+                Page {{ departments.page }} of {{ departments.pages }}
+            </div>
+
+            {% if departments.has_next %}
+            <a href="{{ url_for('admin.manage_departments',
+                        page=departments.next_num) }}" class="btn-app btn-app-outline btn-sm">
+                Next
+            </a>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+        </div>
+        {% endif %}
+
     </div>
+
 </div>
+
 
 <!-- ================= ADD DEPARTMENT MODAL ================= -->
 <div class="modal fade" id="addDeptModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content app-modal">
 
             <form method="POST" action="{{ url_for('admin.manage_departments') }}">
+
                 {{ form.hidden_tag() }}
 
                 <div class="modal-header">
@@ -89,6 +147,7 @@
                 </div>
 
                 <div class="modal-body">
+
                     <div class="mb-3">
                         {{ form.name.label(class="form-label") }}
                         {{ form.name(class="form-control", required=True) }}
@@ -96,30 +155,35 @@
 
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
-                        {{ form.description(class="form-control") }}
+                        {{ form.description(class="form-control", rows="3") }}
                     </div>
+
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="btn-app btn-app-outline" data-bs-dismiss="modal">
                         Cancel
                     </button>
-                    <button type="submit" class="btn btn-outline-primary">
-                        Add Department
+
+                    <button type="submit" class="btn-app btn-app-primary">
+                        Create
                     </button>
                 </div>
+
             </form>
 
         </div>
     </div>
 </div>
 
+
 <!-- ================= EDIT DEPARTMENT MODAL ================= -->
 <div class="modal fade" id="editDeptModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content app-modal">
 
             <form method="POST" action="{{ url_for('admin.edit_department') }}">
+
                 <input type="hidden" name="dept_id" id="editDeptId">
 
                 <div class="modal-header">
@@ -128,6 +192,7 @@
                 </div>
 
                 <div class="modal-body">
+
                     <div class="mb-3">
                         <label class="form-label">Department Name</label>
                         <input type="text" name="name" id="editDeptName" class="form-control" required>
@@ -135,35 +200,44 @@
 
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea name="description" id="editDeptDesc"
-                                  class="form-control" rows="3"></textarea>
+                        <textarea name="description" id="editDeptDesc" class="form-control" rows="3"></textarea>
                     </div>
+
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="btn-app btn-app-outline" data-bs-dismiss="modal">
                         Cancel
                     </button>
-                    <button type="submit" class="btn btn-outline-primary">
+
+                    <button type="submit" class="btn-app btn-app-primary">
                         Save Changes
                     </button>
                 </div>
+
             </form>
 
         </div>
     </div>
 </div>
 
-<!-- ================= MODAL SCRIPT ================= -->
-<script>
-    document.getElementById('editDeptModal').addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
 
-        document.getElementById('editDeptId').value = button.getAttribute('data-id');
-        document.getElementById('editDeptName').value = button.getAttribute('data-name');
-        document.getElementById('editDeptDesc').value =
-            button.getAttribute('data-description') || '';
-    });
+<!-- ================= EDIT MODAL SCRIPT ================= -->
+<script>
+    document.getElementById('editDeptModal')
+        .addEventListener('show.bs.modal', function (event) {
+
+            const button = event.relatedTarget;
+
+            document.getElementById('editDeptId').value =
+                button.getAttribute('data-id');
+
+            document.getElementById('editDeptName').value =
+                button.getAttribute('data-name');
+
+            document.getElementById('editDeptDesc').value =
+                button.getAttribute('data-description') || '';
+        });
 </script>
 
 {% endblock %}

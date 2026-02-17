@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, TimeField, SelectField, TextAreaField, FieldList, FormField, IntegerField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, TimeField, SelectField, TextAreaField, FieldList, FormField, IntegerField, HiddenField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange, Optional
 from app.models import User, Department
 
@@ -28,7 +28,7 @@ class LoginForm(FlaskForm):
 
 
 class BookingForm(FlaskForm):
-  
+    selected_slot = HiddenField('Selected Slot', validators=[DataRequired()])
     submit = SubmitField('Confirm Appointment')
 
 

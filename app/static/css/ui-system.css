@@ -1,0 +1,430 @@
+/* =======================================================
+   HEALNEST UI SYSTEM — PRODUCTION ADMIN VERSION
+======================================================= */
+
+
+/* =========================
+   1. COLOR TOKENS
+========================= */
+
+:root {
+    --doctor: #c46638;
+    --doctor-dark: #a9562f;
+
+    --patient: #4e9f3d;
+    --appointment: #0d6efd;
+    --danger: #dc3545;
+
+    --text-dark: #1f2937;
+    --text-muted: #6b7280;
+
+    --border-light: #e5e7eb;
+    --border-soft: #f1f3f5;
+
+    --card-radius: 14px;
+}
+
+
+/* =========================
+   GLOBAL BACKGROUND
+========================= */
+
+body {
+    background: #f4f6f9;
+}
+
+
+/* =========================
+   PAGE STRUCTURE
+========================= */
+
+.page-container {
+    max-width: 1350px;
+    margin: 0 auto;
+    padding: 10px 12px;
+    /* reduced left-right padding */
+}
+
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+}
+
+.page-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.page-actions {
+    display: flex;
+    gap: 12px;
+}
+
+
+/* =========================
+   CARD SYSTEM
+========================= */
+
+.app-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    padding: 18px 20px;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+
+/* ===============================
+   TABLE CARD LAYOUT
+================================ */
+
+.app-page .table-card {
+    padding: 0;
+}
+
+.app-page .data-table {
+    width: 100%;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.app-page .data-table thead {
+    background: #e9edf2;
+}
+
+.app-page .data-table thead th {
+    padding: 16px 20px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+    color: #5b6573;
+    border-bottom: 1px solid #d6dbe1;
+}
+
+.app-page .data-table tbody td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.app-page .data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Hover */
+.app-page .data-table tbody tr:hover {
+    background: #f4f6f9d8;
+}
+
+/* Vertical column separators */
+.app-page .data-table th:not(:last-child),
+.app-page .data-table td:not(:last-child) {
+    border-right: 1px solid #eef1f4;
+}
+
+
+
+/* =========================
+   USER CELL
+========================= */
+
+.row-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #eef1f5;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+
+/* =========================
+   STATUS & DEPARTMENT PILLS
+========================= */
+
+.status-pill,
+.dept-pill {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-active {
+    background: #e6f4ea;
+    color: #2e7d32;
+}
+
+.status-blacklisted {
+    background: #fdecea;
+    color: #c62828;
+}
+
+.dept-pill {
+    background: rgba(196, 102, 56, 0.1);
+    color: var(--doctor);
+}
+
+
+/* =========================
+   ACTION BUTTON SYSTEM (TABLE)
+========================= */
+
+.app-page .row-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+}
+
+/* Base outline button */
+.app-page .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+/* EDIT (Blue) */
+.app-page .action-edit {
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+
+.app-page .action-edit:hover {
+    background: #0d6efd;
+    color: #fff;
+}
+
+/* DELETE (Red) */
+.app-page .action-delete {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.app-page .action-delete:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* BLACKLIST (Grey) */
+.app-page .action-blacklist {
+    border-color: #6c757d;
+    color: #495057;
+}
+
+.app-page .action-blacklist:hover {
+    background: #6c757d;
+    color: #fff;
+}
+
+/* ACTIVATE (Green) */
+.app-page .action-activate {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.app-page .action-activate:hover {
+    background: #28a745;
+    color: #fff;
+}
+
+
+/* =========================
+   PRIMARY BUTTON SYSTEM
+========================= */
+
+.btn-app {
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-app-primary {
+    background: var(--doctor);
+    color: white;
+    border: none;
+}
+
+.btn-app-primary:hover {
+    background: var(--doctor-dark);
+    color: white;
+}
+
+.btn-app-outline {
+    border: 1px solid var(--border-light);
+    background: white;
+    color: var(--text-dark);
+}
+
+.btn-app-outline:hover {
+    background: #f9fafb;
+}
+
+
+/* =========================
+   PAGINATION
+========================= */
+
+.pagination-wrapper {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pagination-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+
+
+
+/* =========================
+   RESPONSIVENESS
+========================= */
+
+@media (max-width: 992px) {
+
+
+
+    .app-page .table-header,
+    .app-page .table-row {
+        grid-template-columns: 1fr;
+    }
+
+
+    .row-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+/* =========================
+   AUTH FADE IN
+========================= */
+.auth-fade {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================
+   PREMIUM NAVBAR
+========================= */
+
+.navbar-premium {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-bottom: 1px solid #e5e7eb;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.navbar-premium .nav-link {
+    font-weight: 500;
+    color: #374151;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.navbar-premium .nav-link:hover {
+    background: #f3f4f6;
+}
+
+.navbar-premium .nav-link.active-link {
+    background: rgba(196, 102, 56, 0.1);
+    color: var(--doctor);
+}
+
+.navbar-search {
+    border-radius: 10px;
+    padding-left: 36px;
+    height: 36px;
+}
+
+.navbar-search-wrapper {
+    position: relative;
+}
+
+.navbar-search-wrapper i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.nav-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d97745, #fba87c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.history-table thead th i {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}

@@ -1,165 +1,205 @@
 {% extends "layout.html" %}
-
+{% set minimal_footer = True %}
 {% block content %}
 
-<div class="auth-wrapper d-flex justify-content-center align-items-center">
-    <div class="auth-card card-glass p-5 shadow-soft">
+<div class="page-container" style="max-width: 520px; margin-top: 70px; margin-bottom: 60px;">
 
-     
-        <div class="text-center mb-4">
-            <i class="fa-solid fa-user-plus icon-lg"></i>
-            <h2 class="fw-semibold mt-3">Create Your Account</h2>
-            <p class="text-muted">Join Healnest and manage your health with ease.</p>
-        </div>
+    <!-- HEADER -->
+    <div class="text-center mb-4">
+        <h1 style="font-family:'Playfair Display', serif;">
+            HealNest
+        </h1>
+        <p class="page-subtitle">
+            Create your account to manage appointments seamlessly.
+        </p>
+    </div>
 
-      
-        <form method="POST" action="">
+    <!-- CARD -->
+    <div class="app-card auth-fade">
+
+        <form method="POST" novalidate>
             {{ form.hidden_tag() }}
 
-          
+            <!-- EMAIL -->
             <div class="mb-3">
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control form-input-pill", id="emailField", placeholder="name@example.com") }}
-                <small id="emailFeedback" class="text-danger d-none">Invalid or already in use</small>
+                {{ form.email.label(class="form-label fw-semibold") }}
+                {{ form.email(class="form-control",
+                              id="emailField",
+                              placeholder="name@example.com",
+                              autocomplete="email") }}
+                <small id="emailFeedback" class="text-danger d-none">
+                    Please enter a valid email.
+                </small>
             </div>
 
-         
-            <div class="mb-3 position-relative">
-                {{ form.password.label(class="form-label") }}
-                {{ form.password(class="form-control form-input-pill", id="passwordField", placeholder="Create a strong
-                password") }}
+            <!-- PASSWORD -->
+            <div class="mb-3">
+                {{ form.password.label(class="form-label fw-semibold") }}
 
-                
-                <i class="fa-solid fa-eye-slash password-toggle" id="togglePassword"></i>
-
-                
-                <div class="password-strength mt-2">
-                    <div id="strengthBar"></div>
+                <div class="input-group">
+                    {{ form.password(class="form-control",
+                                     id="passwordField",
+                                     placeholder="Create a strong password",
+                                     autocomplete="new-password") }}
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
-                <small id="passwordHint" class="text-muted">Use 8+ characters, including numbers, uppercase, and
-                    symbols.</small>
+
+                <!-- Strength Bar -->
+                <div class="mt-3" style="height:6px; background:#e5e7eb; border-radius:999px;">
+                    <div id="strengthBar"
+                         style="height:6px; width:0%; border-radius:999px; transition:0.3s;">
+                    </div>
+                </div>
+
+                <small class="text-muted">
+                    Use 8+ characters with uppercase, numbers and symbols.
+                </small>
             </div>
 
-         
+            <!-- CONFIRM PASSWORD -->
             <div class="mb-4">
-                {{ form.confirm_password.label(class="form-label") }}
-                {{ form.confirm_password(class="form-control form-input-pill", id="confirmField", placeholder="Re-enter
-                password") }}
-                <small id="confirmFeedback" class="text-danger d-none">Passwords do not match</small>
+                {{ form.confirm_password.label(class="form-label fw-semibold") }}
+                {{ form.confirm_password(class="form-control",
+                                         id="confirmField",
+                                         placeholder="Re-enter password",
+                                         autocomplete="new-password") }}
+                <small id="confirmFeedback" class="text-danger d-none">
+                    Passwords do not match.
+                </small>
             </div>
 
-          
-            <button id="submitBtn" class="btn-brand w-100 py-2 mb-3" disabled>
-                Sign Up
+            <!-- SUBMIT -->
+            <button id="submitBtn"
+                    class="btn-app btn-app-primary w-100"
+                    disabled>
+                Create Account
             </button>
 
+            <!-- TRUST SIGNALS -->
+            <div class="text-center mt-3">
+                <small class="text-muted d-block">
+                    🔒 Your data is encrypted and secure.
+                </small>
+                <small class="text-muted d-block">
+                    🏥 Trusted by doctors & patients.
+                </small>
+            </div>
 
-        
-            <p class="text-center small text-muted">
-                Already have an account?
-                <a href="{{ url_for('main.login') }}" class="fw-semibold text-primary">Login</a>
-            </p>
         </form>
+
+        <hr>
+
+        <div class="text-center">
+            <small class="text-muted">
+                Already have an account?
+                <a href="{{ url_for('main.login') }}"
+                   class="fw-semibold text-decoration-none">
+                    Login
+                </a>
+            </small>
+        </div>
+
     </div>
+
 </div>
 
 {% endblock %}
 
 {% block scripts %}
-
 <script>
-  
-    const togglePassword = document.getElementById("togglePassword");
-    const passwordField = document.getElementById("passwordField");
 
-    togglePassword.addEventListener("click", () => {
-        const type = passwordField.type === "password" ? "text" : "password";
-        passwordField.type = type;
-        togglePassword.classList.toggle("fa-eye");
-        togglePassword.classList.toggle("fa-eye-slash");
-    });
+// PASSWORD TOGGLE
+const togglePassword = document.getElementById("togglePassword");
+const passwordField = document.getElementById("passwordField");
 
-   
-    const strengthBar = document.getElementById("strengthBar");
+togglePassword.addEventListener("click", () => {
+    const type = passwordField.type === "password" ? "text" : "password";
+    passwordField.type = type;
+    togglePassword.innerHTML =
+        type === "password"
+            ? '<i class="fas fa-eye"></i>'
+            : '<i class="fas fa-eye-slash"></i>';
+});
 
-    passwordField.addEventListener("input", () => {
-        const password = passwordField.value;
-        let score = 0;
+// PASSWORD STRENGTH
+const strengthBar = document.getElementById("strengthBar");
 
-        if (password.length >= 8) score++;
-        if (/[A-Z]/.test(password)) score++;
-        if (/[0-9]/.test(password)) score++;
-        if (/[^A-Za-z0-9]/.test(password)) score++;
+passwordField.addEventListener("input", () => {
+    const password = passwordField.value;
+    let score = 0;
 
-        const widthMap = ["15%", "35%", "65%", "100%"];
-        const colorMap = ["#C62828", "#ED6C02", "#FFC107", "#2E7D32"];
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
 
-        strengthBar.style.width = widthMap[score - 1] || "0%";
-        strengthBar.style.background = colorMap[score - 1] || "#C62828";
-    });
+    const widthMap = ["25%", "50%", "75%", "100%"];
+    const colorMap = ["#dc3545", "#f59e0b", "#3b82f6", "#16a34a"];
 
-  
-    const confirmField = document.getElementById("confirmField");
-    const confirmFeedback = document.getElementById("confirmFeedback");
+    strengthBar.style.width = widthMap[score - 1] || "0%";
+    strengthBar.style.background = colorMap[score - 1] || "#e5e7eb";
 
-    function validateConfirm() {
-        if (!passwordField.value || !confirmField.value) return;
+    validateForm();
+});
 
-        if (confirmField.value === passwordField.value) {
-            confirmField.classList.add("success-border");
-            confirmFeedback.classList.add("d-none");
-        } else {
-            confirmField.classList.remove("success-border");
-            confirmFeedback.classList.remove("d-none");
-        }
+// CONFIRM PASSWORD
+const confirmField = document.getElementById("confirmField");
+const confirmFeedback = document.getElementById("confirmFeedback");
+
+function validateConfirm() {
+    if (!confirmField.value) return;
+
+    if (confirmField.value === passwordField.value) {
+        confirmField.classList.remove("is-invalid");
+        confirmField.classList.add("is-valid");
+        confirmFeedback.classList.add("d-none");
+    } else {
+        confirmField.classList.remove("is-valid");
+        confirmField.classList.add("is-invalid");
+        confirmFeedback.classList.remove("d-none");
     }
-    passwordField.addEventListener("input", validateConfirm);
-    confirmField.addEventListener("input", validateConfirm);
 
-    const emailField = document.getElementById("emailField");
-    const emailFeedback = document.getElementById("emailFeedback");
+    validateForm();
+}
 
-    emailField.addEventListener("blur", () => {
-        const value = emailField.value;
+passwordField.addEventListener("input", validateConfirm);
+confirmField.addEventListener("input", validateConfirm);
 
-        if (!value.includes("@") || !value.includes(".")) {
-            emailFeedback.innerText = "Invalid email format.";
-            emailFeedback.classList.remove("d-none");
-            emailField.classList.remove("success-border");
-            return;
-        }
+// EMAIL VALIDATION
+const emailField = document.getElementById("emailField");
+const emailFeedback = document.getElementById("emailFeedback");
 
-        
+emailField.addEventListener("blur", () => {
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailField.value);
+
+    if (!valid) {
+        emailField.classList.add("is-invalid");
+        emailFeedback.classList.remove("d-none");
+    } else {
+        emailField.classList.remove("is-invalid");
         emailFeedback.classList.add("d-none");
-        emailField.classList.add("success-border");
-    });
+    }
 
-    const submitBtn = document.getElementById("submitBtn");
+    validateForm();
+});
 
-    setInterval(() => {
-        const passwordStrength = parseInt(strengthBar.style.width) || 0;
+// ENABLE BUTTON
+const submitBtn = document.getElementById("submitBtn");
 
-        const valid =
-            emailField.classList.contains("success-border") &&
-            confirmField.classList.contains("success-border") &&
-            passwordStrength >= 40; 
+function validateForm() {
+    const strongEnough =
+        strengthBar.style.width === "75%" ||
+        strengthBar.style.width === "100%";
 
-        submitBtn.disabled = !valid;
-        submitBtn.style.opacity = valid ? "1" : ".6";
-        submitBtn.style.cursor = valid ? "pointer" : "not-allowed";
-    }, 200);
+    const emailValid = !emailField.classList.contains("is-invalid");
+    const confirmValid = confirmField.classList.contains("is-valid");
 
-    const formObserver = setInterval(() => {
-        if (!submitBtn.disabled) {
-            submitBtn.style.opacity = "1";
-            submitBtn.style.transform = "scale(1)";
-        } else {
-            submitBtn.style.opacity = "0.5";
-            submitBtn.style.transform = "scale(0.98)";
-        }
-    }, 200);
-
+    submitBtn.disabled = !(strongEnough && emailValid && confirmValid);
+}
 
 </script>
-
 {% endblock %}

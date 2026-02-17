@@ -1,50 +1,205 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Manage Doctors</h2>
-    <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-outline-primary">
-        <i class="fas fa-plus me-2"></i>Add New Doctor
-    </a>
-</div>
+<div class="page-container app-page">
 
-<div class="card shadow-sm">
-    <div class="card-body">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div>
+            <h1>Manage Doctors</h1>
+            <p class="page-subtitle">View, edit and manage all registered doctors</p>
+        </div>
+
+        <a href="{{ url_for('admin.add_doctor') }}" class="btn-app btn-app-primary">
+            <i class="fas fa-plus"></i>
+            Add New Doctor
+        </a>
+    </div>
+
+
+    <!-- TABLE CARD -->
+    <div class="app-card table-card">
+
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
+
+            <table class="table table-hover align-middle data-table">
+
+                <thead>
                     <tr>
-                        <th>Full Name</th>
-                        <th>Email</th>
-                        <th>Department</th>
-                        <th>Status</th>
+                        <th style="width: 28%;">
+                            <a href="{{ url_for('admin.manage_doctors',
+                                sort='name',
+                                order='asc' if sort != 'name' or order == 'desc' else 'desc'
+                            ) }}">
+                                Full Name
+                                {% if sort == 'name' %}
+                                {{ '↑' if order == 'asc' else '↓' }}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width: 22%;">
+                            <a href="{{ url_for('admin.manage_doctors',
+                                sort='email',
+                                order='asc' if sort != 'email' or order == 'desc' else 'desc'
+                            ) }}">
+                                Email
+                                {% if sort == 'email' %}
+                                {{ '↑' if order == 'asc' else '↓' }}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width: 18%;">Department</th>
+
+                        <th style="width: 12%;">
+                            <a href="{{ url_for('admin.manage_doctors',
+                                sort='status',
+                                order='asc' if sort != 'status' or order == 'desc' else 'desc'
+                            ) }}">
+                                Status
+                                {% if sort == 'status' %}
+                                {{ '↑' if order == 'asc' else '↓' }}
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width: 20%;" class="text-end">Actions</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    {% for doctor in doctors %}
+                    {% for doctor in doctors.items %}
                     <tr>
-                        <td>Dr. {{ doctor.doctor_profile.full_name }}</td>
+
+                        <!-- NAME -->
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle">
+                                    {{ doctor.doctor_profile.full_name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">
+                                        Dr. {{ doctor.doctor_profile.full_name }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        ID: {{ doctor.id }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- EMAIL -->
                         <td>{{ doctor.email }}</td>
-                        <td>{{ doctor.doctor_profile.department.name }}</td>
+
+                        <!-- DEPARTMENT -->
+                        <td>
+                            <span class="dept-pill">
+                                {{ doctor.doctor_profile.department.name }}
+                            </span>
+                        </td>
+
+                        <!-- STATUS -->
                         <td>
                             {% if doctor.is_active %}
-                            <span class="badge bg-success">Active</span>
+                            <span class="status-pill status-active">Active</span>
                             {% else %}
-                            <span class="badge bg-dark">Blacklisted</span>
+                            <span class="status-pill status-blacklisted">Blacklisted</span>
                             {% endif %}
                         </td>
+
+                        <!-- ACTIONS -->
+                        <td class="text-end">
+                            <div class="row-actions">
+
+                                <!-- EDIT -->
+                                <a href="{{ url_for('admin.edit_doctor', user_id=doctor.id) }}"
+                                    class="action-btn action-edit">
+                                    <i class="fas fa-pen"></i> Edit
+                                </a>
+
+                                <!-- DELETE -->
+                                <form action="{{ url_for('admin.delete_doctor', user_id=doctor.id) }}" method="POST"
+                                    class="d-inline" onsubmit="return confirm('Delete this doctor?');">
+                                    <button type="submit" class="action-btn action-delete">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+
+                                {% if doctor.is_active %}
+
+                                <!-- BLACKLIST -->
+                                <form action="{{ url_for('admin.blacklist_user', user_id=doctor.id) }}" method="POST"
+                                    class="d-inline">
+                                    <button type="submit" class="action-btn action-blacklist">
+                                        <i class="fas fa-ban"></i> Blacklist
+                                    </button>
+                                </form>
+
+                                {% else %}
+
+                                <!-- ACTIVATE -->
+                                <form action="{{ url_for('admin.activate_user', user_id=doctor.id) }}" method="POST"
+                                    class="d-inline">
+                                    <button type="submit" class="action-btn action-activate">
+                                        <i class="fas fa-check"></i> Activate
+                                    </button>
+                                </form>
+
+                                {% endif %}
+
+                            </div>
+                        </td>
+
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" class="text-center text-muted">
+                        <td colspan="5" class="text-center py-4 text-muted">
                             No doctors found.
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
+
             </table>
         </div>
+
+
+        <!-- PAGINATION -->
+        {% if doctors.pages > 1 %}
+        <div class="pagination-wrapper">
+
+            {% if doctors.has_prev %}
+            <a href="{{ url_for('admin.manage_doctors',
+                        page=doctors.prev_num,
+                        sort=sort,
+                        order=order) }}" class="btn-app btn-app-outline btn-sm">
+                Previous
+            </a>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+            <div class="pagination-info">
+                Page {{ doctors.page }} of {{ doctors.pages }}
+            </div>
+
+            {% if doctors.has_next %}
+            <a href="{{ url_for('admin.manage_doctors',
+                        page=doctors.next_num,
+                        sort=sort,
+                        order=order) }}" class="btn-app btn-app-outline btn-sm">
+                Next
+            </a>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+        </div>
+        {% endif %}
+
     </div>
+
 </div>
 
-{% endblock content %}
+{% endblock %}

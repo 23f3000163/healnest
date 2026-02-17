@@ -54,10 +54,10 @@ def register():
             email=form.email.data,
             role="patient"
         )
-        user.password = form.password.data  # uses setter
+        user.set_password(form.password.data)  # uses setter
 
         db.session.add(user)
-        db.session.commit()
+        db.session.flush()  # gets user.id without committing
 
         profile = models.PatientProfile(
             user_id=user.id,
@@ -87,14 +87,28 @@ def login():
 
         if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
 
+             # 🚫 BLOCK deleted users FIRST
+            if user.is_deleted:
+                flash("This account has been deleted.", "danger")
+                return redirect(url_for("main.login"))
+
+            # 🚫 BLOCK inactive users
             if not user.is_active:
                 flash("Your account is inactive.", "danger")
                 return redirect(url_for("main.login"))
 
+            if not user.is_active:
+                flash("Your account is inactive.", "danger")
+                return redirect(url_for("main.login"))
+
+
             login_user(user, remember=form.remember.data)
 
-            # 🔒 FORCE password change ONLY for doctors
-            if user.role == "doctor" and user.is_temp_password:
+            # ✅ FORCE password change ONLY for doctors
+            if (
+                user.role == "doctor"
+                and user.must_change_password
+            ):
                 flash("Please change your temporary password.", "warning")
                 return redirect(url_for("doctor.change_password"))
 
@@ -112,6 +126,7 @@ def login():
     return render_template("login.html", title="Login", form=form)
 
 
+
 # ---------------------------
 # Logout
 # ---------------------------
@@ -121,38 +136,42 @@ def logout():
     return redirect(url_for("main.home"))
 
 
-# ---------------------------
-# Search
-# ---------------------------
 @main_bp.route("/search")
 @login_required
 def search():
-    query = request.args.get("query", "", type=str)
+    query = request.args.get("query", "", type=str).strip()
 
     if not query:
         flash("Please enter a search term.", "warning")
         return redirect(request.referrer or url_for("main.home"))
 
     if current_user.role == "admin":
+
+        # ================= PATIENT SEARCH =================
         patients = (
             models.PatientProfile.query
             .join(models.User)
             .filter(
+                models.User.is_deleted == False,
                 or_(
                     models.PatientProfile.full_name.ilike(f"%{query}%"),
-                    models.User.email.ilike(f"%{query}%"),
+                    models.User.email.ilike(f"%{query}%")
                 )
             )
             .all()
         )
 
+        # ================= DOCTOR SEARCH =================
         doctors = (
             models.DoctorProfile.query
+            .join(models.User)
             .join(models.Department)
             .filter(
+                models.User.is_deleted == False,
                 or_(
                     models.DoctorProfile.full_name.ilike(f"%{query}%"),
-                    models.Department.name.ilike(f"%{query}%"),
+                    models.User.email.ilike(f"%{query}%"),
+                    models.Department.name.ilike(f"%{query}%")
                 )
             )
             .all()
@@ -162,25 +181,6 @@ def search():
             "admin/search_results.html",
             query=query,
             patients=patients,
-            doctors=doctors,
-        )
-
-    if current_user.role == "patient":
-        doctors = (
-            models.DoctorProfile.query
-            .join(models.Department)
-            .filter(
-                or_(
-                    models.DoctorProfile.full_name.ilike(f"%{query}%"),
-                    models.Department.name.ilike(f"%{query}%"),
-                )
-            )
-            .all()
-        )
-
-        return render_template(
-            "patient/search_results.html",
-            query=query,
             doctors=doctors,
         )
 
@@ -277,27 +277,3 @@ def reset_token(token):
         form=form,
     )
 
-@main_bp.route("/change-password", methods=["GET", "POST"])
-@login_required
-def change_password():
-    if request.method == "POST":
-        new_password = request.form.get("password")
-
-        if not new_password or len(new_password) < 6:
-            flash("Password must be at least 6 characters", "danger")
-            return redirect(url_for("main.change_password"))
-
-        current_user.set_password(new_password)
-        current_user.is_temp_password = False
-
-        db.session.commit()
-
-        flash("Password updated successfully", "success")
-
-        # Redirect based on role
-        if current_user.role == "doctor":
-            return redirect(url_for("doctor.dashboard"))
-        elif current_user.role == "admin":
-            return redirect(url_for("admin.dashboard"))
-
-    return render_template("auth/change_password.html")

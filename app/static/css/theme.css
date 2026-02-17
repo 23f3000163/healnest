@@ -1,0 +1,63 @@
+/* =========================================================
+   HealNest Theme System
+   Design Tokens & Brand
+   ========================================================= */
+
+:root {
+
+    /* Brand Colors */
+    --brand-primary: #f5f3ef;
+    /* warm off white */
+    --brand-primary-dark: #e8e3db;
+    /* warm grey-beige */
+
+    --brand-success: #22c55e;
+    --brand-warning: #f59e0b;
+    --brand-danger: #ef4444;
+
+    /* Neutral Scale */
+    --gray-100: #f9fafb;
+    --gray-200: #f3f4f6;
+    --gray-300: #e5e7eb;
+    --gray-400: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+
+    /* Background */
+    --bg-page: linear-gradient(180deg, #f8fafc 0%, #e9eef5 100%);
+
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+
+    /* Shadows */
+    --shadow-soft: 0 6px 18px rgba(15, 23, 42, 0.05);
+    --shadow-medium: 0 10px 30px rgba(15, 23, 42, 0.08);
+    --shadow-hover: 0 12px 32px rgba(15, 23, 42, 0.12);
+
+    /* Transition */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+}
+
+/* Global Base */
+
+body {
+    background: var(--bg-page);
+    font-family: "Inter", sans-serif;
+    color: var(--gray-900);
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-weight: 600;
+}
+
+p {
+    color: var(--gray-500);
+}

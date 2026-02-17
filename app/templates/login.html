@@ -1,42 +1,86 @@
 {% extends "layout.html" %}
+{% set minimal_footer = True %}
 {% block content %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<div class="auth-wrapper d-flex justify-content-center align-items-center">
-    <div class="auth-card card-glass p-5 shadow-soft">
+<div class="page-container" style="max-width: 460px; margin-top: 90px; margin-bottom: 60px;">
 
-        <div class="text-center mb-4">
-            <i class="fa-solid fa-right-to-bracket icon-lg"></i>
-            <h2 class="fw-semibold mt-3">Welcome Back</h2>
-            <p class="text-muted">Log in to access your dashboard</p>
-        </div>
+    <!-- HEADER -->
+    <div class="text-center mb-4">
+        <h1 style="font-family:'Playfair Display', serif;">
+            HealNest
+        </h1>
+        <p class="page-subtitle">
+            Welcome back. Please login to continue.
+        </p>
+    </div>
 
-        <form method="POST" action="">
+    <!-- CARD -->
+    <div class="app-card auth-fade">
+
+        <form method="POST">
             {{ form.hidden_tag() }}
 
+            <!-- EMAIL -->
             <div class="mb-3">
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control form-input-pill", placeholder="Enter email") }}
+                {{ form.email.label(class="form-label fw-semibold") }}
+                {{ form.email(class="form-control",
+                              placeholder="Enter your email",
+                              autocomplete="email") }}
             </div>
 
+            <!-- PASSWORD -->
             <div class="mb-3">
-                {{ form.password.label(class="form-label") }}
-                {{ form.password(class="form-control form-input-pill", placeholder="Enter password") }}
+                {{ form.password.label(class="form-label fw-semibold") }}
+                <div class="input-group">
+                    {{ form.password(class="form-control",
+                                     id="password-field",
+                                     placeholder="Enter your password",
+                                     autocomplete="current-password") }}
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            onclick="togglePassword()">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
 
-            <div class="d-flex align-items-center mb-3">
-                {{ form.remember(class="form-check-input me-2") }}
-                <small class="text-muted">Remember me</small>
+            <!-- REMEMBER -->
+            <div class="form-check mb-3">
+                {{ form.remember(class="form-check-input") }}
+                {{ form.remember.label(class="form-check-label") }}
             </div>
 
-            <button class="btn-brand w-100 py-2 mb-3">Login</button>
+            <!-- SUBMIT -->
+            <div class="mt-3">
+                <button type="submit"
+                        class="btn-app btn-app-primary w-100">
+                    Login
+                </button>
+            </div>
 
-            <p class="text-center small text-muted">
-                Don't have an account?
-                <a href="{{ url_for('main.register') }}" class="fw-semibold text-primary">Sign Up</a>
-            </p>
         </form>
+
+        <hr>
+
+        <div class="text-center">
+            <small class="text-muted">
+                Don’t have an account?
+                <a href="{{ url_for('main.register') }}"
+                   class="fw-semibold text-decoration-none">
+                    Create one
+                </a>
+            </small>
+        </div>
+
     </div>
+
 </div>
 
-{% endblock content %}
+<script>
+function togglePassword() {
+    const field = document.getElementById("password-field");
+    field.type = field.type === "password" ? "text" : "password";
+}
+</script>
+
+{% endblock %}

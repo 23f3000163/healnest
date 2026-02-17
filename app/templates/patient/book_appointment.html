@@ -1,118 +1,285 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h3 class="mb-3">
-    Book Appointment with Dr. {{ doctor.full_name }}
-</h3>
+<div class="page-container">
 
-<form method="POST">
-    {{ form.hidden_tag() }}
+    <!-- ================= HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>Book Appointment</h1>
 
-    <!-- Date picker -->
-    <div class="mb-3">
-        <label class="form-label fw-bold">Select Date</label>
-        <input
-            type="date"
-            id="appointment-date"
-            class="form-control"
-            min="{{ min_date }}"
-            max="{{ max_date }}"
-            required
-        >
-    </div>
-
-    <!-- Slots container -->
-    <div class="mb-3">
-        <label class="form-label fw-bold">Available Slots</label>
-
-        <div
-            id="slots-container"
-            class="d-flex flex-wrap gap-2 border rounded p-3 bg-light"
-        >
-            <span class="text-muted">
-                Select a date to view available slots
-            </span>
+            <p class="page-subtitle">
+                <span class="fw-bold text-dark">
+                    Dr. {{ doctor.full_name }}
+                </span>
+                &nbsp;&nbsp;•&nbsp;&nbsp;
+                <span class="dept-pill">
+                    {{ doctor.department.name if doctor.department }}
+                </span>
+            </p>
         </div>
 
-        <p
-            id="no-slots-msg"
-            class="text-danger mt-2"
-            style="display: none;"
-        >
-            No slots available for the selected date.
-        </p>
+        <a href="{{ url_for('patient.dashboard') }}"
+           class="btn-app btn-app-outline">
+            Back to Dashboard
+        </a>
     </div>
 
-    <!-- Hidden field that backend reads -->
-    <input type="hidden" name="selected_slot" id="selected-slot">
 
-    <button
-        type="submit"
-        class="btn btn-success"
-        disabled
-        id="book-btn"
-    >
-        Confirm Booking
-    </button>
+    <!-- ================= BOOKING CARD ================= -->
+    <div class="app-card">
 
-    <a href="{{ url_for('patient.dashboard') }}" class="btn btn-outline-secondary ms-2">
-        Cancel
-    </a>
-</form>
+        <form method="POST" id="booking-form">
+            {{ form.hidden_tag() if form }}
 
+            <!-- ================= DATE SELECTION ================= -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold mb-3">
+                    Select Date (Next 7 Days)
+                </label>
+
+                <div id="date-container"
+                     class="d-flex flex-wrap gap-3">
+                </div>
+            </div>
+
+
+            <!-- ================= SLOTS ================= -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">
+                    Available Slots
+                </label>
+
+                <div id="slots-container"
+                     class="border rounded p-4"
+                     style="background:#f9fafb;">
+                    <span class="text-muted">
+                        Select a date to view available slots
+                    </span>
+                </div>
+            </div>
+
+
+            <!-- ================= SUMMARY ================= -->
+            <div id="summary-panel"
+                 class="app-card mt-4"
+                 style="display:none; border:1px solid #e5e7eb;">
+
+                <div class="app-card-header">
+                    Appointment Summary
+                </div>
+
+                <div style="padding:20px;">
+                    <p><strong>Doctor:</strong> Dr. {{ doctor.full_name }}</p>
+                    <p><strong>Date:</strong> <span id="summary-date"></span></p>
+                    <p><strong>Time:</strong> <span id="summary-time"></span></p>
+                </div>
+            </div>
+
+            <input type="hidden" name="selected_slot" id="selected-slot">
+            <input type="hidden" name="selected_date" id="selected-date">
+
+            <!-- SUBMIT -->
+            <div class="mt-4 text-end">
+                <button type="button"
+                        id="confirm-btn"
+                        class="btn-app btn-app-primary"
+                        disabled>
+                    Confirm Booking
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- ================= STYLES ================= -->
+<style>
+
+.date-card {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+    text-align: center;
+    width: 95px;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.date-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.date-card.active {
+    background: #c46638;
+    color: white;
+    border-color: #c46638;
+}
+
+.date-card.today {
+    border: 2px solid #c46638;
+}
+
+.slot-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: 0.2s ease;
+}
+
+.slot-btn:hover {
+    transform: translateY(-2px);
+}
+
+.slot-btn.active {
+    background: #c46638;
+    color: white;
+    border-color: #c46638;
+}
+
+.slot-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+</style>
+
+
+<!-- ================= SCRIPT ================= -->
 <script>
-const dateInput = document.getElementById("appointment-date");
-const slotsContainer = document.getElementById("slots-container");
-const selectedSlotInput = document.getElementById("selected-slot");
-const bookBtn = document.getElementById("book-btn");
-const noSlotsMsg = document.getElementById("no-slots-msg");
+document.addEventListener("DOMContentLoaded", function () {
 
-dateInput.addEventListener("change", async () => {
-    const date = dateInput.value;
+    const dateContainer = document.getElementById("date-container");
+    const slotsContainer = document.getElementById("slots-container");
+    const selectedDateInput = document.getElementById("selected-date");
+    const selectedSlotInput = document.getElementById("selected-slot");
+    const confirmBtn = document.getElementById("confirm-btn");
+    const summaryPanel = document.getElementById("summary-panel");
 
-    // Reset UI
-    slotsContainer.innerHTML = "<span class='text-muted'>Loading slots...</span>";
-    selectedSlotInput.value = "";
-    bookBtn.disabled = true;
-    noSlotsMsg.style.display = "none";
+    const summaryDate = document.getElementById("summary-date");
+    const summaryTime = document.getElementById("summary-time");
 
-    const res = await fetch(
-        `/patient/doctor/{{ doctor.id }}/slots?date=${date}`
-    );
+    const today = new Date();
+    const minDate = new Date("{{ min_date }}");
+    const maxDate = new Date("{{ max_date }}");
 
-    const data = await res.json();
-    slotsContainer.innerHTML = "";
+    // Generate next 7 days
+    for (let i = 0; i < 7; i++) {
 
-    if (data.slots.length === 0) {
-        noSlotsMsg.style.display = "block";
-        slotsContainer.innerHTML =
-            "<span class='text-muted'>No slots available</span>";
-        return;
-    }
+        const date = new Date();
+        date.setDate(today.getDate() + i);
 
-    data.slots.forEach(slot => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn btn-outline-primary";
-        btn.textContent = slot.label;
+        if (date < minDate || date > maxDate) continue;
 
-        btn.addEventListener("click", () => {
-            document
-                .querySelectorAll("#slots-container button")
-                .forEach(b => {
-                    b.classList.remove("btn-primary");
-                    b.classList.add("btn-outline-primary");
-                });
+        const card = document.createElement("div");
+        card.className = "date-card";
 
-            btn.classList.remove("btn-outline-primary");
-            btn.classList.add("btn-primary");
+        if (date.toDateString() === today.toDateString()) {
+            card.classList.add("today");
+        }
 
-            selectedSlotInput.value = slot.value;
-            bookBtn.disabled = false;
+        card.innerHTML = `
+            <div style="font-size:12px;">
+                ${date.toLocaleDateString("en-US",{ weekday:"short" })}
+            </div>
+            <div style="font-size:18px;font-weight:700;">
+                ${date.getDate()}
+            </div>
+            <div style="font-size:12px;">
+                ${date.toLocaleDateString("en-US",{ month:"short" })}
+            </div>
+        `;
+
+        card.addEventListener("click", async () => {
+
+            document.querySelectorAll(".date-card")
+                .forEach(d => d.classList.remove("active"));
+
+            card.classList.add("active");
+
+            selectedDateInput.value =
+                date.toISOString().split("T")[0];
+
+            summaryDate.textContent =
+                date.toDateString();
+
+            summaryPanel.style.display = "none";
+            confirmBtn.disabled = true;
+
+            loadSlots(date);
         });
 
-        slotsContainer.appendChild(btn);
+        dateContainer.appendChild(card);
+    }
+
+
+    async function loadSlots(dateObj) {
+
+        slotsContainer.innerHTML = "Loading...";
+
+        try {
+
+            const response = await fetch(
+                `/patient/doctor/{{ doctor.id }}/slots?date=${
+                    dateObj.toISOString().split("T")[0]
+                }`
+            );
+
+            const data = await response.json();
+            slotsContainer.innerHTML = "";
+
+            if (!data.slots || data.slots.length === 0) {
+                slotsContainer.innerHTML =
+                    "<span class='text-muted'>No slots available</span>";
+                return;
+            }
+
+            data.slots.forEach(slot => {
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.textContent = slot.label;
+                btn.className = "slot-btn me-2 mb-2";
+
+                if (slot.booked) {
+                    btn.classList.add("disabled");
+                    btn.disabled = true;
+                }
+
+                btn.addEventListener("click", () => {
+
+                    document.querySelectorAll(".slot-btn")
+                        .forEach(b => b.classList.remove("active"));
+
+                    btn.classList.add("active");
+
+                    selectedSlotInput.value = slot.value;
+                    summaryTime.textContent = slot.label;
+
+                    summaryPanel.style.display = "block";
+                    confirmBtn.disabled = false;
+                });
+
+                slotsContainer.appendChild(btn);
+            });
+
+        } catch {
+            slotsContainer.innerHTML =
+                "<span class='text-danger'>Error loading slots</span>";
+        }
+    }
+
+
+    confirmBtn.addEventListener("click", function () {
+        document.getElementById("booking-form").submit();
     });
+
 });
 </script>
 

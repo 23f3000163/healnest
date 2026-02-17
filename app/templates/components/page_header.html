@@ -1,0 +1,16 @@
+<div class="page-header d-flex justify-content-between align-items-center mb-4 flex-wrap">
+
+    <div>
+        <h2 class="mb-0">{{ title }}</h2>
+
+        {% if subtitle %}
+        <small class="text-muted">{{ subtitle }}</small>
+        {% endif %}
+    </div>
+
+    {% if actions %}
+    <div>
+        {{ actions | safe }}
+    </div>
+    {% endif %}
+</div>

@@ -8,11 +8,12 @@ from flask import (
     request,
     abort
 )
+from app.models import Appointment, Treatment
 
 from flask_login import login_required, current_user
 
 from app import db, models
-from app.models import Availability, DoctorProfile
+from app.models import Availability, DoctorProfile, Appointment, User
 from app.forms import TreatmentForm, DoctorUpdateProfileForm, ChangePasswordForm
 from app.routes.decorators import doctor_required
 from collections import defaultdict
@@ -32,6 +33,7 @@ SLOT_DURATION = timedelta(minutes=30)
 @doctor_bp.route('/dashboard')
 @login_required
 def dashboard():
+
     if current_user.role != 'doctor':
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('main.home'))
@@ -39,40 +41,36 @@ def dashboard():
     now = datetime.now()
     today = date.today()
 
-    appointments = (
-        models.Appointment.query
+    page = request.args.get('page', 1, type=int)
+
+    appointments_pagination = (
+        Appointment.query
         .filter(
-            models.Appointment.doctor_id == current_user.id,
-            models.Appointment.status == 'BOOKED',
-            models.Appointment.appointment_datetime >= now
+            Appointment.doctor_id == current_user.id,
+            Appointment.status == "BOOKED",
+            Appointment.appointment_datetime >= now
         )
-        .order_by(models.Appointment.appointment_datetime.asc())
+        .order_by(Appointment.appointment_datetime.asc())
+        .paginate(page=page, per_page=8, error_out=False)
+    )
+
+    assigned_patients = (
+        db.session.query(User)
+        .join(Appointment, User.id == Appointment.patient_id)
+        .filter(Appointment.doctor_id == current_user.id)
+        .distinct()
         .all()
     )
 
-    # Group appointments by date
-    grouped_appointments = defaultdict(list)
-    for appt in appointments:
-        appt_date = appt.appointment_datetime.date()
-        grouped_appointments[appt_date].append(appt)
-
-    # Separate buckets for UI clarity
-    today_appointments = grouped_appointments.get(today, [])
-    tomorrow_appointments = grouped_appointments.get(today.replace(day=today.day + 1), [])
-
-    future_appointments = {
-        d: appts
-        for d, appts in grouped_appointments.items()
-        if d > today.replace(day=today.day + 1)
-    }
-
     return render_template(
         'doctor/dashboard.html',
-        title='Doctor Dashboard',
-        today_appointments=today_appointments,
-        tomorrow_appointments=tomorrow_appointments,
-        future_appointments=future_appointments
+        upcoming_appointments=appointments_pagination.items,
+        pagination=appointments_pagination,
+        patients=assigned_patients,
+         today=today  
     )
+
+
 
 # -------------------------------------------------
 # Treat Patient
@@ -230,16 +228,7 @@ def cancel_appointment(appointment_id):
 # -------------------------------------------------
 # Manage Availability
 # -------------------------------------------------
-
-from datetime import date, timedelta, time
-from flask import render_template, request, redirect, url_for, flash
-from flask_login import login_required, current_user
-
-from app import db
-from app.models import Availability, DoctorProfile
-from app.routes.decorators import doctor_required
-
-
+@doctor_bp.route("/manage-availability", methods=["GET", "POST"])
 @doctor_required
 @login_required
 def manage_availability():
@@ -305,9 +294,10 @@ def manage_availability():
         return redirect(url_for("doctor.manage_availability"))
 
     return render_template(
-        "doctor/availability.html",
+        "doctor/set_availability.html",
         days=days,
         saved_slots=saved_slots,
+        today=date.today()
     )
 
 
@@ -316,7 +306,7 @@ def manage_availability():
 @login_required
 def change_password():
 
-    # 🔐 Only doctors can access
+    # Only doctors can access
     if current_user.role != "doctor":
         flash("Unauthorized access.", "danger")
         return redirect(url_for("main.home"))
@@ -332,7 +322,10 @@ def change_password():
 
         # Set new password
         current_user.set_password(form.new_password.data)
+
+        # ✅ IMPORTANT FLAGS RESET
         current_user.is_temp_password = False
+        current_user.must_change_password = False
 
         db.session.commit()
 
@@ -345,38 +338,7 @@ def change_password():
         form=form
     )
 
-def get_available_slots(doctor, selected_date):
-    availability_rules = Availability.query.filter_by(
-        doctor_profile_id=doctor.id,
-        available_date=selected_date
-    ).all()
 
-    all_slots = []
-    for rule in availability_rules:
-        all_slots.extend(
-            generate_slots_for_range(
-                rule.available_date,
-                rule.start_time,
-                rule.end_time
-            )
-        )
-
-    booked_appointments = Appointment.query.filter(
-        Appointment.doctor_id == doctor.id,
-        Appointment.appointment_datetime.in_(all_slots),
-        Appointment.status == "BOOKED"
-    ).all()
-
-    booked_slots = {appt.appointment_datetime for appt in booked_appointments}
-
-    now = datetime.now()
-
-    available_slots = [
-        slot for slot in all_slots
-        if slot not in booked_slots and slot > now
-    ]
-
-    return sorted(available_slots)
 
 
 def generate_slots_for_range(date, start_time, end_time):
@@ -390,37 +352,73 @@ def generate_slots_for_range(date, start_time, end_time):
 
     return slots
 
+def get_available_slots(doctor_profile, selected_date):
 
-def get_available_slots(doctor, selected_date):
-    availability_rules = Availability.query.filter_by(
-        doctor_profile_id=doctor.id,
-        available_date=selected_date
-    ).all()
+    slots = []
+    slot_duration = 30  # minutes
 
-    all_slots = []
-    for rule in availability_rules:
-        all_slots.extend(
-            generate_slots_for_range(
-                rule.available_date,
-                rule.start_time,
-                rule.end_time
-            )
-        )
+    start_of_day = datetime.combine(selected_date, datetime.min.time())
+    end_of_day = datetime.combine(selected_date, datetime.max.time())
 
     booked_appointments = Appointment.query.filter(
-        Appointment.doctor_id == doctor.id,
-        Appointment.appointment_datetime.in_(all_slots),
+        Appointment.doctor_id == doctor_profile.user_id,
+        Appointment.appointment_datetime >= start_of_day,
+        Appointment.appointment_datetime <= end_of_day,
         Appointment.status == "BOOKED"
     ).all()
 
-    booked_slots = {appt.appointment_datetime for appt in booked_appointments}
+    booked_times = {appt.appointment_datetime for appt in booked_appointments}
 
-    now = datetime.now()
+    # 🔥 CORRECT availability fetch
+    availability = Availability.query.filter_by(
+        doctor_profile_id=doctor_profile.id,
+        available_date=selected_date
+    ).all()
 
-    available_slots = [
-        slot for slot in all_slots
-        if slot not in booked_slots and slot > now
-    ]
+    for avail in availability:
 
-    return sorted(available_slots)
+        start_datetime = datetime.combine(selected_date, avail.start_time)
+        end_datetime = datetime.combine(selected_date, avail.end_time)
 
+        current_time = start_datetime
+
+        while current_time + timedelta(minutes=slot_duration) <= end_datetime:
+
+            slots.append({
+                "label": current_time.strftime("%I:%M %p"),
+                "value": current_time.isoformat(),
+                "booked": current_time in booked_times
+            })
+
+            current_time += timedelta(minutes=slot_duration)
+
+    return slots
+
+
+@doctor_bp.route("/patient/<int:patient_id>/history")
+@login_required
+def view_patient_history(patient_id):
+
+    if current_user.role != "doctor":
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for("main.home"))
+
+    patient = models.User.query.get_or_404(patient_id)
+
+    history = (
+        models.Appointment.query
+        .filter(
+            models.Appointment.patient_id == patient_id,
+            models.Appointment.status == "COMPLETED"
+        )
+        .order_by(models.Appointment.appointment_datetime.desc())
+        .all()
+    )
+
+    return render_template(
+        "shared/patient_history.html",
+        patient=patient,
+        history=history,
+        patient_age=None,
+        back_url=url_for("doctor.dashboard")
+    )

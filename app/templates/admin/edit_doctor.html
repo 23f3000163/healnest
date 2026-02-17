@@ -1,35 +1,57 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Edit Doctor Profile</h4>
+
+<div class="page-container app-page">
+
+    <div class="page-header">
+        <div>
+            <h1>Edit Doctor</h1>
+            <p class="page-subtitle">Update doctor profile information</p>
+        </div>
     </div>
-    <div class="card-body">
-        <form method="POST" action="">
+
+    <div class="app-card">
+
+        <form method="POST">
             {{ form.hidden_tag() }}
-            <div class="mb-3">
-                {{ form.full_name.label(class="form-label") }}
-                {{ form.full_name(class="form-control", required=True) }}
-            </div>
-            <div class="col-md-6 mb-3">
-                {{ form.contact_number.label(class="form-label") }}
-                {{ form.contact_number(class="form-control", placeholder="+91...", required=True) }}
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control", required=True, type="email") }}
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    {{ form.full_name.label(class="form-label") }}
+                    {{ form.full_name(class="form-control", required=True) }}
                 </div>
-                <div class="col-md-6 mb-3">
+
+                <div class="col-md-6">
+                    {{ form.contact_number.label(class="form-label") }}
+                    {{ form.contact_number(class="form-control", required=True) }}
+                </div>
+
+                <div class="col-md-6">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control", type="email", required=True) }}
+                </div>
+
+                <div class="col-md-6">
                     {{ form.department_id.label(class="form-label") }}
                     {{ form.department_id(class="form-select", required=True) }}
                 </div>
+
             </div>
-            <div class="form-group mt-4">
-                {{ form.submit(class="btn btn-outline-primary") }}
-                <a href="{{ url_for('admin.manage_doctors') }}" class="btn btn-outline-secondary">Cancel</a>
+
+            <div class="mt-4 d-flex gap-2">
+                {{ form.submit(class="btn-app btn-app-primary") }}
+
+                <a href="{{ url_for('admin.manage_doctors') }}"
+                   class="btn-app btn-app-outline">
+                    Cancel
+                </a>
             </div>
+
         </form>
+
     </div>
+
 </div>
-{% endblock content %}
+
+{% endblock %}

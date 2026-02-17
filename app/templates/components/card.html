@@ -1,0 +1,11 @@
+{% macro card(title) %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">{{ title }}</h5>
+    </div>
+
+    <div class="card-body">
+        {{ caller() }}
+    </div>
+</div>
+{% endmacro %}

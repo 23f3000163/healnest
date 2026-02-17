@@ -1,70 +1,118 @@
 {% extends "layout.html" %}
 {% block content %}
 
-{% if not department %}
-    <div class="alert alert-danger">
-        Department information could not be loaded.
+<div class="page-container app-page">
+
+    {% if not department %}
+        <div class="alert alert-danger">
+            Department information could not be loaded.
+        </div>
+    {% else %}
+
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>Department of {{ department.name }}</h1>
+            <p class="page-subtitle">
+                Explore doctors and book appointments
+            </p>
+        </div>
+
+        <div class="page-actions">
+            <a href="{{ url_for('patient.dashboard') }}"
+               class="btn-app btn-app-outline">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
     </div>
-{% else %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Department of {{ department.name }}</h2>
-    <a href="{{ url_for('patient.dashboard') }}"
-       class="btn btn-outline-secondary">
-        Back to Dashboard
-    </a>
-</div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <h5 class="card-title">Overview</h5>
-        <p class="card-text text-muted">
+    <!-- ================= OVERVIEW SECTION ================= -->
+    <div class="app-card mb-4">
+        <h5 class="mb-3">Overview</h5>
+        <p class="text-muted mb-0">
             {{ department.description or
-               'No description available for this department.' }}
+               "No description available for this department." }}
         </p>
+    </div>
 
-        <hr>
 
-        <h5 class="card-title mt-4">Doctors in this Department</h5>
+    <!-- ================= DOCTORS TABLE ================= -->
+    <div class="app-card table-card">
 
         {% if department.doctors %}
-        <ul class="list-group list-group-flush">
-            {% for doc_profile in department.doctors %}
-            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                <div>
-                    <strong>Dr. {{ doc_profile.full_name }}</strong>
-                    <p class="mb-1 text-muted">
-                        {{ doc_profile.qualifications or 'Qualifications not provided' }}
-                    </p>
-                </div>
 
-                <div class="text-nowrap">
-                    <a href="{{ url_for(
-                            'patient.book_appointment',
-                            doctor_profile_id=doc_profile.id
-                        ) }}"
-                       class="btn btn-sm btn-primary me-2">
-                        Check Availability
-                    </a>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Doctor</th>
+                    <th>Qualifications</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
 
-                    <a href="{{ url_for(
-                            'patient.doctor_details',
-                            doctor_profile_id=doc_profile.id
-                        ) }}"
-                       class="btn btn-sm btn-outline-secondary">
-                        View Details
-                    </a>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
+            <tbody>
+                {% for doc_profile in department.doctors %}
+                <tr>
+
+                    <!-- DOCTOR INFO -->
+                    <td>
+                        <div class="row-user">
+                            <div class="avatar-circle">
+                                {{ doc_profile.full_name[:1]|upper }}
+                            </div>
+
+                            <div>
+                                <strong>Dr. {{ doc_profile.full_name }}</strong>
+                                <div class="text-muted small">
+                                    {{ doc_profile.user.email }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- QUALIFICATIONS -->
+                    <td>
+                        {{ doc_profile.qualifications or
+                           "Qualifications not provided" }}
+                    </td>
+
+                    <!-- ACTIONS -->
+                    <td>
+                        <div class="row-actions justify-content-end">
+
+                            <a href="{{ url_for('patient.book_appointment',
+                                                doctor_profile_id=doc_profile.id) }}"
+                               class="action-btn action-activate">
+                                <i class="fas fa-calendar-check"></i>
+                                Check Availability
+                            </a>
+
+                            <a href="{{ url_for('patient.doctor_details',
+                                                doctor_profile_id=doc_profile.id) }}"
+                               class="action-btn action-edit">
+                                <i class="fas fa-user-md"></i>
+                                View Details
+                            </a>
+
+                        </div>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
         {% else %}
-            <p class="text-muted mt-3">
+            <div class="card-empty">
                 There are currently no doctors listed in this department.
-            </p>
+            </div>
         {% endif %}
+
     </div>
+
+    {% endif %}
 </div>
 
-{% endif %}
-{% endblock content %}
+{% endblock %}

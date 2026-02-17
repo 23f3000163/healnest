@@ -38,6 +38,14 @@ class User(db.Model, UserMixin):
 
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
+    is_deleted = db.Column(
+    db.Boolean,
+    nullable=False,
+    server_default='0'
+    )
+
+
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
         db.DateTime,
@@ -46,6 +54,8 @@ class User(db.Model, UserMixin):
     )
 
     is_temp_password = db.Column(db.Boolean, default=True)
+
+    must_change_password = db.Column(db.Boolean, default=False)
 
 
     __table_args__ = (
@@ -236,10 +246,10 @@ class Appointment(db.Model):
     status = db.Column(
     db.String(20),
     nullable=False,
-    default="Booked"
+    default="BOOKED"
     )
 
-
+ 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     status_history = db.relationship(
@@ -346,3 +356,25 @@ class DoctorAvailability(db.Model):
             f"day={self.day_of_week} "
             f"{self.start_time}-{self.end_time}>"
         )
+    
+
+class Treatment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    appointment_id = db.Column(
+        db.Integer,
+        db.ForeignKey('appointment.id'),
+        nullable=False
+    )
+
+    visit_type = db.Column(db.String(100))
+    tests_done = db.Column(db.String(255))
+    diagnosis = db.Column(db.Text, nullable=False)
+    prescription = db.Column(db.Text, nullable=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    appointment = db.relationship(
+        'Appointment',
+        backref=db.backref('treatment', uselist=False)
+    )

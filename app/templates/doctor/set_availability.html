@@ -3,45 +3,105 @@
 
 {% set days = days or [] %}
 {% set saved_slots = saved_slots or [] %}
+{% set today = today or none %}
 
 <style>
-    .slot-label {
-        display: block;
-        padding: 0.75rem 1rem;
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-        background-color: #f8f9fa;
-        color: #6c757d;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-    }
-    .slot-label:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .slot-checkbox:checked + .slot-label {
-        background-color: #d1e7dd;
-        border-color: #0f5132;
-        color: #0f5132;
-        font-weight: 500;
-    }
-    .slot-checkbox {
-        display: none;
-    }
+/* ================= CARD ================= */
+.availability-card {
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+    padding: 30px;
+}
+
+/* ================= SLOT ================= */
+.slot-label {
+    display: block;
+    padding: 0.85rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background-color: #f9fafb;
+    color: #6b7280;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-weight: 500;
+}
+
+.slot-label:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.slot-checkbox {
+    display: none;
+}
+
+.slot-checkbox:checked + .slot-label {
+    background-color: #dcfce7;
+    border-color: #16a34a;
+    color: #166534;
+    font-weight: 600;
+}
+
+/* ================= DISABLED DAY ================= */
+.past-day {
+    opacity: 0.5;
+}
+
+.past-day .slot-label {
+    pointer-events: none;
+    background: #f3f4f6;
+}
+
+/* ================= TODAY BADGE ================= */
+.today-badge {
+    background: #f97316;
+    color: white;
+    padding: 3px 10px;
+    font-size: 11px;
+    border-radius: 999px;
+    margin-left: 8px;
+}
+
+/* ================= SAVE BUTTON ================= */
+.save-btn {
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.save-btn.loading {
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.save-btn.loading::after {
+    content: " Saving...";
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
 </style>
 
-<div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Manage Your Weekly Availability</h4>
-    </div>
-    <div class="card-body">
-        <p class="text-muted">
-            Set your availability for the next 7 days. Patients can book only during selected slots.
+<div class="dashboard-container">
+    <div class="availability-card">
+
+        <h3 class="fw-bold mb-2">Manage Weekly Availability</h3>
+        <p class="text-muted mb-4">
+            Select your available slots for the next 7 days.
+            Patients can only book within these times.
         </p>
 
         {% if days %}
-        <form method="POST">
+        <form method="POST" id="availability-form">
+
+            <!-- APPLY ALL -->
             <div class="d-flex justify-content-end mb-3">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="apply-all-days">
@@ -51,84 +111,122 @@
                 </div>
             </div>
 
-            <table class="table table-bordered align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center">Date</th>
-                        <th class="text-center">Morning (08:00–12:00)</th>
-                        <th class="text-center">Evening (16:00–21:00)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for day in days %}
-                    <tr>
-                        <td class="text-center fw-medium">
-                            {{ day.strftime('%a, %d %b %Y') }}
-                        </td>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr class="text-muted small">
+                            <th style="width:25%">Date</th>
+                            <th style="width:37%">Morning (08:00–12:00)</th>
+                            <th style="width:38%">Evening (16:00–21:00)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-                        <td>
-                            {% set m_key = day.isoformat() ~ '_morning' %}
-                            <input type="checkbox"
-                                   class="slot-checkbox morning-slot"
-                                   name="slots"
-                                   id="slot-{{ m_key }}"
-                                   value="{{ m_key }}"
-                                   {% if m_key in saved_slots %}checked{% endif %}>
-                            <label class="slot-label" for="slot-{{ m_key }}">
-                                08:00 AM – 12:00 PM
-                            </label>
-                        </td>
+                        {% for day in days %}
+                        {% set is_past = day < today %}
+                        <tr class="{% if is_past %}past-day{% endif %}">
 
-                        <td>
-                            {% set e_key = day.isoformat() ~ '_evening' %}
-                            <input type="checkbox"
-                                   class="slot-checkbox evening-slot"
-                                   name="slots"
-                                   id="slot-{{ e_key }}"
-                                   value="{{ e_key }}"
-                                   {% if e_key in saved_slots %}checked{% endif %}>
-                            <label class="slot-label" for="slot-{{ e_key }}">
-                                04:00 PM – 09:00 PM
-                            </label>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            <!-- DATE -->
+                            <td class="fw-semibold">
+                                {{ day.strftime('%a, %d %b %Y') }}
+
+                                {% if day == today %}
+                                    <span class="today-badge">Today</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- MORNING -->
+                            <td>
+                                {% set m_key = day.isoformat() ~ '_morning' %}
+                                <input type="checkbox"
+                                       class="slot-checkbox morning-slot"
+                                       name="slots"
+                                       id="slot-{{ m_key }}"
+                                       value="{{ m_key }}"
+                                       {% if m_key in saved_slots %}checked{% endif %}
+                                       {% if is_past %}disabled{% endif %}>
+
+                                <label class="slot-label" for="slot-{{ m_key }}">
+                                    08:00 AM – 12:00 PM
+                                </label>
+                            </td>
+
+                            <!-- EVENING -->
+                            <td>
+                                {% set e_key = day.isoformat() ~ '_evening' %}
+                                <input type="checkbox"
+                                       class="slot-checkbox evening-slot"
+                                       name="slots"
+                                       id="slot-{{ e_key }}"
+                                       value="{{ e_key }}"
+                                       {% if e_key in saved_slots %}checked{% endif %}
+                                       {% if is_past %}disabled{% endif %}>
+
+                                <label class="slot-label" for="slot-{{ e_key }}">
+                                    04:00 PM – 09:00 PM
+                                </label>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
 
             <div class="text-end mt-4">
-                <button type="submit" class="btn btn-success btn-lg">
+                <button type="submit" class="btn-app btn-app-primary" id="save-btn">
                     Save Availability
                 </button>
             </div>
+
         </form>
         {% else %}
-            <p class="text-muted text-center mb-0">
+            <div class="text-center text-muted">
                 Availability cannot be set at this time.
-            </p>
+            </div>
         {% endif %}
+
     </div>
 </div>
 
+<!-- ================= JS ================= -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
     const applyAll = document.getElementById('apply-all-days');
     const morningSlots = document.querySelectorAll('.morning-slot');
     const eveningSlots = document.querySelectorAll('.evening-slot');
+    const form = document.getElementById('availability-form');
+    const saveBtn = document.getElementById('save-btn');
 
-    if (!applyAll || morningSlots.length === 0) return;
+    /* APPLY FIRST DAY TO ALL */
+    if (applyAll && morningSlots.length > 0) {
+        applyAll.addEventListener('change', function () {
 
-    applyAll.addEventListener('change', function () {
-        if (!this.checked) return;
+            if (!this.checked) return;
 
-        const firstMorning = morningSlots[0].checked;
-        const firstEvening = eveningSlots[0].checked;
+            const firstMorning = morningSlots[0].checked;
+            const firstEvening = eveningSlots[0].checked;
 
-        morningSlots.forEach(cb => cb.checked = firstMorning);
-        eveningSlots.forEach(cb => cb.checked = firstEvening);
-    });
+            morningSlots.forEach(cb => {
+                if (!cb.disabled) cb.checked = firstMorning;
+            });
+
+            eveningSlots.forEach(cb => {
+                if (!cb.disabled) cb.checked = firstEvening;
+            });
+        });
+    }
+
+    /* SAVE ANIMATION */
+    if (form) {
+        form.addEventListener('submit', function () {
+            saveBtn.classList.add('loading');
+        });
+    }
+
 });
 </script>
 
-{% endblock content %}
- 
+{% endblock %}

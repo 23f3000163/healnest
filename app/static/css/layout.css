@@ -1,248 +1,74 @@
-html {
-    scroll-behavior: smooth;
+/* =========================================================
+   HealNest Layout System
+   STRUCTURE ONLY (no colors, no theme)
+   ========================================================= */
+
+/* ------------------------------
+   Base Layout Structure
+------------------------------ */
+
+html, body {
+    height: 100%;
 }
 
-/* Enable smooth scrolling */
 body {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    padding-top: var(--navbar-height, 72px);
-    /* Adjust based on final navbar height */
 }
 
 main {
-    flex: 1;
+    flex: 1 0 auto;
+    padding-top: 50px; /* Fixed navbar offset */
 }
+
+/* ------------------------------
+   Navbar Structure
+------------------------------ */
 
 .navbar {
-    padding-top: 0.8rem;
-    padding-bottom: 0.8rem;
+    min-height: 70px;
 }
 
-/* Ensure dropdowns appear above other content */
-.dropdown-menu {
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-soft);
-    font-size: 0.85rem;
-}
-
-.dropdown-item:hover {
-    background-color: var(--brand-primary-soft);
+.navbar-brand img {
+    object-fit: contain;
 }
 
 .navbar .nav-link {
-    transition: color 0.2s ease-in-out, border-bottom 0.2s ease-in-out;
+    font-weight: 550;
 }
 
-
-.navbar .nav-link:hover {
-    color: var(--brand-primary-dark);
+.navbar .dropdown-menu {
+    border-radius: 10px;
 }
 
-.navbar .nav-link.active {
-    font-weight: 600;
-    color: var(--brand-primary) !important;
-    border-bottom: 2px solid var(--brand-primary);
+/* Compact search */
+.nav-search {
+    width: 300px;
 }
 
-/* Large Marketing Footer (for guests) */
-.footer-main {
-    background: #F1F4F6;
-    /* Slight gray-blue, medical clean */
-    padding: 3rem 0;
-    color: var(--text-medium);
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-
-
-.footer-main a {
-    color: var(--brand-primary);
-    transition: .2s;
-}
-
-.footer-logo {
+.nav-search input,
+.nav-search button {
     height: 38px;
-    width: auto;
+    border-radius: 10px;
 }
 
-.footer-main a:hover {
-    opacity: .7;
+/* ------------------------------
+   Footer Layout
+------------------------------ */
+
+footer {
+    flex-shrink: 0;
 }
 
-.footer-main .social-icon {
-    color: #ffffff;
-    background-color: #0d6efd;
-    width: 32px;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    margin-right: 10px;
-    transition: opacity 0.2s ease-in-out;
+/* ------------------------------
+   Dashboard Container Spacing
+------------------------------ */
+
+.dashboard-container {
+    padding-top: 2rem;
+    padding-bottom: 2.5rem;
 }
 
-.footer-main .social-icon:hover {
-    opacity: 0.8;
-}
-
-.footer-main h5 {
-    font-weight: 600;
-    color: var(--text-dark);
-}
-
-
-.footer-app {
-    background: #E7F3F1;
-    /* Soft teal-gray to separate UI area */
-    color: #4A5A5A !important;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    
-}
-
-.footer-app a,
-.footer-app small {
-    color: #adb5bd !important;
-    /* Force light color on links and small text */
-    text-decoration: none;
-    transition: color 0.2s ease-in-out;
-}
-
-.footer-app a:hover {
-    color: #ffffff !important;
-    /* Force bright white on hover */
-}
-
-
-.footer-app {
-    background-color: #347062;  /* Brand teal */
-    color: #ffffff;             /* White text */
-    padding: 14px 0;
-    font-size: 15px;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 -4px 20px rgba(47, 118, 101, 0.08);
-
-}
-
-/* Footer Text */
-.footer-app small {
-    color: #ffffff !important;
-    opacity: 0.95;
-    font-weight: 500;
-}
-
-/* Footer Links */
-.footer-app a {
-    color: #ffffff !important;
-    text-decoration: none;
-    font-weight: 500;
-    transition: 0.25s ease-in-out;
-}
-
-/* Hover effect */
-.footer-app a:hover {
-    text-decoration: underline;
-    opacity: 0.8;
-}
-
-/* Responsive cleanup */
-.footer-app .nav li {
-    margin-left: 12px;
-}
-
-
-/* Card hover effects, etc. */
-.hover-lift {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    box-shadow: var(--shadow-soft);
-    border-radius: var(--radius-md);
-}
-
-.hover-lift:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-hover) !important;
-}
-
-.icon-circle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-}
-
-.bg-danger-soft {
-    background-color: rgba(220, 53, 69, 0.1);
-}
-
-.bg-info-soft {
-    background-color: rgba(13, 202, 240, 0.1);
-}
-
-.bg-primary-soft {
-    background-color: rgba(13, 110, 253, 0.1);
-}
-
-.bg-secondary-soft {
-    background-color: rgba(108, 117, 125, 0.1);
-}
-
-.bg-success-soft {
-    background-color: rgba(25, 135, 84, 0.1);
-}
-
-.bg-warning-soft {
-    background-color: rgba(255, 193, 7, 0.1);
-}
-
-.text-primary-emphasis {
-    color: #052c65 !important;
-}
-
-.navbar-brand {
-    letter-spacing: 0.5px;
-    color: var(--brand-primary) !important;
-}
-
-
-.navbar-brand:hover {
-    opacity: 0.85;
-    transition: 0.2s;
-}
-
-.logo-icon {
-    height: 32px;
-    width: auto;
-    transform: translateY(2px);
-    /* aligns icon perfectly */
-}
-
-.logo-text {
-    font-family: "Cormorant Garamond", serif;
-    font-size: 28px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    color: #0D6EFD;
-    /* primary brand color */
-}
-
-.navbar-brand:hover {
-    opacity: 0.9;
-    text-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
-    transition: 0.2s ease;
-}
-
-.bg-dashboard {
-    background-color: var(--brand-bg-soft);
-}
-
-.navbar-brand {
-    margin-right: 10px !important;
-}
-
-.navbar-nav {
-    gap: 10px; /* reduces spacing between menu items */
+.section-block {
+    margin-bottom: 3rem;
 }

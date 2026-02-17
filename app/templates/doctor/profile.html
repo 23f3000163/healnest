@@ -1,132 +1,131 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<style>
-    .profile-card {
-        border-radius: 12px;
-        background: #fff;
-        padding: 2.5rem;
-        box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.06);
-    }
+<div class="page-container app-page">
 
-    .profile-avatar-large {
-        width: 110px;
-        height: 110px;
-        background-color: #d1e7dd;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 40px;
-        color: #2b6652;
-        margin: 0 auto;
-    }
+    {% set profile = current_user.doctor_profile %}
 
-    .form-label-bold {
-        font-weight: 600;
-        color: #1d3b32;
-    }
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header">
+        <div>
+            <h1>My Profile</h1>
+            <p class="page-subtitle">
+                Manage your professional information
+            </p>
+        </div>
 
-    textarea.form-control {
-        min-height: 120px;
-        resize: vertical;
-    }
-</style>
+        <a href="{{ url_for('doctor.dashboard') }}"
+           class="btn-app btn-app-outline">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+    </div>
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
 
-            <div class="card profile-card">
-                <div class="card-body">
+    <!-- ================= PROFILE OVERVIEW ================= -->
+    <div class="app-card mb-4">
 
-                    {% set profile = current_user.doctor_profile %}
+        <div class="row align-items-center">
 
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h3 class="fw-bold mb-1">
-                                Dr. {{ profile.full_name if profile else 'Profile Incomplete' }}
-                            </h3>
+            <!-- LEFT SIDE INFO -->
+            <div class="col-md-8">
 
-                            <p class="text-muted mb-1">
-                                {{ profile.qualifications or 'Qualifications not set' }}
-                            </p>
+                <h3 class="fw-bold mb-1">
+                    Dr. {{ profile.full_name if profile else 'Profile Incomplete' }}
+                </h3>
 
-                            <p class="text-primary fw-bold mb-3">
-                                {{ profile.department.name if profile and profile.department else 'Department not set' }}
-                            </p>
+                <p class="text-muted mb-1">
+                    {{ profile.qualifications or 'Qualifications not set' }}
+                </p>
 
-                            {% if profile and profile.experience_years %}
-                            <p class="fw-bold mb-3">
-                                {{ profile.experience_years }} Years Experience Overall
-                            </p>
-                            {% endif %}
+                <p class="dept-pill mb-3">
+                    {{ profile.department.name if profile and profile.department else 'Department not set' }}
+                </p>
 
-                            <p class="text-muted small">
-                                <i class="fas fa-phone me-1"></i>
-                                {{ profile.contact_number or 'No contact info' }}
-                            </p>
+                {% if profile and profile.experience_years %}
+                <p class="fw-semibold mb-3">
+                    {{ profile.experience_years }} Years Experience
+                </p>
+                {% endif %}
 
-                            <p class="text-muted small">
-                                {{ profile.bio or 'No bio available yet.' }}
-                            </p>
-                        </div>
+                <p class="text-muted small mb-1">
+                    <i class="fas fa-phone me-1"></i>
+                    {{ profile.contact_number or 'No contact info' }}
+                </p>
 
-                        <div class="col-md-4 text-center">
-                            <div class="profile-avatar-large">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        </div>
-                    </div>
+                <p class="text-muted small">
+                    {{ profile.bio or 'No bio available yet.' }}
+                </p>
 
-                    <hr class="my-4">
+            </div>
 
-                    <h5 class="fw-bold mb-3">Edit Your Details</h5>
-
-                    <form method="POST">
-                        {{ form.hidden_tag() }}
-
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                {{ form.full_name.label(class="form-label form-label-bold") }}
-                                {{ form.full_name(class="form-control") }}
-                            </div>
-
-                            <div class="col-md-6">
-                                {{ form.experience_years.label(class="form-label form-label-bold") }}
-                                {{ form.experience_years(class="form-control") }}
-                            </div>
-
-                            <div class="col-md-6">
-                                {{ form.contact_number.label(class="form-label form-label-bold") }}
-                                {{ form.contact_number(class="form-control") }}
-                            </div>
-
-                            <div class="col-12">
-                                {{ form.qualifications.label(class="form-label form-label-bold") }}
-                                {{ form.qualifications(class="form-control") }}
-                            </div>
-
-                            <div class="col-12">
-                                {{ form.bio.label(class="form-label form-label-bold") }}
-                                {{ form.bio(class="form-control") }}
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ url_for('doctor.dashboard') }}"
-                               class="btn btn-outline-secondary">
-                                Go Back
-                            </a>
-                            {{ form.submit(class="btn btn-primary") }}
-                        </div>
-                    </form>
-
+            <!-- RIGHT SIDE AVATAR -->
+            <div class="col-md-4 text-center">
+                <div class="avatar"
+                     style="width:110px;height:110px;font-size:32px;margin:auto;">
+                    {{ profile.full_name[:1]|upper if profile else 'D' }}
                 </div>
             </div>
 
         </div>
+
     </div>
+
+
+    <!-- ================= EDIT FORM ================= -->
+    <div class="app-card">
+
+        <h5 class="fw-semibold mb-4">
+            Edit Your Details
+        </h5>
+
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+                    {{ form.full_name.label(class="form-label fw-semibold") }}
+                    {{ form.full_name(class="form-control") }}
+                </div>
+
+                <div class="col-md-6">
+                    {{ form.experience_years.label(class="form-label fw-semibold") }}
+                    {{ form.experience_years(class="form-control") }}
+                </div>
+
+                <div class="col-md-6">
+                    {{ form.contact_number.label(class="form-label fw-semibold") }}
+                    {{ form.contact_number(class="form-control") }}
+                </div>
+
+                <div class="col-12">
+                    {{ form.qualifications.label(class="form-label fw-semibold") }}
+                    {{ form.qualifications(class="form-control") }}
+                </div>
+
+                <div class="col-12">
+                    {{ form.bio.label(class="form-label fw-semibold") }}
+                    {{ form.bio(class="form-control", rows="4") }}
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+
+                <a href="{{ url_for('doctor.dashboard') }}"
+                   class="btn-app btn-app-outline">
+                    Cancel
+                </a>
+
+                {{ form.submit(class="btn-app btn-app-primary") }}
+
+            </div>
+
+        </form>
+
+    </div>
+
 </div>
 
-{% endblock content %}
+{% endblock %}

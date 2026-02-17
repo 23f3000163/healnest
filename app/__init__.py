@@ -4,6 +4,7 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 app = Flask(__name__)
+from datetime import datetime
 
 
 app.config['SECRET_KEY'] = 'a_super_secret_key_change_in_production'
@@ -63,11 +64,31 @@ from app.routes import main_routes, admin_routes, doctor_routes, patient_routes
 def force_password_change():
     if (
         current_user.is_authenticated
-        and current_user.is_temp_password
-        and request.endpoint not in [
-            "main.change_password",
-            "main.logout",
-            "static"
-        ]
+        and current_user.role == "doctor"
+        and current_user.must_change_password
+        and request.endpoint != "doctor.change_password"
+        and not request.endpoint.startswith("static")
     ):
-        return redirect(url_for("main.change_password"))
+        return redirect(url_for("doctor.change_password"))
+
+
+
+@app.context_processor
+def navbar_context():
+    if current_user.is_authenticated:
+        unread = models.Notification.query.filter_by(
+            user_id=current_user.id,
+            is_read=False
+        ).all()
+        return {
+            "notification_count": len(unread),
+            "unread_notifications": unread[:5]
+        }
+    return {
+        "notification_count": 0,
+        "unread_notifications": []
+    }
+
+@app.context_processor
+def inject_globals():
+    return {"current_year": datetime.now().year}
