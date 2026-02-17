@@ -16,6 +16,7 @@ from app.forms import (
 )
 
 from . import main_bp
+from app.routes.main_routes import *
 
 
 # ---------------------------
@@ -24,10 +25,7 @@ from . import main_bp
 @main_bp.route("/")
 @main_bp.route("/home")
 def home():
-    """
-    Handles the homepage.
-    Redirects authenticated users to their role-based dashboard.
-    """
+    
     if current_user.is_authenticated:
         if current_user.role == "admin":
             return redirect(url_for("admin.dashboard"))
@@ -87,12 +85,12 @@ def login():
 
         if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
 
-             # 🚫 BLOCK deleted users FIRST
+             #  BLOCK deleted users FIRST
             if user.is_deleted:
                 flash("This account has been deleted.", "danger")
                 return redirect(url_for("main.login"))
 
-            # 🚫 BLOCK inactive users
+            #  BLOCK inactive users
             if not user.is_active:
                 flash("Your account is inactive.", "danger")
                 return redirect(url_for("main.login"))
@@ -104,7 +102,7 @@ def login():
 
             login_user(user, remember=form.remember.data)
 
-            # ✅ FORCE password change ONLY for doctors
+            #  FORCE password change ONLY for doctors
             if (
                 user.role == "doctor"
                 and user.must_change_password

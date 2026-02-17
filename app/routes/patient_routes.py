@@ -58,7 +58,7 @@ def dashboard():
 
     return render_template(
         "patient/dashboard.html",
-        departments=departments,  # ✅ THIS WAS MISSING
+        departments=departments,  # 
         upcoming_appointments=upcoming_appointments,
         past_appointments=past_appointments,
         today=date.today()
@@ -107,9 +107,9 @@ def my_history():
     return render_template(
         'shared/patient_history.html',
         title='My Appointment History',
-        patient=current_user,      # Used in template
-        history=history,           # Appointment list
-        patient_age=patient_age,   # Age display
+        patient=current_user,      
+        history=history,           
+        patient_age=patient_age,   
         back_url=url_for('patient.dashboard')
     )
 
@@ -154,11 +154,26 @@ def profile():
 @login_required
 def department_details(department_id):
     department = models.Department.query.get_or_404(department_id)
-    return render_template(
-        'patient/department_details.html',
-        title=department.name,
-        department=department
+
+    #  Only active + non-deleted doctors
+    doctors = (
+        models.DoctorProfile.query
+        .join(models.User)
+        .filter(
+            models.DoctorProfile.department_id == department.id,
+            models.User.is_deleted == False,
+            models.User.is_active == True
+        )
+        .all()
     )
+
+    return render_template(
+        "patient/department_details.html",
+        title=department.name,
+        department=department,
+        doctors=doctors
+    )
+
 
 
 @patient_bp.route('/doctor/<int:doctor_profile_id>')

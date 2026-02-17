@@ -41,7 +41,7 @@
     <!-- ================= DOCTORS TABLE ================= -->
     <div class="app-card table-card">
 
-        {% if department.doctors %}
+        {% if doctors %}
 
         <table class="data-table">
             <thead>
@@ -53,7 +53,7 @@
             </thead>
 
             <tbody>
-                {% for doc_profile in department.doctors %}
+                {% for doc_profile in doctors %}
                 <tr>
 
                     <!-- DOCTOR INFO -->

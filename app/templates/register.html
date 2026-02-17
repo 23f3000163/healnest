@@ -10,7 +10,7 @@
             HealNest
         </h1>
         <p class="page-subtitle">
-            Create your account to manage appointments seamlessly.
+            Create your account.
         </p>
     </div>
 
@@ -24,9 +24,9 @@
             <div class="mb-3">
                 {{ form.email.label(class="form-label fw-semibold") }}
                 {{ form.email(class="form-control",
-                              id="emailField",
-                              placeholder="name@example.com",
-                              autocomplete="email") }}
+                id="emailField",
+                placeholder="name@example.com",
+                autocomplete="email") }}
                 <small id="emailFeedback" class="text-danger d-none">
                     Please enter a valid email.
                 </small>
@@ -38,20 +38,19 @@
 
                 <div class="input-group">
                     {{ form.password(class="form-control",
-                                     id="passwordField",
-                                     placeholder="Create a strong password",
-                                     autocomplete="new-password") }}
-                    <button type="button"
-                            class="btn btn-outline-secondary"
-                            id="togglePassword">
+                    id="passwordField",
+                    type="password",
+                    placeholder="Create a strong password",
+                    autocomplete="new-password") }}
+
+                    <button type="button" class="btn btn-outline-secondary" id="togglePassword">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
 
                 <!-- Strength Bar -->
                 <div class="mt-3" style="height:6px; background:#e5e7eb; border-radius:999px;">
-                    <div id="strengthBar"
-                         style="height:6px; width:0%; border-radius:999px; transition:0.3s;">
+                    <div id="strengthBar" style="height:6px; width:0%; border-radius:999px; transition:0.3s;">
                     </div>
                 </div>
 
@@ -64,18 +63,16 @@
             <div class="mb-4">
                 {{ form.confirm_password.label(class="form-label fw-semibold") }}
                 {{ form.confirm_password(class="form-control",
-                                         id="confirmField",
-                                         placeholder="Re-enter password",
-                                         autocomplete="new-password") }}
+                id="confirmField",
+                placeholder="Re-enter password",
+                autocomplete="new-password") }}
                 <small id="confirmFeedback" class="text-danger d-none">
                     Passwords do not match.
                 </small>
             </div>
 
             <!-- SUBMIT -->
-            <button id="submitBtn"
-                    class="btn-app btn-app-primary w-100"
-                    disabled>
+            <button id="submitBtn" class="btn-app btn-app-primary w-100" disabled>
                 Create Account
             </button>
 
@@ -96,8 +93,7 @@
         <div class="text-center">
             <small class="text-muted">
                 Already have an account?
-                <a href="{{ url_for('main.login') }}"
-                   class="fw-semibold text-decoration-none">
+                <a href="{{ url_for('main.login') }}" class="fw-semibold text-decoration-none">
                     Login
                 </a>
             </small>
@@ -111,95 +107,87 @@
 
 {% block scripts %}
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
 
-// PASSWORD TOGGLE
-const togglePassword = document.getElementById("togglePassword");
-const passwordField = document.getElementById("passwordField");
+        const passwordField = document.querySelector("#passwordField");
+        const toggleBtn = document.querySelector("#togglePassword");
+        const strengthBar = document.querySelector("#strengthBar");
+        const confirmField = document.querySelector("#confirmField");
+        const submitBtn = document.querySelector("#submitBtn");
+        const emailField = document.querySelector("#emailField");
 
-togglePassword.addEventListener("click", () => {
-    const type = passwordField.type === "password" ? "text" : "password";
-    passwordField.type = type;
-    togglePassword.innerHTML =
-        type === "password"
-            ? '<i class="fas fa-eye"></i>'
-            : '<i class="fas fa-eye-slash"></i>';
-});
+        if (!passwordField) {
+            console.log("Password field not found");
+            return;
+        }
 
-// PASSWORD STRENGTH
-const strengthBar = document.getElementById("strengthBar");
+        /* ==========================
+           PASSWORD TOGGLE (100% FIXED)
+        ========================== */
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", function (e) {
+                e.preventDefault();
 
-passwordField.addEventListener("input", () => {
-    const password = passwordField.value;
-    let score = 0;
+                if (passwordField.type === "password") {
+                    passwordField.type = "text";
+                    toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    passwordField.type = "password";
+                    toggleBtn.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            });
+        }
 
-    if (password.length >= 8) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
+        /* ==========================
+           PASSWORD STRENGTH (RELIABLE)
+        ========================== */
+        passwordField.addEventListener("input", function () {
 
-    const widthMap = ["25%", "50%", "75%", "100%"];
-    const colorMap = ["#dc3545", "#f59e0b", "#3b82f6", "#16a34a"];
+            const password = passwordField.value;
+            let score = 0;
 
-    strengthBar.style.width = widthMap[score - 1] || "0%";
-    strengthBar.style.background = colorMap[score - 1] || "#e5e7eb";
+            if (password.length >= 8) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
 
-    validateForm();
-});
+            const percent = score * 25;
 
-// CONFIRM PASSWORD
-const confirmField = document.getElementById("confirmField");
-const confirmFeedback = document.getElementById("confirmFeedback");
+            strengthBar.style.width = percent + "%";
 
-function validateConfirm() {
-    if (!confirmField.value) return;
+            if (percent <= 25) {
+                strengthBar.style.background = "#dc3545";
+            } else if (percent === 50) {
+                strengthBar.style.background = "#f59e0b";
+            } else if (percent === 75) {
+                strengthBar.style.background = "#3b82f6";
+            } else if (percent === 100) {
+                strengthBar.style.background = "#16a34a";
+            } else {
+                strengthBar.style.background = "#e5e7eb";
+            }
 
-    if (confirmField.value === passwordField.value) {
-        confirmField.classList.remove("is-invalid");
-        confirmField.classList.add("is-valid");
-        confirmFeedback.classList.add("d-none");
-    } else {
-        confirmField.classList.remove("is-valid");
-        confirmField.classList.add("is-invalid");
-        confirmFeedback.classList.remove("d-none");
-    }
+            validateForm();
+        });
 
-    validateForm();
-}
+        /* ==========================
+           CONFIRM MATCH
+        ========================== */
+        confirmField.addEventListener("input", validateForm);
+        emailField.addEventListener("input", validateForm);
 
-passwordField.addEventListener("input", validateConfirm);
-confirmField.addEventListener("input", validateConfirm);
+        function validateForm() {
 
-// EMAIL VALIDATION
-const emailField = document.getElementById("emailField");
-const emailFeedback = document.getElementById("emailFeedback");
+            const strongEnough = passwordField.value.length >= 8;
+            const passwordsMatch = passwordField.value === confirmField.value;
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailField.value);
 
-emailField.addEventListener("blur", () => {
-    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailField.value);
+            submitBtn.disabled = !(strongEnough && passwordsMatch && emailValid);
+        }
 
-    if (!valid) {
-        emailField.classList.add("is-invalid");
-        emailFeedback.classList.remove("d-none");
-    } else {
-        emailField.classList.remove("is-invalid");
-        emailFeedback.classList.add("d-none");
-    }
+    });
 
-    validateForm();
-});
-
-// ENABLE BUTTON
-const submitBtn = document.getElementById("submitBtn");
-
-function validateForm() {
-    const strongEnough =
-        strengthBar.style.width === "75%" ||
-        strengthBar.style.width === "100%";
-
-    const emailValid = !emailField.classList.contains("is-invalid");
-    const confirmValid = confirmField.classList.contains("is-valid");
-
-    submitBtn.disabled = !(strongEnough && emailValid && confirmValid);
-}
+    console.log("Script loaded");
 
 </script>
 {% endblock %}

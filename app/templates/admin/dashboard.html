@@ -18,7 +18,8 @@
                 <i class="fa-solid fa-user-doctor"></i>
             </div>
             <div class="metric-title">Registered Doctors</div>
-            <div class="metric-value">{{ doctors|length }}</div>
+            <div class="metric-value">{{ doctor_count }}</div>
+
         </div>
 
         <div class="metric-card metric-patients">
@@ -26,7 +27,8 @@
                 <i class="fa-solid fa-users"></i>
             </div>
             <div class="metric-title">Total Patients</div>
-            <div class="metric-value">{{ patients|length }}</div>
+            <div class="metric-value">{{ patient_count }}</div>
+
         </div>
 
         <div class="metric-card metric-appointments">
@@ -34,7 +36,8 @@
                 <i class="fa-solid fa-calendar-check"></i>
             </div>
             <div class="metric-title">Upcoming Appointments</div>
-            <div class="metric-value">{{ appointments|length }}</div>
+            <div class="metric-value">{{ appointment_count }}</div>
+
         </div>
 
     </div>
@@ -406,11 +409,11 @@
 
                 <!-- Status Dynamic -->
                 <div>
-                    {% if appt.status == "Completed" %}
+                    {% if appt.status == "COMPLETED" %}
                     <span class="status-pill status-completed">
                         <i class="fas fa-check-circle"></i> Completed
                     </span>
-                    {% elif appt.status == "Cancelled" %}
+                    {% elif appt.status == "CANCELLED" %}
                     <span class="status-pill status-cancelled">
                         <i class="fas fa-times-circle"></i> Cancelled
                     </span>
@@ -424,7 +427,7 @@
                 <!-- Actions -->
                 <div class="row-actions">
 
-                    <a href="{{ url_for('admin.view_patient_history', user_id=appt.patient.id) }}"
+                    <a href="{{ url_for('admin.view_patient_history', patient_id=appt.patient.id) }}"
                         class="action-btn action-view">
                         <i class="fas fa-eye"></i> View
                     </a>

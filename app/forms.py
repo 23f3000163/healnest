@@ -102,7 +102,7 @@ class DepartmentForm(FlaskForm):
     description = TextAreaField('Description', render_kw={"rows": 3})
     submit = SubmitField('Add Department')
 
-    # Custom validation to prevent creating duplicate departments
+    
     def validate_name(self, name):
         dept = Department.query.filter_by(name=name.data).first()
         if dept:

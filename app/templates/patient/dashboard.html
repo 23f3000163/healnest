@@ -114,7 +114,9 @@
             </div>
 
             {% for appt in upcoming_appointments %}
-            {% set is_today = appt.appointment_datetime.date() == now().date() %}
+            {% set is_today = appt.appointment_datetime.date() == today %}
+
+
 
             <div class="table-row {% if is_today %}today-highlight{% endif %}">
 

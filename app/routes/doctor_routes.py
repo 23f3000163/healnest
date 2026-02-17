@@ -323,7 +323,7 @@ def change_password():
         # Set new password
         current_user.set_password(form.new_password.data)
 
-        # ✅ IMPORTANT FLAGS RESET
+        #  IMPORTANT FLAGS RESET
         current_user.is_temp_password = False
         current_user.must_change_password = False
 
@@ -369,7 +369,7 @@ def get_available_slots(doctor_profile, selected_date):
 
     booked_times = {appt.appointment_datetime for appt in booked_appointments}
 
-    # 🔥 CORRECT availability fetch
+    #  CORRECT availability fetch
     availability = Availability.query.filter_by(
         doctor_profile_id=doctor_profile.id,
         available_date=selected_date
