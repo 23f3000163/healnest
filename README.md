@@ -78,3 +78,33 @@ healnest/
 ├── requirements.txt     # Dependencies
 ├── Procfile             # Render/Heroku Deployment
 └── README.md            # Documentation
+
+
+---
+
+## 🚀 Local Installation
+
+### 1. Clone the Repository
+```bash
+git clone [https://github.com/your-username/healnest.git](https://github.com/your-username/healnest.git)
+cd healnest
+
+2. Create Virtual Environment
+
+Windows:
+python -m venv venv
+.\venv\Scripts\activate
+
+Mac/Linux:
+python3 -m venv venv
+source venv/bin/activate
+
+3. Install Dependencies
+pip install -r requirements.txt
+
+4. Initialize Database
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
+
+5. Run the Application
