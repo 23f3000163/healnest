@@ -1,10 +1,16 @@
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 from flask import Flask, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
+
+# =========================
+# Load Environment Variables
+# =========================
+load_dotenv()
 
 # =========================
 # Create App

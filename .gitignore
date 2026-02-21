@@ -88,3 +88,5 @@ MANIFEST
 # ==========================================================
 .DS_Store
 Thumbs.db
+
+RENDER_DEPLOYMENT.md
