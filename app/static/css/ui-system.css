@@ -536,7 +536,64 @@ body {
    GLOBAL OVERFLOW FIX (CRITICAL)
 ========================================= */
 
-html,
-body {
+.dashboard-container,
+.page-container {
     overflow-x: hidden;
+}
+
+
+/* =========================================
+   MOBILE TABLE FIX (Professional Safe)
+========================================= */
+
+@media (max-width: 768px) {
+
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .doctor-table .table-header,
+    .doctor-table .table-row,
+    .patient-table .table-header,
+    .patient-table .table-row,
+    .appointment-table .table-header,
+    .appointment-table .table-row {
+        min-width: 720px;
+    }
+
+}
+
+.app-page .data-table td:last-child,
+.app-page .data-table th:last-child {
+    text-align: right;
+}
+
+/* =========================================
+   MOBILE DROPDOWN FIX — FINAL
+========================================= */
+
+@media (max-width: 992px) {
+
+    .navbar-collapse {
+        position: relative;
+    }
+
+    .navbar-collapse .dropdown {
+        width: 100%;
+    }
+
+    .navbar-collapse .dropdown-menu {
+        position: static !important;
+        width: 100%;
+        margin-top: 8px;
+        border-radius: 10px;
+        box-shadow: none;
+    }
+
+    .navbar-collapse .dropdown-toggle {
+        width: 100%;
+        justify-content: space-between;
+    }
+
 }

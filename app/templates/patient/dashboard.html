@@ -1,20 +1,29 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="dashboard-container">
+<div class="dashboard-container app-page">
 
     <!-- ================= HEADER ================= -->
-    <div class="dashboard-header d-flex justify-content-between align-items-center">
+    <div class="page-header">
 
         <div>
             <h1>Patient Dashboard</h1>
-            <p>Manage your appointments and find doctors by department</p>
+            <p class="page-subtitle">
+                Welcome,
+                {% if current_user.patient_profile and current_user.patient_profile.full_name %}
+                {{ current_user.patient_profile.full_name }}
+                {% else %}
+                {{ current_user.email }}
+                {% endif %}
+            </p>
         </div>
 
-        <a href="{{ url_for('patient.my_history') }}" class="btn-app btn-app-primary">
-            <i class="fas fa-file-medical"></i>
-            View Full History
-        </a>
+        <div class="page-actions">
+            <a href="{{ url_for('patient.my_history') }}" class="btn-app btn-app-primary">
+                <i class="fas fa-file-medical"></i>
+                View Full History
+            </a>
+        </div>
 
     </div>
 
@@ -28,64 +37,63 @@
 
         {% if departments %}
         <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
 
-            <div class="table-header" style="display:grid; grid-template-columns: 2fr 1fr;">
-                <div>Department</div>
-                <div class="text-end">Action</div>
-            </div>
+                <tbody>
+                    {% for dept in departments %}
 
-            {% for dept in departments %}
+                    {% set dept_name = dept.name.lower() %}
 
-            {% set dept_name = dept.name.lower() %}
+                    {% if "cardio" in dept_name %}
+                    {% set icon = "fa-heartbeat" %}
+                    {% set color_class = "dept-cardiology" %}
+                    {% elif "neuro" in dept_name %}
+                    {% set icon = "fa-brain" %}
+                    {% set color_class = "dept-neurology" %}
+                    {% elif "ortho" in dept_name %}
+                    {% set icon = "fa-bone" %}
+                    {% set color_class = "dept-orthopedics" %}
+                    {% elif "pedia" in dept_name %}
+                    {% set icon = "fa-baby" %}
+                    {% set color_class = "dept-pediatrics" %}
+                    {% else %}
+                    {% set icon = "fa-stethoscope" %}
+                    {% set color_class = "" %}
+                    {% endif %}
 
-            {% if "cardio" in dept_name %}
-            {% set icon = "fa-heartbeat" %}
-            {% set color_class = "dept-cardiology" %}
-            {% elif "neuro" in dept_name %}
-            {% set icon = "fa-brain" %}
-            {% set color_class = "dept-neurology" %}
-            {% elif "ortho" in dept_name %}
-            {% set icon = "fa-bone" %}
-            {% set color_class = "dept-orthopedics" %}
-            {% elif "pedia" in dept_name %}
-            {% set icon = "fa-baby" %}
-            {% set color_class = "dept-pediatrics" %}
-            {% else %}
-            {% set icon = "fa-stethoscope" %}
-            {% set color_class = "" %}
-            {% endif %}
+                    <tr>
+                        <td>
+                            <div class="row-user">
+                                <div class="avatar-circle {{ color_class }}">
+                                    <i class="fas {{ icon }}"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ dept.name }}</strong>
+                                    <div class="text-muted">
+                                        {{ dept.description or 'Explore doctors in this department' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
 
-            <div class="table-row" style="display:grid; grid-template-columns: 2fr 1fr; align-items:center;">
+                        <td class="text-end">
+                            <a href="{{ url_for('patient.department_details', department_id=dept.id) }}"
+                                class="action-btn action-edit">
+                                <i class="fas fa-eye"></i> View Doctors
+                            </a>
+                        </td>
+                    </tr>
 
-                <!-- DEPARTMENT -->
-                <div class="row-user">
-                    <div class="avatar {{ color_class }}">
-                        <i class="fas {{ icon }}"></i>
-                    </div>
-
-                    <div class="row-user-info">
-                        <strong>{{ dept.name }}</strong>
-                        <span class="col-email">
-                            {{ dept.description or 'Explore doctors in this department' }}
-                        </span>
-                    </div>
-                </div>
-
-                <!-- ACTION -->
-                <div class="row-actions">
-                    <a href="{{ url_for('patient.department_details', department_id=dept.id) }}"
-                        class="action-btn action-edit">
-                        <i class="fas fa-eye"></i> View Doctors
-                    </a>
-                </div>
-
-            </div>
-
-            {% endfor %}
-
-
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
         {% else %}
         <div class="card-empty">
             No departments available.
@@ -103,83 +111,79 @@
         </div>
 
         {% if upcoming_appointments %}
-        <div class="table-wrapper appointment-table">
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
 
-            <div class="table-header">
-                <div>Doctor</div>
-                <div>Date</div>
-                <div>Time</div>
-                <div>Status</div>
-                <div class="text-end">Actions</div>
-            </div>
+                <tbody>
+                    {% for appt in upcoming_appointments %}
+                    {% set is_today = appt.appointment_datetime.date() == today %}
 
-            {% for appt in upcoming_appointments %}
-            {% set is_today = appt.appointment_datetime.date() == today %}
+                    <tr class="{% if is_today %}today-highlight{% endif %}">
 
+                        <td>
+                            <div class="row-user">
+                                <div class="avatar">
+                                    {{ appt.doctor.doctor_profile.full_name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <strong>Dr. {{ appt.doctor.doctor_profile.full_name }}</strong>
+                                    <div class="text-muted">
+                                        {{ appt.doctor.email }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
 
+                        <td>
+                            {{ appt.appointment_datetime.strftime('%d %b %Y') }}
+                            {% if is_today %}
+                            <span class="today-badge">Today</span>
+                            {% endif %}
+                        </td>
 
-            <div class="table-row {% if is_today %}today-highlight{% endif %}">
+                        <td>
+                            {{ appt.appointment_datetime.strftime('%I:%M %p') }}
+                        </td>
 
-                <!-- DOCTOR -->
-                <div class="row-user">
-                    <div class="avatar">
-                        {{ appt.doctor.doctor_profile.full_name[:1]|upper }}
-                    </div>
-                    <div class="row-user-info">
-                        <strong>
-                            Dr. {{ appt.doctor.doctor_profile.full_name }}
-                        </strong>
-                        <span class="col-email">
-                            {{ appt.doctor.email }}
-                        </span>
-                    </div>
-                </div>
+                        <td>
+                            {% if appt.status == "BOOKED" %}
+                            <span class="status-pill status-pending">Booked</span>
+                            {% elif appt.status == "CONFIRMED" %}
+                            <span class="status-pill status-active">Confirmed</span>
+                            {% elif appt.status == "CANCELLED" %}
+                            <span class="status-pill status-cancelled">Cancelled</span>
+                            {% else %}
+                            <span class="status-pill">{{ appt.status }}</span>
+                            {% endif %}
+                        </td>
 
-                <!-- DATE -->
-                <div class="row-date">
-                    {{ appt.appointment_datetime.strftime('%d %b %Y') }}
-                    {% if is_today %}
-                    <span class="today-badge">Today</span>
-                    {% endif %}
-                </div>
+                        <td class="text-end">
+                            {% if appt.status != "CANCELLED" %}
+                            <form action="{{ url_for('patient.cancel_appointment', appointment_id=appt.id) }}"
+                                method="POST" onsubmit="return confirm('Cancel this appointment?');" class="d-inline">
+                                <button class="action-btn action-delete">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
 
-                <!-- TIME -->
-                <div class="row-time">
-                    {{ appt.appointment_datetime.strftime('%I:%M %p') }}
-                </div>
-
-                <!-- STATUS -->
-                <div>
-                    {% if appt.status == "BOOKED" %}
-                    <span class="status-pill status-pending">Booked</span>
-                    {% elif appt.status == "CONFIRMED" %}
-                    <span class="status-pill status-active">Confirmed</span>
-                    {% elif appt.status == "CANCELLED" %}
-                    <span class="status-pill status-cancelled">Cancelled</span>
-                    {% else %}
-                    <span class="status-pill">{{ appt.status }}</span>
-                    {% endif %}
-                </div>
-
-                <!-- ACTION -->
-                <div class="row-actions">
-                    {% if appt.status != "CANCELLED" %}
-                    <form action="{{ url_for('patient.cancel_appointment', appointment_id=appt.id) }}" method="POST"
-                        onsubmit="return confirm('Cancel this appointment?');">
-                        <button class="action-btn action-delete">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </form>
-                    {% else %}
-                    <span class="text-muted">—</span>
-                    {% endif %}
-                </div>
-
-            </div>
-            {% endfor %}
-
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
         {% else %}
         <div class="card-empty">
             No upcoming appointments.
@@ -197,58 +201,57 @@
         </div>
 
         {% if past_appointments %}
-        <div class="table-wrapper appointment-table">
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
 
-            <div class="table-header">
-                <div>Doctor</div>
-                <div>Date</div>
-                <div>Time</div>
-                <div>Status</div>
-                <div></div>
-            </div>
+                <tbody>
+                    {% for appt in past_appointments %}
 
-            {% for appt in past_appointments %}
+                    <tr>
 
-            <div class="table-row">
+                        <td>
+                            <div class="row-user">
+                                <div class="avatar">
+                                    {{ appt.doctor.doctor_profile.full_name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <strong>Dr. {{ appt.doctor.doctor_profile.full_name }}</strong>
+                                </div>
+                            </div>
+                        </td>
 
-                <div class="row-user">
-                    <div class="avatar">
-                        {{ appt.doctor.doctor_profile.full_name[:1]|upper }}
-                    </div>
-                    <div class="row-user-info">
-                        <strong>
-                            Dr. {{ appt.doctor.doctor_profile.full_name }}
-                        </strong>
-                    </div>
-                </div>
+                        <td>{{ appt.appointment_datetime.strftime('%d %b %Y') }}</td>
+                        <td>{{ appt.appointment_datetime.strftime('%I:%M %p') }}</td>
 
-                <div class="row-date">
-                    {{ appt.appointment_datetime.strftime('%d %b %Y') }}
-                </div>
+                        <td>
+                            {% if appt.status == "COMPLETED" %}
+                            <span class="status-pill status-completed">Completed</span>
+                            {% elif appt.status == "CANCELLED" %}
+                            <span class="status-pill status-cancelled">Cancelled</span>
+                            {% elif appt.status == "BOOKED" %}
+                            <span class="status-pill status-pending">Missed</span>
+                            {% else %}
+                            <span class="status-pill">{{ appt.status }}</span>
+                            {% endif %}
+                        </td>
 
-                <div class="row-time">
-                    {{ appt.appointment_datetime.strftime('%I:%M %p') }}
-                </div>
+                        <td></td>
 
-                <div>
-                    {% if appt.status == "COMPLETED" %}
-                    <span class="status-pill status-completed">Completed</span>
-                    {% elif appt.status == "CANCELLED" %}
-                    <span class="status-pill status-cancelled">Cancelled</span>
-                    {% elif appt.status == "BOOKED" %}
-                    <span class="status-pill status-pending">Missed</span>
-                    {% else %}
-                    <span class="status-pill">{{ appt.status }}</span>
-                    {% endif %}
-                </div>
+                    </tr>
 
-                <div></div>
-
-            </div>
-
-            {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
         {% else %}
         <div class="card-empty">
             No past appointments.

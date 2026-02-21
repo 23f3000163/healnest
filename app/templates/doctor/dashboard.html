@@ -1,10 +1,36 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="dashboard-container">
+<div class="dashboard-container app-page">
 
+    <!-- ================= DASHBOARD HEADER ================= -->
+    <div class="page-header">
+
+        <div>
+            <h1>Doctor Dashboard</h1>
+            <p class="page-subtitle">
+                Welcome back, Dr. {{ current_user.doctor_profile.full_name }}
+            </p>
+        </div>
+
+        <div class="page-actions">
+
+            <div class="status-pill status-active">
+                <i class="fas fa-user-md me-1"></i>
+                Active
+            </div>
+
+            <div class="status-pill" style="background:#eef2ff;color:#4f46e5;">
+                <i class="fas fa-calendar-check me-1"></i>
+                {{ upcoming_appointments|length }} Upcoming
+            </div>
+
+        </div>
+
+    </div>
     <!-- ================= UPCOMING APPOINTMENTS ================= -->
-    <div class="app-card mb-4">
+    <div class="app-card table-card mb-4">
+
         <div class="app-card-header">
             Upcoming Appointments
         </div>
@@ -12,84 +38,93 @@
         {% if upcoming_appointments %}
         <div class="table-wrapper appointment-table" id="appointments-container">
 
-            <div class="table-header">
-                <div>Patient</div>
-                <div>Date</div>
-                <div>Time</div>
-                <div>Status</div>
-                <div class="text-end">Actions</div>
-            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
 
-            {% for appt in upcoming_appointments %}
-            {% set is_today = appt.appointment_datetime.date() == today %}
+                <tbody>
+                    {% for appt in upcoming_appointments %}
+                    {% set is_today = appt.appointment_datetime.date() == today %}
 
-            <div class="table-row {% if is_today %}today-highlight{% endif %}">
+                    <tr class="{% if is_today %}today-highlight{% endif %}">
 
-                <!-- Patient -->
-                <div class="row-user">
-                    <div class="avatar">
-                        {{ appt.patient.patient_profile.full_name[:1]|upper }}
-                    </div>
-                    <div class="row-user-info">
-                        <strong>
-                            {{ appt.patient.patient_profile.full_name }}
-                        </strong>
-                    </div>
-                </div>
+                        <!-- Patient -->
+                        <td>
+                            <div class="row-user">
+                                <div class="avatar">
+                                    {{ appt.patient.patient_profile.full_name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <strong>
+                                        {{ appt.patient.patient_profile.full_name }}
+                                    </strong>
+                                </div>
+                            </div>
+                        </td>
 
-                <!-- Date -->
-                <div class="row-date">
-                    {{ appt.appointment_datetime.strftime('%d %b %Y') }}
-                    {% if is_today %}
-                        <span class="today-badge">Today</span>
-                    {% endif %}
-                </div>
+                        <!-- Date -->
+                        <td>
+                            {{ appt.appointment_datetime.strftime('%d %b %Y') }}
+                            {% if is_today %}
+                            <span class="today-badge ms-2">Today</span>
+                            {% endif %}
+                        </td>
 
-                <!-- Time -->
-                <div class="row-time">
-                    {{ appt.appointment_datetime.strftime('%I:%M %p') }}
-                </div>
+                        <!-- Time -->
+                        <td>
+                            {{ appt.appointment_datetime.strftime('%I:%M %p') }}
+                        </td>
 
-                <!-- Status -->
-                <div>
-                    <span class="status-pill status-pending">
-                        Booked
-                    </span>
-                </div>
+                        <!-- Status -->
+                        <td>
+                            <span class="status-pill status-pending">
+                                Booked
+                            </span>
+                        </td>
 
-                <!-- Actions -->
-                <div class="row-actions">
+                        <!-- Actions -->
+                        <td class="text-end">
+                            <div class="row-actions justify-content-end">
 
-                    <a href="{{ url_for('doctor.view_patient_history', patient_id=appt.patient_id) }}"
-                       class="action-btn action-edit">
-                        <i class="fas fa-history"></i> History
-                    </a>
+                                <a href="{{ url_for('doctor.view_patient_history', patient_id=appt.patient_id) }}"
+                                    class="action-btn action-edit">
+                                    <i class="fas fa-history"></i> History
+                                </a>
 
-                    <form action="{{ url_for('doctor.treat_patient', appointment_id=appt.id) }}" method="POST">
-                        <button class="action-btn action-activate">
-                            <i class="fas fa-check"></i> Complete
-                        </button>
-                    </form>
+                                <form action="{{ url_for('doctor.treat_patient', appointment_id=appt.id) }}"
+                                    method="POST" class="d-inline">
+                                    <button type="submit" class="action-btn action-activate">
+                                        <i class="fas fa-check"></i> Complete
+                                    </button>
+                                </form>
 
-                    <form action="{{ url_for('doctor.cancel_appointment', appointment_id=appt.id) }}"
-                          method="POST"
-                          onsubmit="return confirm('Cancel this appointment?');">
-                        <button class="action-btn action-delete">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </form>
+                                <form action="{{ url_for('doctor.cancel_appointment', appointment_id=appt.id) }}"
+                                    method="POST" class="d-inline"
+                                    onsubmit="return confirm('Cancel this appointment?');">
+                                    <button type="submit" class="action-btn action-delete">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </form>
 
-                </div>
-            </div>
+                            </div>
+                        </td>
 
-            {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
         </div>
 
-        <!-- Infinite scroll trigger -->
         {% if pagination.has_next %}
-        <div id="load-trigger"
-             data-next-page="{{ pagination.next_num }}"
-             style="height:40px;">
+        <div id="load-trigger" data-next-page="{{ pagination.next_num }}" style="height:40px;">
         </div>
         {% endif %}
 
@@ -102,7 +137,8 @@
 
 
     <!-- ================= ASSIGNED PATIENTS ================= -->
-    <div class="app-card">
+    <div class="app-card table-card">
+
         <div class="app-card-header">
             Assigned Patients
         </div>
@@ -110,41 +146,52 @@
         {% if patients %}
         <div class="table-wrapper patient-table">
 
-            <div class="table-header">
-                <div>Patient</div>
-                <div>Email</div>
-                <div class="text-end">Actions</div>
-            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Email</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
 
-            {% for patient in patients %}
-            <div class="table-row">
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
 
-                <div class="row-user">
-                    <div class="avatar">
-                        {{ patient.patient_profile.full_name[:1]|upper }}
-                    </div>
-                    <div class="row-user-info">
-                        <strong>
-                            {{ patient.patient_profile.full_name }}
-                        </strong>
-                    </div>
-                </div>
+                        <td>
+                            <div class="row-user">
+                                <div class="avatar">
+                                    {{ patient.patient_profile.full_name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <strong>
+                                        {{ patient.patient_profile.full_name }}
+                                    </strong>
+                                </div>
+                            </div>
+                        </td>
 
-                <div class="col-email">
-                    {{ patient.email }}
-                </div>
+                        <td>
+                            {{ patient.email }}
+                        </td>
 
-                <div class="row-actions">
-                    <a href="{{ url_for('doctor.view_patient_history', patient_id=patient.id) }}"
-                       class="action-btn action-edit">
-                        <i class="fas fa-user"></i> View History
-                    </a>
-                </div>
+                        <td class="text-end">
+                            <div class="row-actions justify-content-end">
+                                <a href="{{ url_for('doctor.view_patient_history', patient_id=patient.id) }}"
+                                    class="action-btn action-edit">
+                                    <i class="fas fa-user"></i> View History
+                                </a>
+                            </div>
+                        </td>
 
-            </div>
-            {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
 
         </div>
+
         {% else %}
         <div class="card-empty">
             You have no assigned patients yet.
@@ -152,49 +199,47 @@
         {% endif %}
     </div>
 
-</div>
 
+    <!-- ================= INFINITE SCROLL ================= -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
 
-<!-- ================= INFINITE SCROLL ================= -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
+            const trigger = document.getElementById("load-trigger");
+            if (!trigger) return;
 
-    const trigger = document.getElementById("load-trigger");
-    if (!trigger) return;
+            const observer = new IntersectionObserver((entries) => {
 
-    const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
 
-        if (entries[0].isIntersecting) {
+                    const nextPage = trigger.dataset.nextPage;
 
-            const nextPage = trigger.dataset.nextPage;
+                    fetch(`?page=${nextPage}`)
+                        .then(res => res.text())
+                        .then(html => {
 
-            fetch(`?page=${nextPage}`)
-                .then(res => res.text())
-                .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, "text/html");
 
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, "text/html");
+                            const newRows = doc.querySelectorAll("#appointments-container .table-row");
+                            const container = document.getElementById("appointments-container");
 
-                    const newRows = doc.querySelectorAll("#appointments-container .table-row");
-                    const container = document.getElementById("appointments-container");
+                            newRows.forEach(row => container.appendChild(row));
 
-                    newRows.forEach(row => container.appendChild(row));
+                            const newTrigger = doc.getElementById("load-trigger");
 
-                    const newTrigger = doc.getElementById("load-trigger");
+                            if (newTrigger) {
+                                trigger.dataset.nextPage = newTrigger.dataset.nextPage;
+                            } else {
+                                observer.disconnect();
+                                trigger.remove();
+                            }
+                        });
+                }
 
-                    if (newTrigger) {
-                        trigger.dataset.nextPage = newTrigger.dataset.nextPage;
-                    } else {
-                        observer.disconnect();
-                        trigger.remove();
-                    }
-                });
-        }
+            }, { threshold: 1.0 });
 
-    }, { threshold: 1.0 });
+            observer.observe(trigger);
+        });
+    </script>
 
-    observer.observe(trigger);
-});
-</script>
-
-{% endblock %}
+    {% endblock %}

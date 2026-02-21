@@ -39,7 +39,7 @@ body {
 .dashboard-container {
     max-width: 1350px;
     margin: 0 auto;
-    padding: 10px 12px;
+    padding: 0 20px 20px 20px;
 }
 
 
@@ -270,7 +270,7 @@ body {
 ========================================= */
 
 .table-wrapper {
-    padding: 0 24px 24px;
+    padding: 20px 28px 28px 28px;
     overflow-x: auto;
 }
 
@@ -299,12 +299,21 @@ body {
     align-items: center;
 }
 
+.doctor-table .table-header,
+.doctor-table .table-row,
+.patient-table .table-header,
+.patient-table .table-row,
+.appointment-table .table-header,
+.appointment-table .table-row {
+    column-gap: 32px;
+}
+
 /* =============================
    HEADER
 ============================= */
 
 .table-header {
-    padding: 16px 12px;
+    padding: 18px 12px 18px 12px;
     font-size: 12px;
     font-weight: 600;
     color: #64748b;
@@ -317,13 +326,18 @@ body {
 ============================= */
 
 .table-row {
-    padding: 18px 12px;
+    padding: 22px 12px;
     border-top: 1px solid #f1f5f9;
     transition: background 0.2s ease;
 }
 
 .table-row:hover {
     background: #f8fafc;
+}
+
+.table-header div:last-child,
+.table-row div:last-child {
+    text-align: right;
 }
 
 /* =============================
@@ -770,18 +784,11 @@ body {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
+        gap: 1px;
     }
 
     .app-card-header .btn-app-primary {
         align-self: center;
     }
 
-}
-
-@media (max-width: 768px) {
-    .donut-body {
-        flex-direction: column;
-        gap: 12px;
-    }
 }
