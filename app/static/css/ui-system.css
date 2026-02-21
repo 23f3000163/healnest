@@ -428,3 +428,115 @@ body {
     font-size: 0.75rem;
     opacity: 0.7;
 }
+
+
+/* =====================================================
+   FINAL RESPONSIVE SYSTEM — GLOBAL UI
+   Safe • Scalable • Mobile Optimized
+===================================================== */
+
+/* ---------- Page Header ---------- */
+@media (max-width: 992px) {
+    .page-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .page-actions {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .page-actions .btn-app {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+}
+
+/* ---------- Data Tables ---------- */
+@media (max-width: 992px) {
+
+    .app-page .data-table {
+        min-width: 720px;
+    }
+
+    .pagination-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+/* =====================================================
+   CLEAN MOBILE NAVBAR (FINAL)
+===================================================== */
+
+@media (max-width: 768px) {
+
+    .navbar-premium {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .navbar-collapse {
+        padding: 12px 0;
+    }
+
+    .navbar-nav .nav-link {
+        padding: 10px 14px;
+        font-size: 15px;
+    }
+
+    .navbar-search-wrapper {
+        margin: 10px 0;
+        width: 100%;
+    }
+
+    .navbar-search {
+        width: 100%;
+    }
+
+    .navbar-collapse .dropdown-menu {
+        position: static !important;
+        width: 100%;
+        margin-top: 8px;
+        box-shadow: none;
+        border-radius: 8px;
+    }
+
+}
+
+/* ---------- Small Screen Container Padding ---------- */
+
+@media (max-width: 576px) {
+
+    .page-container,
+    .dashboard-container {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+}
+
+@media (max-width: 768px) {
+    body {
+        background: #f8fafc;
+    }
+}
+
+.navbar-toggler {
+    border: none;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* =========================================
+   GLOBAL OVERFLOW FIX (CRITICAL)
+========================================= */
+
+html,
+body {
+    overflow-x: hidden;
+}

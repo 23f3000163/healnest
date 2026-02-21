@@ -115,7 +115,7 @@
 </div>
 
 <!-- 4. Medical Services Section -->
-<div class="container px-4 py-5 text-center bg-white rounded shadow-sm" id="services">
+<div class="container px-3 py-5 text-center bg-white rounded shadow-sm" id="services">
     <h2 class="fw-bold mb-3">Our Medical Services</h2>
     <p class="lead text-muted col-lg-8 mx-auto mb-5">Comprehensive healthcare services delivered by our team of
         specialists using state-of-the-art medical technology and equipment.</p>
@@ -482,14 +482,35 @@
 
     /* Responsive Hero */
     @media (max-width: 768px) {
+
         .hero-section {
-            padding: 0 20px;
+            min-height: 100svh;
+            padding: 90px 20px 60px;
             justify-content: center;
             text-align: center;
+            background-position: center;
+            
+        }
+
+        .hero-content {
+            max-width: 100%;
         }
 
         .hero-content h1 {
-            font-size: 2.5rem;
+            font-size: 2.1rem;
+            line-height: 1.2;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+
+        .hero-content p {
+            font-size: 1rem;
+        }
+
+        .hero-btn {
+            width: 100%;
+            justify-content: center;
+            font-size: 1rem;
+            padding: 14px;
         }
     }
 
@@ -614,7 +635,113 @@
     #about {
         padding-top: 80px;
     }
+
+    @media (max-width: 768px) {
+        .mt-n5 {
+            margin-top: 0 !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+
+        #about .btn-app {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+    }
+
+
+    @media (max-width: 768px) {
+
+        .container {
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+
+        section {
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+
+    }
+
+
+    @media (max-width: 576px) {
+
+        .hero-section {
+            min-height: 85vh;
+            padding: 100px 20px 60px;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .hero-content h1 {
+            font-size: 2.1rem;
+            line-height: 1.2;
+        }
+
+        .hero-content p {
+            font-size: 1rem;
+            margin-bottom: 24px;
+        }
+
+        .hero-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 14px;
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .container {
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+        }
+    }
+
+
+    @media (max-width: 576px) {
+
+        #about .btn-app {
+            width: 100%;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+
+        #about .mt-4 {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 576px) {
+
+        .card-body {
+            padding: 20px !important;
+        }
+
+        blockquote {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+
+        footer .row>div {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        footer .text-muted {
+            font-size: 0.9rem;
+        }
+    }
+
+    
 </style>
+
 
 
 

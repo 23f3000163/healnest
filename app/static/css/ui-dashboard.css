@@ -457,18 +457,18 @@ body {
     transition: 0.2s ease;
     white-space: nowrap;
     flex-wrap: nowrap;
-    
+
 }
 
 /* ===== EDIT  ===== */
 .action-edit {
-    background: #e3f2fd;  
-    color: #0d6efd;        
+    background: #e3f2fd;
+    color: #0d6efd;
 }
 
 .action-edit:hover {
-    background: #0d6efd;   
-    color: #ffffff;       
+    background: #0d6efd;
+    color: #ffffff;
 }
 
 /* ===== DELETE ===== */
@@ -650,3 +650,138 @@ body {
     margin-left: 8px;
 }
 
+
+/* =========================================
+   GLOBAL SAFETY (NON-BREAKING)
+========================================= */
+
+html,
+body {
+    overflow-x: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* =========================================
+   CHART SAFE WIDTH FIX (GLOBAL)
+========================================= */
+
+.chart-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.chart-container canvas {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* =========================================
+   FINAL MOBILE DASHBOARD SYSTEM
+   Clean • Balanced • Conflict-Free
+========================================= */
+
+@media (max-width: 768px) {
+
+    /* Body offset for fixed navbar */
+    body {
+        padding-top: 60px;
+    }
+
+    /* Container */
+    .dashboard-container {
+        padding: 16px;
+        max-width: 100%;
+    }
+
+    /* Header */
+    .dashboard-header {
+        margin-bottom: 24px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 24px;
+    }
+
+    /* KPI Cards */
+    .dashboard-metrics {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        padding: 22px;
+        border-radius: 16px;
+        max-width: 100%;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .quick-actions .btn-app {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Analytics */
+    .analytics-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .analytics-card {
+        padding: 18px;
+        max-width: 100%;
+    }
+
+    .analytics-body {
+        height: auto;
+        padding: 16px;
+    }
+
+    .analytics-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .analytics-toggle {
+        width: 100%;
+    }
+
+    .chart-container {
+        height: 240px;
+    }
+
+    /* Card Headers */
+    .app-card-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .app-card-header .btn-app-primary {
+        align-self: center;
+    }
+
+}
+
+@media (max-width: 768px) {
+    .donut-body {
+        flex-direction: column;
+        gap: 12px;
+    }
+}

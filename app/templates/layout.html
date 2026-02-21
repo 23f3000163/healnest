@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HealNest{% endblock %}</title>
 
     <!-- Bootstrap CSS -->
@@ -38,7 +39,7 @@
 
 
     <!-- ================= NAVBAR ================= -->
-    <nav class="navbar navbar-expand-lg fixed-top navbar-premium shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top navbar-premium shadow-sm">
         <div class="container">
 
             <!-- Brand -->
@@ -72,14 +73,10 @@
                     </li>
 
                     {% if current_user.role == 'admin' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_doctors') }}">Doctors</a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_patients') }}">Patients</a>
-                    </li>
+
                     <li class="nav-item"><a class="nav-link"
                             href="{{ url_for('admin.manage_appointments') }}">Appointments</a></li>
-                    <li class="nav-item"><a class="nav-link"
-                            href="{{ url_for('admin.manage_departments') }}">Departments</a></li>
+
                     {% endif %}
 
                     {% endif %}
